@@ -8,6 +8,8 @@ public class FriendButtonUI : MonoBehaviour
     [SerializeField] private Image buttonBackground;
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private PuppyPathSelectionUI selectionUI;
+    [SerializeField] private string pathId;
+    public string PathId => pathId;
 
     public string FriendName => string.IsNullOrEmpty(friendName) && nameText != null ? nameText.text : friendName;
 
