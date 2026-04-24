@@ -1,13 +1,13 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.UI;
-using System.Collections.Generic;
 
 public class NavigationController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private PathPreviewController previewController;
-    [SerializeField] private GameObject dogDummyPrefab;
+    [SerializeField] private NavigationRuntimeController runtimeController;
+    [SerializeField] private NavigationHUDController hudController;
+    [SerializeField] private PuppyPathSelectionUI selectionUI;
 
     [Header("Optional UI")]
     [SerializeField] private GameObject showPathButton;
@@ -16,20 +16,17 @@ public class NavigationController : MonoBehaviour
     [SerializeField] private TMP_Text previewTitleText;
     [SerializeField] private TMP_Text previewSubtitleText;
 
-    [Header("Dog Spawn")]
-    [SerializeField] private Vector3 dogSpawnOffset = Vector3.zero;
-
-    private GameObject currentDog;
     private string pendingPathId;
+    private string pendingTargetName = "Destination";
 
     public void SetPendingPathId(string pathId)
     {
         pendingPathId = pathId;
     }
 
-    public string GetPendingPathId()
+    public void SetPendingTargetName(string targetName)
     {
-        return pendingPathId;
+        pendingTargetName = targetName;
     }
 
     public void ShowPreview()
@@ -51,7 +48,7 @@ public class NavigationController : MonoBehaviour
             previewTitleText.text = "Please face the road ahead.";
 
         if (previewSubtitleText != null)
-            previewSubtitleText.text = "Here is the first part of your path. Ready to go?";
+            previewSubtitleText.text = "Here is your full path. Ready to go?";
     }
 
     public void CancelPreview()
@@ -71,71 +68,45 @@ public class NavigationController : MonoBehaviour
 
     public void StartNavigation()
     {
-        PathDefinition path = previewController.GetCurrentPathInstance();
-        Transform routeRoot = previewController.GetCurrentRouteRoot();
-
-        if (path == null || routeRoot == null)
+        if (runtimeController == null)
         {
-            Debug.LogWarning("NavigationController: preview path or route root missing.");
+            Debug.LogWarning("NavigationController: runtimeController missing.");
             return;
         }
-
-        if (currentDog != null)
-            Destroy(currentDog);
-
-        if (dogDummyPrefab == null)
-        {
-            Debug.LogWarning("NavigationController: dog dummy prefab missing.");
-            return;
-        }
-
-        Vector3 spawnPos = routeRoot.position + dogSpawnOffset;
-        Quaternion spawnRot = routeRoot.rotation;
-
-        currentDog = Instantiate(dogDummyPrefab, spawnPos, spawnRot);
-
-        DogDummyFollower follower = currentDog.GetComponent<DogDummyFollower>();
-        if (follower == null)
-        {
-            Debug.LogWarning("NavigationController: dog dummy prefab has no DogDummyFollower.");
-            return;
-        }
-
-        follower.SetPath(path.waypoints);
 
         if (startButton != null) startButton.SetActive(false);
         if (backButton != null) backButton.SetActive(false);
 
-        // 这里你可以选择保留 preview line，也可以清掉
-        // 如果你想开始后就清掉预览线，可以这样：
-        // 只删 line，不删 path 和 root
         ClearOnlyPreviewLine();
+
+        if (hudController != null)
+            hudController.EnterNavigationMode(pendingTargetName);
+
+        runtimeController.StartRuntime();
+    }
+
+    public void GiveUpNavigation()
+    {
+        if (runtimeController != null)
+            runtimeController.StopRuntime();
+
+        if (previewController != null)
+            previewController.ClearAll();
+
+        if (hudController != null)
+            hudController.ExitNavigationMode();
+
+        if (selectionUI != null)
+            selectionUI.ResetToDefaultState();
     }
 
     private void ClearOnlyPreviewLine()
     {
-        Transform routeRoot = previewController.GetCurrentRouteRoot();
+        Transform routeRoot = previewController != null ? previewController.GetCurrentRouteRoot() : null;
         if (routeRoot == null) return;
 
         Transform previewLine = routeRoot.Find("PreviewLine");
         if (previewLine != null)
-        {
             Destroy(previewLine.gameObject);
-        }
-    }
-
-    public void StopAndClearNavigation()
-    {
-        if (currentDog != null)
-        {
-            Destroy(currentDog);
-            currentDog = null;
-        }
-
-        previewController.ClearAll();
-
-        if (showPathButton != null) showPathButton.SetActive(true);
-        if (startButton != null) startButton.SetActive(false);
-        if (backButton != null) backButton.SetActive(false);
     }
 }

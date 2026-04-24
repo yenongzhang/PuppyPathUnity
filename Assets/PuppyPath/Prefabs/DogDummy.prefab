@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4213828141308168969}
   - component: {fileID: 3715188230991006068}
   - component: {fileID: 7559384042631901003}
-  - component: {fileID: 3096071472538851143}
   m_Layer: 0
   m_Name: DogDummy
   m_TagString: Untagged
@@ -115,19 +114,3 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
---- !u!114 &3096071472538851143
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3644809327266501957}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5dccf047dcbc9154e90511ed435e009c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DogDummyFollower
-  moveSpeed: 1
-  rotateSpeed: 6
-  reachDistance: 0.15
-  stopAtEnd: 0.2

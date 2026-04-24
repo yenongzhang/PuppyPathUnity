@@ -99,6 +99,12 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
         currentSelectionType = SelectionType.Location;
         currentPathId = locationPathId;
 
+        if (navigationController != null)
+        {
+            navigationController.SetPendingPathId(currentPathId);
+            navigationController.SetPendingTargetName("Marked Location");
+        }
+
         ClearSelectedFriendVisual();
         PlaceMarker(localPoint);
         UpdateIntroForLocation();
@@ -113,6 +119,12 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
         currentSelectionType = SelectionType.Friend;
         currentPathId = friendUI.PathId;
 
+        if (navigationController != null)
+        {
+            navigationController.SetPendingPathId(currentPathId);
+            navigationController.SetPendingTargetName(friendUI.FriendName);
+        }
+
         HideMarker();
 
         if (currentSelectedFriend != null && currentSelectedFriend != friendUI)
@@ -125,6 +137,7 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
                 selectedTextColor
             );
         }
+
 
         currentSelectedFriend = friendUI;
         currentSelectedFriend.SetSelected(
