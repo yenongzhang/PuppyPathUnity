@@ -17,6 +17,7 @@ public class NavigationRuntimeController : MonoBehaviour
     [SerializeField] private Transform xrCamera;
     [SerializeField] private PathPreviewController previewController;
     [SerializeField] private NavigationController navigationController;
+    [SerializeField] private NavigationHUDController hudController;
     [SerializeField] private DogGuideController dogGuideController;
 
     [Header("Runtime Settings")]
@@ -26,16 +27,24 @@ public class NavigationRuntimeController : MonoBehaviour
     [SerializeField] private float offPathThreshold = 1.2f;
     [SerializeField] private float lostThresholdTime = 2.0f;
 
+    [Header("Arrival")]
+    [SerializeField] private bool autoCompleteOnArrival = false;
+    [SerializeField] private float autoCompleteDelay = 2.0f;
+
     public NavState CurrentState { get; private set; } = NavState.Neutral;
     public float CurrentDistanceToGoal { get; private set; }
     public Vector3 CurrentRecommendedDirection { get; private set; }
 
-    private List<Transform> currentWaypoints = new List<Transform>();
+    private readonly List<Transform> currentWaypoints = new List<Transform>();
+
     private bool isRunning;
     private float timer;
     private float previousDistanceToGoal;
     private float timeWithoutProgress;
     private int currentSegmentIndex;
+
+    private bool arrivalHandled;
+    private float arrivalTimer;
 
     public event Action<NavState> OnNavStateChanged;
 
@@ -55,7 +64,7 @@ public class NavigationRuntimeController : MonoBehaviour
         }
 
         currentWaypoints.Clear();
-        foreach (var wp in path.waypoints)
+        foreach (Transform wp in path.waypoints)
         {
             if (wp != null)
                 currentWaypoints.Add(wp);
@@ -70,13 +79,19 @@ public class NavigationRuntimeController : MonoBehaviour
         currentSegmentIndex = 0;
         timeWithoutProgress = 0f;
         timer = 0f;
+        arrivalHandled = false;
+        arrivalTimer = 0f;
         isRunning = true;
 
-        CurrentDistanceToGoal = GetFlatDistance(xrCamera.position, currentWaypoints[currentWaypoints.Count - 1].position);
+        CurrentDistanceToGoal = GetFlatDistance(
+            xrCamera.position,
+            currentWaypoints[currentWaypoints.Count - 1].position
+        );
+
         previousDistanceToGoal = CurrentDistanceToGoal;
-        SetState(NavState.Neutral);
 
         UpdateRecommendedDirection();
+        SetState(NavState.Neutral, true);
 
         if (dogGuideController != null)
             dogGuideController.BeginGuiding(currentWaypoints, xrCamera);
@@ -89,16 +104,37 @@ public class NavigationRuntimeController : MonoBehaviour
         currentSegmentIndex = 0;
         timeWithoutProgress = 0f;
         timer = 0f;
-        SetState(NavState.Neutral);
+        arrivalHandled = false;
+        arrivalTimer = 0f;
 
         if (dogGuideController != null)
             dogGuideController.StopGuiding();
+
+        SetState(NavState.Neutral, true);
     }
 
     private void Update()
     {
         if (!isRunning || xrCamera == null || currentWaypoints.Count < 2)
             return;
+
+        if (CurrentState == NavState.Arrived)
+        {
+            if (autoCompleteOnArrival && !arrivalHandled)
+            {
+                arrivalTimer += Time.deltaTime;
+
+                if (arrivalTimer >= autoCompleteDelay)
+                {
+                    arrivalHandled = true;
+
+                    if (navigationController != null)
+                        navigationController.CompleteNavigation();
+                }
+            }
+
+            return;
+        }
 
         timer += Time.deltaTime;
         if (timer < updateInterval)
@@ -120,7 +156,11 @@ public class NavigationRuntimeController : MonoBehaviour
             SetState(NavState.Arrived);
 
             if (dogGuideController != null)
-                dogGuideController.ApplyNavigationState(CurrentState, CurrentDistanceToGoal, CurrentRecommendedDirection);
+                dogGuideController.ApplyNavigationState(
+                    CurrentState,
+                    CurrentDistanceToGoal,
+                    CurrentRecommendedDirection
+                );
 
             return;
         }
@@ -166,7 +206,11 @@ public class NavigationRuntimeController : MonoBehaviour
         previousDistanceToGoal = CurrentDistanceToGoal;
 
         if (dogGuideController != null)
-            dogGuideController.ApplyNavigationState(CurrentState, CurrentDistanceToGoal, CurrentRecommendedDirection);
+            dogGuideController.ApplyNavigationState(
+                CurrentState,
+                CurrentDistanceToGoal,
+                CurrentRecommendedDirection
+            );
     }
 
     private void UpdateRecommendedDirection()
@@ -183,7 +227,9 @@ public class NavigationRuntimeController : MonoBehaviour
         Vector3 dir = to - from;
         dir.y = 0f;
 
-        CurrentRecommendedDirection = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector3.forward;
+        CurrentRecommendedDirection = dir.sqrMagnitude > 0.0001f
+            ? dir.normalized
+            : Vector3.forward;
     }
 
     private int FindClosestSegmentIndex(Vector3 userPos)
@@ -193,7 +239,12 @@ public class NavigationRuntimeController : MonoBehaviour
 
         for (int i = 0; i < currentWaypoints.Count - 1; i++)
         {
-            float d = GetDistanceToSegmentXZ(userPos, currentWaypoints[i].position, currentWaypoints[i + 1].position);
+            float d = GetDistanceToSegmentXZ(
+                userPos,
+                currentWaypoints[i].position,
+                currentWaypoints[i + 1].position
+            );
+
             if (d < bestDistance)
             {
                 bestDistance = d;
@@ -212,6 +263,7 @@ public class NavigationRuntimeController : MonoBehaviour
 
         Vector2 segment = p2 - p1;
         float lenSq = segment.sqrMagnitude;
+
         if (lenSq < 0.0001f)
             return Vector2.Distance(p, p1);
 
@@ -228,13 +280,48 @@ public class NavigationRuntimeController : MonoBehaviour
         return Vector3.Distance(a, b);
     }
 
-    private void SetState(NavState newState)
+    private void SetState(NavState newState, bool forceUpdate = false)
     {
-        if (CurrentState == newState)
+        if (!forceUpdate && CurrentState == newState)
             return;
 
         CurrentState = newState;
+
         Debug.Log("Nav State Changed: " + newState);
+
+        if (hudController != null)
+            hudController.UpdateStateText(GetStateDisplayText(newState));
+
+        if (newState == NavState.Arrived)
+        {
+            arrivalTimer = 0f;
+            arrivalHandled = false;
+        }
+
         OnNavStateChanged?.Invoke(newState);
+    }
+
+    private string GetStateDisplayText(NavState state)
+    {
+        switch (state)
+        {
+            case NavState.Neutral:
+                return "Getting ready...";
+
+            case NavState.GettingCloser:
+                return "Good job! You're on the right path.";
+
+            case NavState.GettingFarther:
+                return "Hmm... this way doesn't look right.";
+
+            case NavState.Lost:
+                return "Oops, you're off the path.";
+
+            case NavState.Arrived:
+                return "You made it!";
+
+            default:
+                return "";
+        }
     }
 }
