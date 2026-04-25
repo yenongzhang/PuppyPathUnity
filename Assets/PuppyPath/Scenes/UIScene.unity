@@ -674,6 +674,10 @@ PrefabInstance:
       propertyPath: _enableDynamicResolution
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4086012976223137845, guid: d178974f6a2866441a1c3095338a1df6, type: 3}
+      propertyPath: requestScenePermissionOnStartup
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4086012976228817393, guid: d178974f6a2866441a1c3095338a1df6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2019,6 +2023,21 @@ MonoBehaviour:
   backButton: {fileID: 1784867114}
   previewTitleText: {fileID: 823895039}
   previewSubtitleText: {fileID: 0}
+  fireworkPrefabs:
+  - {fileID: 3608732300981117893, guid: 40a08865e12e93d4a8954444c54c525a, type: 3}
+  - {fileID: 7750853977139984564, guid: 6a7b26737f4a19a40b5f385c66dc96a9, type: 3}
+  - {fileID: 4656275142420581941, guid: eebd4198cae929f4883e70594350f6af, type: 3}
+  fireworkSpawnPoint: {fileID: 0}
+  fireworkHeightOffset: 2
+  fireworkRadius: 0.5
+  fireworkWaves: 3
+  fireworkWaveInterval: 0.2
+  spawnAllFireworkTypesPerWave: 0
+  randomFireworksPerWave: 4
+  randomizeFireworkRotation: 1
+  destroyFireworksAfterDelay: 1
+  fireworkDestroyDelay: 4
+  debugFireworks: 1
 --- !u!114 &867437596
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2037,6 +2056,8 @@ MonoBehaviour:
     pathPrefab: {fileID: 927794119427604723, guid: 86301bc336a2f664c935a09642fd5853, type: 3}
   - id: path_yenong
     pathPrefab: {fileID: 8066382168557222883, guid: 0d4e99d1ecc795846a4c45f311099992, type: 3}
+  - id: path_location_a
+    pathPrefab: {fileID: 2319594580852500572, guid: 8188e12859939e842ad4114b46e787dc, type: 3}
   lineMaterial: {fileID: 2100000, guid: ac03e7f49f855b140b4aa053f2446be4, type: 2}
   lineWidth: 0.1
   lineHeightOffset: 0.8
@@ -2136,8 +2157,8 @@ MonoBehaviour:
   progressEpsilon: 0.05
   offPathThreshold: 1.2
   lostThresholdTime: 2
-  autoCompleteOnArrival: 0
-  autoCompleteDelay: 2
+  autoCompleteOnArrival: 1
+  autoCompleteDelay: 0
 --- !u!1 &884410774
 GameObject:
   m_ObjectHideFlags: 0

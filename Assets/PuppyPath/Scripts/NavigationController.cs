@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -22,9 +24,41 @@ public class NavigationController : MonoBehaviour
     [SerializeField] private TMP_Text previewTitleText;
     [SerializeField] private TMP_Text previewSubtitleText;
 
+    [Header("Fireworks")]
+    [Tooltip("Drag several different firework prefabs here. On arrival, all of them can be spawned together.")]
+    [SerializeField] private List<GameObject> fireworkPrefabs = new List<GameObject>();
+
+    [Tooltip("Optional. If assigned, fireworks spawn around this point. If empty, they spawn around this NavigationController.")]
+    [SerializeField] private Transform fireworkSpawnPoint;
+
+    [Tooltip("Height added above the spawn point.")]
+    [SerializeField] private float fireworkHeightOffset = 1.4f;
+
+    [Tooltip("Random horizontal spread around the spawn point.")]
+    [SerializeField] private float fireworkRadius = 0.8f;
+
+    [Tooltip("How many waves of fireworks to play. 1 means one simultaneous burst.")]
+    [SerializeField] private int fireworkWaves = 1;
+
+    [Tooltip("Delay between waves. Only used when Firework Waves is greater than 1.")]
+    [SerializeField] private float fireworkWaveInterval = 0.35f;
+
+    [Tooltip("If true, every prefab in Firework Prefabs will be spawned in each wave.")]
+    [SerializeField] private bool spawnAllFireworkTypesPerWave = true;
+
+    [Tooltip("Used only when Spawn All Firework Types Per Wave is false.")]
+    [SerializeField] private int randomFireworksPerWave = 4;
+
+    [SerializeField] private bool randomizeFireworkRotation = true;
+    [SerializeField] private bool destroyFireworksAfterDelay = true;
+    [SerializeField] private float fireworkDestroyDelay = 4f;
+    [SerializeField] private bool debugFireworks = true;
+
     private string pendingPathId;
     private string pendingTargetName = "Destination";
     private bool isInNavigationMode;
+    private bool hasCompletedNavigation;
+    private Coroutine fireworkRoutine;
 
     private void Start()
     {
@@ -109,6 +143,7 @@ public class NavigationController : MonoBehaviour
         }
 
         isInNavigationMode = true;
+        hasCompletedNavigation = false;
 
         ClearOnlyPreviewLine();
         ShowRuntimeHUDPhase();
@@ -126,7 +161,129 @@ public class NavigationController : MonoBehaviour
 
     public void CompleteNavigation()
     {
+        if (hasCompletedNavigation)
+            return;
+
+        hasCompletedNavigation = true;
+
+        if (debugFireworks)
+            Debug.Log("NavigationController: CompleteNavigation() called. Playing destination fireworks.");
+
+        PlayDestinationFireworks();
         StopNavigationAndReturnToMenu();
+    }
+
+    private void PlayDestinationFireworks()
+    {
+        if (fireworkPrefabs == null || fireworkPrefabs.Count == 0)
+        {
+            Debug.LogWarning("NavigationController: no firework prefabs assigned.");
+            return;
+        }
+
+        if (debugFireworks)
+            Debug.Log($"NavigationController: Firework prefab count = {fireworkPrefabs.Count}.");
+
+        if (fireworkRoutine != null)
+            StopCoroutine(fireworkRoutine);
+
+        // Capture the destination before StopNavigationAndReturnToMenu() clears the path.
+        Vector3 basePosition = GetFireworkBasePosition();
+
+        if (debugFireworks)
+            Debug.Log($"NavigationController: Firework base position = {basePosition}.");
+
+        fireworkRoutine = StartCoroutine(PlayFireworkRoutine(basePosition));
+    }
+
+    private IEnumerator PlayFireworkRoutine(Vector3 basePosition)
+    {
+        int waves = Mathf.Max(1, fireworkWaves);
+
+        for (int wave = 0; wave < waves; wave++)
+        {
+            if (spawnAllFireworkTypesPerWave)
+            {
+                for (int i = 0; i < fireworkPrefabs.Count; i++)
+                    SpawnOneFirework(fireworkPrefabs[i], basePosition);
+            }
+            else
+            {
+                int count = Mathf.Max(1, randomFireworksPerWave);
+                for (int i = 0; i < count; i++)
+                    SpawnOneFirework(GetRandomFireworkPrefab(), basePosition);
+            }
+
+            if (wave < waves - 1 && fireworkWaveInterval > 0f)
+                yield return new WaitForSeconds(fireworkWaveInterval);
+        }
+
+        fireworkRoutine = null;
+    }
+
+    private void SpawnOneFirework(GameObject prefab, Vector3 basePosition)
+    {
+        if (prefab == null)
+            return;
+
+        Vector2 randomCircle = Random.insideUnitCircle * fireworkRadius;
+
+        Vector3 spawnPosition = basePosition + new Vector3(
+            randomCircle.x,
+            Random.Range(0f, fireworkRadius * 0.6f),
+            randomCircle.y
+        );
+
+        Quaternion spawnRotation = randomizeFireworkRotation
+            ? Random.rotation
+            : Quaternion.identity;
+
+        GameObject firework = Instantiate(prefab, spawnPosition, spawnRotation);
+
+        if (debugFireworks)
+            Debug.Log($"NavigationController: spawned firework {prefab.name} at {spawnPosition}.");
+
+        ParticleSystem[] particleSystems = firework.GetComponentsInChildren<ParticleSystem>(true);
+        foreach (ParticleSystem ps in particleSystems)
+        {
+            ps.Clear(true);
+            ps.Play(true);
+        }
+
+        if (destroyFireworksAfterDelay)
+            Destroy(firework, fireworkDestroyDelay);
+    }
+
+    private Vector3 GetFireworkBasePosition()
+    {
+        // Optional manual override.
+        if (fireworkSpawnPoint != null)
+        {
+            if (debugFireworks)
+                Debug.Log("NavigationController: using manual Firework Spawn Point.");
+
+            return fireworkSpawnPoint.position + Vector3.up * fireworkHeightOffset;
+        }
+
+        // Default: use the last waypoint of the current path.
+        if (previewController != null && previewController.TryGetCurrentDestinationPosition(out Vector3 destinationPosition))
+        {
+            if (debugFireworks)
+                Debug.Log("NavigationController: using current path last waypoint as firework spawn position.");
+
+            return destinationPosition + Vector3.up * fireworkHeightOffset;
+        }
+
+        Debug.LogWarning("NavigationController: could not find current destination waypoint. Falling back to NavigationController position.");
+        return transform.position + Vector3.up * fireworkHeightOffset;
+    }
+    private GameObject GetRandomFireworkPrefab()
+    {
+        if (fireworkPrefabs == null || fireworkPrefabs.Count == 0)
+            return null;
+
+        int index = Random.Range(0, fireworkPrefabs.Count);
+        return fireworkPrefabs[index];
     }
 
     private void StopNavigationAndReturnToMenu()

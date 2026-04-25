@@ -128,6 +128,33 @@ public class PathPreviewController : MonoBehaviour
         return currentPathId;
     }
 
+    public Transform GetCurrentDestinationWaypoint()
+    {
+        if (currentPathInstance == null || currentPathInstance.waypoints == null)
+            return null;
+
+        for (int i = currentPathInstance.waypoints.Count - 1; i >= 0; i--)
+        {
+            if (currentPathInstance.waypoints[i] != null)
+                return currentPathInstance.waypoints[i];
+        }
+
+        return null;
+    }
+
+    public bool TryGetCurrentDestinationPosition(out Vector3 destinationPosition)
+    {
+        Transform destinationWaypoint = GetCurrentDestinationWaypoint();
+        if (destinationWaypoint == null)
+        {
+            destinationPosition = Vector3.zero;
+            return false;
+        }
+
+        destinationPosition = destinationWaypoint.position;
+        return true;
+    }
+
     public void ClearPreviewOnly()
     {
         if (currentLine != null)

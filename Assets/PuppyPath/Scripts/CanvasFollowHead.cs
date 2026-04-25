@@ -12,11 +12,21 @@ public class CanvasFollowHead : MonoBehaviour
     [SerializeField] private float sideOffset = 0.0f;
 
     [Header("Follow Settings")]
-    [SerializeField] private float positionSmoothSpeed = 8f;
-    [SerializeField] private float rotationSmoothSpeed = 8f;
+    [Tooltip("Normal position follow speed. Increase this if the canvas still feels too slow while walking.")]
+    [SerializeField] private float positionSmoothSpeed = 18f;
 
-    [Header("Dead Zone")]
-    [SerializeField] private float maxAngleBeforeFollow = 20f;
+    [Tooltip("Rotation follow speed when the canvas needs to rotate toward the user.")]
+    [SerializeField] private float rotationSmoothSpeed = 10f;
+
+    [Tooltip("If the canvas is farther than this from its target position, it snaps instead of slowly catching up.")]
+    [SerializeField] private float snapDistance = 0.9f;
+
+    [Tooltip("If the user gets closer than this to the canvas, the canvas immediately jumps back in front of the user.")]
+    [SerializeField] private float minDistanceFromHead = 0.65f;
+
+    [Header("Rotation Dead Zone")]
+    [Tooltip("Rotation only updates after this angle. Position still follows every frame.")]
+    [SerializeField] private float maxAngleBeforeRotate = 18f;
 
     private Vector3 targetPosition;
     private Quaternion targetRotation;
@@ -45,27 +55,10 @@ public class CanvasFollowHead : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (headTransform == null)
+        if (headTransform == null || !hasInitialized)
             return;
 
-        if (!hasInitialized)
-            return;
-
-        Vector3 flatForward = headTransform.forward;
-        flatForward.y = 0f;
-
-        if (flatForward.sqrMagnitude < 0.001f)
-            flatForward = transform.forward;
-
-        flatForward.Normalize();
-
-        Vector3 flatRight = headTransform.right;
-        flatRight.y = 0f;
-
-        if (flatRight.sqrMagnitude < 0.001f)
-            flatRight = transform.right;
-
-        flatRight.Normalize();
+        GetFlatDirections(out Vector3 flatForward, out Vector3 flatRight);
 
         Vector3 desiredPosition =
             headTransform.position +
@@ -75,25 +68,35 @@ public class CanvasFollowHead : MonoBehaviour
 
         Quaternion desiredRotation = Quaternion.LookRotation(flatForward, Vector3.up);
 
-        float angle = Vector3.Angle(transform.forward, flatForward);
+        // Important change:
+        // Position follows the head every frame, even when the user only walks forward.
+        // The old version only updated targetPosition after a head rotation, so the canvas stayed behind.
+        targetPosition = desiredPosition;
 
-        if (angle > maxAngleBeforeFollow)
-        {
-            targetPosition = desiredPosition;
+        float angle = Vector3.Angle(transform.forward, flatForward);
+        if (angle > maxAngleBeforeRotate)
             targetRotation = desiredRotation;
+
+        float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
+        float distanceToHead = Vector3.Distance(transform.position, headTransform.position);
+
+        Vector3 headToCanvas = transform.position - headTransform.position;
+        float forwardDot = Vector3.Dot(flatForward, headToCanvas.normalized);
+        bool canvasIsBehindOrTooClose = forwardDot < 0.25f || distanceToHead < minDistanceFromHead;
+
+        if (distanceToTarget > snapDistance || canvasIsBehindOrTooClose)
+        {
+            transform.position = targetPosition;
+            transform.rotation = desiredRotation;
+            targetRotation = desiredRotation;
+            return;
         }
 
-        transform.position = Vector3.Lerp(
-            transform.position,
-            targetPosition,
-            Time.deltaTime * positionSmoothSpeed
-        );
+        float t = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, targetPosition, t);
 
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation,
-            targetRotation,
-            Time.deltaTime * rotationSmoothSpeed
-        );
+        float rt = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rt);
     }
 
     public void SnapToHeadView()
@@ -101,21 +104,7 @@ public class CanvasFollowHead : MonoBehaviour
         if (headTransform == null)
             return;
 
-        Vector3 flatForward = headTransform.forward;
-        flatForward.y = 0f;
-
-        if (flatForward.sqrMagnitude < 0.001f)
-            flatForward = Vector3.forward;
-
-        flatForward.Normalize();
-
-        Vector3 flatRight = headTransform.right;
-        flatRight.y = 0f;
-
-        if (flatRight.sqrMagnitude < 0.001f)
-            flatRight = Vector3.right;
-
-        flatRight.Normalize();
+        GetFlatDirections(out Vector3 flatForward, out Vector3 flatRight);
 
         targetPosition =
             headTransform.position +
@@ -127,5 +116,24 @@ public class CanvasFollowHead : MonoBehaviour
 
         transform.position = targetPosition;
         transform.rotation = targetRotation;
+    }
+
+    private void GetFlatDirections(out Vector3 flatForward, out Vector3 flatRight)
+    {
+        flatForward = headTransform.forward;
+        flatForward.y = 0f;
+
+        if (flatForward.sqrMagnitude < 0.001f)
+            flatForward = transform.forward;
+
+        flatForward.Normalize();
+
+        flatRight = headTransform.right;
+        flatRight.y = 0f;
+
+        if (flatRight.sqrMagnitude < 0.001f)
+            flatRight = transform.right;
+
+        flatRight.Normalize();
     }
 }
