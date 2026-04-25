@@ -18,9 +18,9 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Vector2 markerOffset = Vector2.zero;
 
     [Header("Intro Panel Texts")]
-    [SerializeField] private TMP_Text titleText;   // 第一行 / 选择后的主文案
-    [SerializeField] private TMP_Text noteText;    // 初始第二段 / 选择后的 P.S.
-    [SerializeField] private TMP_Text hintText;    // 初始第三段，选择后隐藏
+    [SerializeField] private TMP_Text titleText;
+    [SerializeField] private TMP_Text noteText;
+    [SerializeField] private TMP_Text hintText;
 
     [Header("Show Path Button")]
     [SerializeField] private GameObject showPathButton;
@@ -45,15 +45,15 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
     [Header("Selection Text")]
     [TextArea(2, 4)]
     [SerializeField] private string locationTitle =
-        "Do you want to go to the location you marked?\nClick \"Show Path\" to preview your route.";
+        "Do you want to go to the location you marked?\nClick \"Show Path\" to preview your path.";
 
     [TextArea(2, 4)]
     [SerializeField] private string friendTitleTemplate =
-        "Do you want to go find {0}?\nClick \"Show Path\" to preview your route.";
+        "Do you want to go find {0}?\nClick \"Show Path\" to preview your path.";
 
     [TextArea(2, 5)]
     [SerializeField] private string selectionNote =
-        "P.S.: The puppy will lead the way. Keep an eye on its reactions\n-it'll get upset if you take a wrong turn :(";
+        "P.S.: The puppy will lead the way. Keep an eye on its reactions.\nIt'll get upset if you take a wrong turn :(";
 
     [Header("Friend Button Colors")]
     [SerializeField] private Color normalButtonColor = Color.white;
@@ -79,7 +79,8 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (mapRect == null) return;
+        if (mapRect == null)
+            return;
 
         Vector2 localPoint;
         bool clicked = RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -89,41 +90,19 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             out localPoint
         );
 
-        if (!clicked) return;
+        if (!clicked)
+            return;
 
         SelectLocation(localPoint);
     }
 
-    public void SelectLocation(Vector2 localPoint)
-    {
-        currentSelectionType = SelectionType.Location;
-        currentPathId = locationPathId;
-
-        if (navigationController != null)
-        {
-            navigationController.SetPendingPathId(currentPathId);
-            navigationController.SetPendingTargetName("Marked Location");
-        }
-
-        ClearSelectedFriendVisual();
-        PlaceMarker(localPoint);
-        UpdateIntroForLocation();
-        ShowShowPathButton();
-        PushPathIdToNavigationController();
-    }
-
     public void SelectFriend(FriendButtonUI friendUI)
     {
-        if (friendUI == null) return;
+        if (friendUI == null)
+            return;
 
         currentSelectionType = SelectionType.Friend;
         currentPathId = friendUI.PathId;
-
-        if (navigationController != null)
-        {
-            navigationController.SetPendingPathId(currentPathId);
-            navigationController.SetPendingTargetName(friendUI.FriendName);
-        }
 
         HideMarker();
 
@@ -138,7 +117,6 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             );
         }
 
-
         currentSelectedFriend = friendUI;
         currentSelectedFriend.SetSelected(
             true,
@@ -150,13 +128,74 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
 
         UpdateIntroForFriend(friendUI.FriendName);
         ShowShowPathButton();
-        PushPathIdToNavigationController();
+
+        if (navigationController != null)
+        {
+            navigationController.SetPendingPathId(currentPathId);
+            navigationController.SetPendingTargetName(friendUI.FriendName);
+            navigationController.ShowPathSelectionPhase();
+        }
+    }
+
+    public void SelectLocation(Vector2 localPoint)
+    {
+        currentSelectionType = SelectionType.Location;
+        currentPathId = locationPathId;
+
+        ClearSelectedFriendVisual();
+        PlaceMarker(localPoint);
+
+        UpdateIntroForLocation();
+        ShowShowPathButton();
+
+        if (navigationController != null)
+        {
+            navigationController.SetPendingPathId(currentPathId);
+            navigationController.SetPendingTargetName("Marked Location");
+            navigationController.ShowPathSelectionPhase();
+        }
+    }
+
+    public void ResetToDefaultState()
+    {
+        currentSelectionType = SelectionType.None;
+        currentPathId = null;
+
+        HideMarker();
+        ClearSelectedFriendVisual();
+
+        if (titleText != null)
+        {
+            titleText.gameObject.SetActive(true);
+            titleText.text = defaultTitle;
+        }
+
+        if (noteText != null)
+        {
+            noteText.gameObject.SetActive(true);
+            noteText.text = defaultNote;
+        }
+
+        if (hintText != null)
+        {
+            hintText.gameObject.SetActive(true);
+            hintText.text = defaultHint;
+        }
+
+        if (showPathButtonText != null)
+            showPathButtonText.text = "Show Path";
+
+        if (showPathButton != null)
+            showPathButton.SetActive(false);
     }
 
     private void UpdateIntroForLocation()
     {
         if (titleText != null)
+        {
+            titleText.gameObject.SetActive(true);
             titleText.text = locationTitle;
+        }
 
         if (noteText != null)
         {
@@ -174,7 +213,10 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
     private void UpdateIntroForFriend(string friendName)
     {
         if (titleText != null)
+        {
+            titleText.gameObject.SetActive(true);
             titleText.text = string.Format(friendTitleTemplate, friendName);
+        }
 
         if (noteText != null)
         {
@@ -195,49 +237,13 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             showPathButton.SetActive(true);
     }
 
-    public void ResetToDefaultState()
-    {
-        currentSelectionType = SelectionType.None;
-        currentPathId = null;
-
-        HideMarker();
-        ClearSelectedFriendVisual();
-
-        if (titleText != null)
-            titleText.text = defaultTitle;
-
-        if (noteText != null)
-        {
-            noteText.gameObject.SetActive(true);
-            noteText.text = defaultNote;
-        }
-
-        if (hintText != null)
-        {
-            hintText.gameObject.SetActive(true);
-            hintText.text = defaultHint;
-        }
-
-        if (showPathButton != null)
-            showPathButton.SetActive(false);
-
-        if (navigationController != null)
-            navigationController.SetPendingPathId(null);
-    }
-
-    private void PushPathIdToNavigationController()
-    {
-        if (navigationController != null)
-            navigationController.SetPendingPathId(currentPathId);
-    }
-
     private void PlaceMarker(Vector2 localPoint)
     {
         if (currentMarker == null)
         {
             if (markerPrefab == null)
             {
-                Debug.LogWarning("Marker Prefab is not assigned.");
+                Debug.LogWarning("PuppyPathSelectionUI: markerPrefab is not assigned.");
                 return;
             }
 
@@ -257,6 +263,9 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
 
     private Vector2 ClampToMap(Vector2 localPoint)
     {
+        if (mapRect == null)
+            return localPoint;
+
         Rect rect = mapRect.rect;
 
         float x = Mathf.Clamp(localPoint.x, rect.xMin, rect.xMax);
@@ -276,6 +285,7 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
                 normalTextColor,
                 selectedTextColor
             );
+
             currentSelectedFriend = null;
         }
     }

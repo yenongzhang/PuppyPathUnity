@@ -9,6 +9,12 @@ public class NavigationController : MonoBehaviour
     [SerializeField] private NavigationHUDController hudController;
     [SerializeField] private PuppyPathSelectionUI selectionUI;
 
+    [Header("Intro Phases")]
+    [SerializeField] private GameObject introPhase1;
+    [SerializeField] private GameObject introPhase2;
+    [SerializeField] private GameObject introPhase3;
+    [SerializeField] private GameObject introPhase4;
+
     [Header("Preview UI")]
     [SerializeField] private GameObject showPathButton;
     [SerializeField] private GameObject startButton;
@@ -19,6 +25,11 @@ public class NavigationController : MonoBehaviour
     private string pendingPathId;
     private string pendingTargetName = "Destination";
     private bool isInNavigationMode;
+
+    private void Start()
+    {
+        ResetToMainMenu();
+    }
 
     public void SetPendingPathId(string pathId)
     {
@@ -48,6 +59,7 @@ public class NavigationController : MonoBehaviour
         if (string.IsNullOrEmpty(pendingPathId))
         {
             Debug.LogWarning("NavigationController: no pending path id.");
+            ShowPathSelectionPhase();
             return;
         }
 
@@ -59,22 +71,13 @@ public class NavigationController : MonoBehaviour
 
         bool success = previewController.ShowPreview(pendingPathId);
         if (!success)
+        {
+            Debug.LogWarning("NavigationController: failed to show preview.");
+            ShowPathSelectionPhase();
             return;
+        }
 
-        if (showPathButton != null)
-            showPathButton.SetActive(false);
-
-        if (startButton != null)
-            startButton.SetActive(true);
-
-        if (backButton != null)
-            backButton.SetActive(true);
-
-        if (previewTitleText != null)
-            previewTitleText.text = "Please face the road ahead.";
-
-        if (previewSubtitleText != null)
-            previewSubtitleText.text = "Here is your full path. Ready to go?";
+        ShowPreviewPhase();
     }
 
     public void CancelPreview()
@@ -85,16 +88,7 @@ public class NavigationController : MonoBehaviour
         if (previewController != null)
             previewController.ClearAll();
 
-        if (startButton != null)
-            startButton.SetActive(false);
-
-        if (backButton != null)
-            backButton.SetActive(false);
-
-        if (showPathButton != null)
-            showPathButton.SetActive(!string.IsNullOrEmpty(pendingPathId));
-
-        ClearPreviewTexts();
+        ShowPathSelectionPhase();
     }
 
     public void StartNavigation()
@@ -116,17 +110,8 @@ public class NavigationController : MonoBehaviour
 
         isInNavigationMode = true;
 
-        if (startButton != null)
-            startButton.SetActive(false);
-
-        if (backButton != null)
-            backButton.SetActive(false);
-
-        if (showPathButton != null)
-            showPathButton.SetActive(false);
-
         ClearOnlyPreviewLine();
-        ClearPreviewTexts();
+        ShowRuntimeHUDPhase();
 
         if (hudController != null)
             hudController.EnterNavigationMode(pendingTargetName);
@@ -135,6 +120,16 @@ public class NavigationController : MonoBehaviour
     }
 
     public void GiveUpNavigation()
+    {
+        StopNavigationAndReturnToMenu();
+    }
+
+    public void CompleteNavigation()
+    {
+        StopNavigationAndReturnToMenu();
+    }
+
+    private void StopNavigationAndReturnToMenu()
     {
         if (runtimeController != null)
             runtimeController.StopRuntime();
@@ -145,45 +140,100 @@ public class NavigationController : MonoBehaviour
         if (hudController != null)
             hudController.ExitNavigationMode();
 
-        if (selectionUI != null)
-            selectionUI.ResetToDefaultState();
-
         isInNavigationMode = false;
         pendingPathId = null;
         pendingTargetName = "Destination";
 
-        if (startButton != null)
-            startButton.SetActive(false);
+        if (selectionUI != null)
+            selectionUI.ResetToDefaultState();
 
-        if (backButton != null)
-            backButton.SetActive(false);
-
-        if (showPathButton != null)
-            showPathButton.SetActive(false);
-
-        ClearPreviewTexts();
+        ResetToMainMenu();
     }
 
-    public void CompleteNavigation()
+    private void ResetToMainMenu()
     {
-        if (runtimeController != null)
-            runtimeController.StopRuntime();
+        // Phase1: main intro text only
+        SetPhaseMode(1);
 
-        if (previewController != null)
-            previewController.ClearAll();
-
-        isInNavigationMode = false;
+        if (showPathButton != null)
+            showPathButton.SetActive(false);
 
         if (startButton != null)
             startButton.SetActive(false);
 
         if (backButton != null)
             backButton.SetActive(false);
+    }
+
+    public void ShowPathSelectionPhase()
+    {
+        if (isInNavigationMode)
+            return;
+
+        // Phase2:
+        // Keep IntroPhase1 active because PuppyPathSelectionUI writes dynamic text into Phase1 texts.
+        // Also enable IntroPhase2 because it contains the Show Path button.
+        SetPhaseMode(2);
+
+        if (showPathButton != null)
+            showPathButton.SetActive(!string.IsNullOrEmpty(pendingPathId));
+
+        if (startButton != null)
+            startButton.SetActive(false);
+
+        if (backButton != null)
+            backButton.SetActive(false);
+    }
+
+    private void ShowPreviewPhase()
+    {
+        // Phase3: preview instruction + Start / Back
+        SetPhaseMode(3);
 
         if (showPathButton != null)
             showPathButton.SetActive(false);
 
-        ClearPreviewTexts();
+        if (startButton != null)
+            startButton.SetActive(true);
+
+        if (backButton != null)
+            backButton.SetActive(true);
+
+        if (previewTitleText != null)
+            previewTitleText.text = "Please face the road ahead.";
+
+        if (previewSubtitleText != null)
+            previewSubtitleText.text = "Here is the first part of your path.\n\nReady to go?";
+    }
+
+    private void ShowRuntimeHUDPhase()
+    {
+        // Phase4: runtime navigation HUD
+        SetPhaseMode(4);
+
+        if (showPathButton != null)
+            showPathButton.SetActive(false);
+
+        if (startButton != null)
+            startButton.SetActive(false);
+
+        if (backButton != null)
+            backButton.SetActive(false);
+    }
+
+    private void SetPhaseMode(int phase)
+    {
+        if (introPhase1 != null)
+            introPhase1.SetActive(phase == 1 || phase == 2);
+
+        if (introPhase2 != null)
+            introPhase2.SetActive(phase == 2);
+
+        if (introPhase3 != null)
+            introPhase3.SetActive(phase == 3);
+
+        if (introPhase4 != null)
+            introPhase4.SetActive(phase == 4);
     }
 
     private void ClearOnlyPreviewLine()
@@ -195,14 +245,5 @@ public class NavigationController : MonoBehaviour
         Transform previewLine = routeRoot.Find("PreviewLine");
         if (previewLine != null)
             Destroy(previewLine.gameObject);
-    }
-
-    private void ClearPreviewTexts()
-    {
-        if (previewTitleText != null)
-            previewTitleText.text = "";
-
-        if (previewSubtitleText != null)
-            previewSubtitleText.text = "";
     }
 }
