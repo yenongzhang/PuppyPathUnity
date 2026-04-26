@@ -22,10 +22,10 @@ public class NavigationRuntimeController : MonoBehaviour
 
     [Header("Runtime Settings")]
     [SerializeField] private float updateInterval = 0.2f;
-    [SerializeField] private float arriveThreshold = 0.8f;
+    [SerializeField] private float arriveThreshold = 1.5f;
     [SerializeField] private float progressEpsilon = 0.05f;
-    [SerializeField] private float offPathThreshold = 1.2f;
-    [SerializeField] private float lostThresholdTime = 2.0f;
+    [SerializeField] private float offPathThreshold = 3.0f;
+    [SerializeField] private float lostThresholdTime = 4.0f;
 
     [Header("Arrival")]
     [SerializeField] private bool autoCompleteOnArrival = false;
@@ -151,19 +151,22 @@ public class NavigationRuntimeController : MonoBehaviour
 
         CurrentDistanceToGoal = GetFlatDistance(userPos, goalPos);
 
-        if (CurrentDistanceToGoal <= arriveThreshold)
-        {
-            SetState(NavState.Arrived);
+    if (CurrentDistanceToGoal <= arriveThreshold)
+    {
+        SetState(NavState.Arrived);
 
-            if (dogGuideController != null)
-                dogGuideController.ApplyNavigationState(
-                    CurrentState,
-                    CurrentDistanceToGoal,
-                    CurrentRecommendedDirection
-                );
+        if (dogGuideController != null)
+            dogGuideController.ApplyNavigationState(
+                CurrentState,
+                CurrentDistanceToGoal,
+                CurrentRecommendedDirection
+            );
 
-            return;
-        }
+        if (navigationController != null)
+            navigationController.CompleteNavigation();
+
+        return;
+    }
 
         currentSegmentIndex = FindClosestSegmentIndex(userPos);
         UpdateRecommendedDirection();

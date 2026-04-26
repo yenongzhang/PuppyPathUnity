@@ -17,10 +17,22 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Transform markerParent;
     [SerializeField] private Vector2 markerOffset = Vector2.zero;
 
-    [Header("Intro Panel Texts")]
-    [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text noteText;
-    [SerializeField] private TMP_Text hintText;
+    [Header("Phase 1 Next Button Logic")]
+    [SerializeField] private GameObject phase1FirstText;
+    [SerializeField] private GameObject phase1SecondText;
+    [SerializeField] private GameObject phase1ThirdText;
+    [SerializeField] private GameObject phase1NextButton;
+
+    [Header("Phase 2 Dynamic Text")]
+    [SerializeField] private TMP_Text phase2SelectionText;
+
+    [TextArea(2, 4)]
+    [SerializeField] private string locationPhase2Text =
+        "Do you want to go to the location you marked?\nClick \"Show Path\" to preview your path.";
+
+    [TextArea(2, 4)]
+    [SerializeField] private string friendPhase2TextTemplate =
+        "Do you want to go find {0}?\nClick \"Show Path\" to preview your path.";
 
     [Header("Show Path Button")]
     [SerializeField] private GameObject showPathButton;
@@ -28,32 +40,6 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
 
     [Header("Navigation")]
     [SerializeField] private NavigationController navigationController;
-
-    [Header("Initial Text")]
-    [TextArea(2, 4)]
-    [SerializeField] private string defaultTitle =
-        "Hi, I'm PuppyPath :)";
-
-    [TextArea(2, 5)]
-    [SerializeField] private string defaultNote =
-        "I'll have a little beagle take you wherever you want to go or help you find your friends.";
-
-    [TextArea(2, 5)]
-    [SerializeField] private string defaultHint =
-        "Please select the location you want to visit on the map, or choose the friend you want to find from your friends list.";
-
-    [Header("Selection Text")]
-    [TextArea(2, 4)]
-    [SerializeField] private string locationTitle =
-        "Do you want to go to the location you marked?\nClick \"Show Path\" to preview your path.";
-
-    [TextArea(2, 4)]
-    [SerializeField] private string friendTitleTemplate =
-        "Do you want to go find {0}?\nClick \"Show Path\" to preview your path.";
-
-    [TextArea(2, 5)]
-    [SerializeField] private string selectionNote =
-        "P.S.: The puppy will lead the way. Keep an eye on its reactions.\nIt'll get upset if you take a wrong turn :(";
 
     [Header("Friend Button Colors")]
     [SerializeField] private Color normalButtonColor = Color.white;
@@ -75,6 +61,21 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             markerParent = mapRect;
 
         ResetToDefaultState();
+    }
+
+    public void ShowPhase1SecondPage()
+    {
+        if (phase1FirstText != null)
+            phase1FirstText.SetActive(false);
+
+        if (phase1SecondText != null)
+            phase1SecondText.SetActive(false);
+
+        if (phase1ThirdText != null)
+            phase1ThirdText.SetActive(true);
+
+        if (phase1NextButton != null)
+            phase1NextButton.SetActive(false);
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -126,7 +127,7 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             selectedTextColor
         );
 
-        UpdateIntroForFriend(friendUI.FriendName);
+        UpdatePhase2ForFriend(friendUI.FriendName);
         ShowShowPathButton();
 
         if (navigationController != null)
@@ -145,7 +146,7 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
         ClearSelectedFriendVisual();
         PlaceMarker(localPoint);
 
-        UpdateIntroForLocation();
+        UpdatePhase2ForLocation();
         ShowShowPathButton();
 
         if (navigationController != null)
@@ -164,23 +165,20 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
         HideMarker();
         ClearSelectedFriendVisual();
 
-        if (titleText != null)
-        {
-            titleText.gameObject.SetActive(true);
-            titleText.text = defaultTitle;
-        }
+        if (phase1FirstText != null)
+            phase1FirstText.SetActive(true);
 
-        if (noteText != null)
-        {
-            noteText.gameObject.SetActive(true);
-            noteText.text = defaultNote;
-        }
+        if (phase1SecondText != null)
+            phase1SecondText.SetActive(true);
 
-        if (hintText != null)
-        {
-            hintText.gameObject.SetActive(true);
-            hintText.text = defaultHint;
-        }
+        if (phase1ThirdText != null)
+            phase1ThirdText.SetActive(false);
+
+        if (phase1NextButton != null)
+            phase1NextButton.SetActive(true);
+
+        if (phase2SelectionText != null)
+            phase2SelectionText.text = "";
 
         if (showPathButtonText != null)
             showPathButtonText.text = "Show Path";
@@ -189,43 +187,19 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             showPathButton.SetActive(false);
     }
 
-    private void UpdateIntroForLocation()
+    private void UpdatePhase2ForLocation()
     {
-        if (titleText != null)
-        {
-            titleText.gameObject.SetActive(true);
-            titleText.text = locationTitle;
-        }
-
-        if (noteText != null)
-        {
-            noteText.gameObject.SetActive(true);
-            noteText.text = selectionNote;
-        }
-
-        if (hintText != null)
-            hintText.gameObject.SetActive(false);
+        if (phase2SelectionText != null)
+            phase2SelectionText.text = locationPhase2Text;
 
         if (showPathButtonText != null)
             showPathButtonText.text = "Show Path";
     }
 
-    private void UpdateIntroForFriend(string friendName)
+    private void UpdatePhase2ForFriend(string friendName)
     {
-        if (titleText != null)
-        {
-            titleText.gameObject.SetActive(true);
-            titleText.text = string.Format(friendTitleTemplate, friendName);
-        }
-
-        if (noteText != null)
-        {
-            noteText.gameObject.SetActive(true);
-            noteText.text = selectionNote;
-        }
-
-        if (hintText != null)
-            hintText.gameObject.SetActive(false);
+        if (phase2SelectionText != null)
+            phase2SelectionText.text = string.Format(friendPhase2TextTemplate, friendName);
 
         if (showPathButtonText != null)
             showPathButtonText.text = "Show Path";

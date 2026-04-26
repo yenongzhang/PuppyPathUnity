@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ad974e672e5c4ba4f86e757c9fcf6cf5
+guid: bda1af0cc23d34146b390bafe3d20ec0
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Myfont
+  - Lonely Cake
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0
