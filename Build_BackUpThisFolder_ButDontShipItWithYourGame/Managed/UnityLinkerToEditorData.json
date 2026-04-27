@@ -1121,9 +1121,7 @@
           },
           {
             "name": "MeshCollider",
-            "scenes": [
-              "Assets/PuppyPath/Scenes/UIScene.unity"
-            ],
+            "scenes": [],
             "dependencyType": 0,
             "icon": null
           },
@@ -1629,7 +1627,9 @@
           },
           {
             "name": "CanvasGroup",
-            "scenes": [],
+            "scenes": [
+              "Assets/PuppyPath/Scenes/UIScene.unity"
+            ],
             "dependencyType": 0,
             "icon": null
           },

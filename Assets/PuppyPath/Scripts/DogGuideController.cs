@@ -19,9 +19,9 @@ public class DogGuideController : MonoBehaviour
     [Header("References")]
     [SerializeField] private GameObject dogPrefab;
 
-    [Header("Expression Renderers")]
-    [SerializeField] private Renderer eyesRenderer;
-    [SerializeField] private Renderer mouthRenderer;
+    [Header("Expression Material Search")]
+    [SerializeField] private string eyesMaterialKeyword = "eyes";
+    [SerializeField] private string mouthMaterialKeyword = "mouth";
 
     [Header("Eye Textures")]
     [SerializeField] private Texture happyEyes;
@@ -50,12 +50,6 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private float minDistanceToUser = 1.0f;
     [SerializeField] private float maxDistanceToUser = 3.0f;
 
-    [Header("Debug State Colors")]
-    [SerializeField] private Color neutralColor = Color.white;
-    [SerializeField] private Color happyColor = Color.green;
-    [SerializeField] private Color angryColor = Color.red;
-    [SerializeField] private Color arrivedColor = Color.yellow;
-
     [Header("Animation")]
     [SerializeField] private Animator dogAnimator;
     [SerializeField] private float celebrationDistance = 0.5f;
@@ -70,9 +64,9 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private float circleSpeed = 180f;
 
     private GameObject currentDog;
-    private Renderer dogRenderer;
     private Transform xrCamera;
-    private List<Transform> path = new List<Transform>();
+    private readonly List<Transform> path = new List<Transform>();
+
     private bool isGuiding;
     private NavigationRuntimeController.NavState currentState = NavigationRuntimeController.NavState.Neutral;
     private Vector3 currentRecommendedDirection = Vector3.forward;
@@ -80,12 +74,22 @@ public class DogGuideController : MonoBehaviour
     private bool isPerformingRandomBehavior;
     private Coroutine randomBehaviorRoutine;
 
+    private Renderer eyesRenderer;
+    private Renderer mouthRenderer;
+    private Material eyesRuntimeMaterial;
+    private Material mouthRuntimeMaterial;
+    private int eyesMaterialIndex = -1;
+    private int mouthMaterialIndex = -1;
+
+    private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
+    private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+
     public void BeginGuiding(List<Transform> runtimePath, Transform userCamera)
     {
         xrCamera = userCamera;
         path.Clear();
 
-        foreach (var wp in runtimePath)
+        foreach (Transform wp in runtimePath)
         {
             if (wp != null)
                 path.Add(wp);
@@ -93,7 +97,7 @@ public class DogGuideController : MonoBehaviour
 
         if (dogPrefab == null || xrCamera == null || path.Count < 2)
         {
-            Debug.LogWarning("DogGuideController: missing dogPrefab/xrCamera/path.");
+            Debug.LogWarning("DogGuideController: missing dogPrefab / xrCamera / path.");
             return;
         }
 
@@ -103,18 +107,11 @@ public class DogGuideController : MonoBehaviour
         Vector3 spawnPos = xrCamera.position + xrCamera.forward * 1.2f;
         spawnPos.y = path[0].position.y;
 
-        /**
-        currentDog = Instantiate(dogPrefab, spawnPos, Quaternion.identity);
-        dogRenderer = currentDog.GetComponentInChildren<Renderer>();
-        ApplyColor(neutralColor);
-
-        isGuiding = true;
-        **/
         currentDog = Instantiate(dogPrefab, spawnPos, Quaternion.identity);
 
         dogAnimator = currentDog.GetComponentInChildren<Animator>();
 
-        SetupExpressionRenderers();
+        SetupExpressionMaterials();
         SetExpression(DogExpression.Calm);
         PlayStand();
 
@@ -147,16 +144,24 @@ public class DogGuideController : MonoBehaviour
             currentDog = null;
         }
 
-        dogRenderer = null;
         dogAnimator = null;
+
         eyesRenderer = null;
         mouthRenderer = null;
+        eyesRuntimeMaterial = null;
+        mouthRuntimeMaterial = null;
+        eyesMaterialIndex = -1;
+        mouthMaterialIndex = -1;
 
         path.Clear();
         xrCamera = null;
     }
 
-    public void ApplyNavigationState(NavigationRuntimeController.NavState navState, float distanceToGoal, Vector3 recommendedDirection)
+    public void ApplyNavigationState(
+        NavigationRuntimeController.NavState navState,
+        float distanceToGoal,
+        Vector3 recommendedDirection
+    )
     {
         currentState = navState;
         currentRecommendedDirection = recommendedDirection;
@@ -164,7 +169,8 @@ public class DogGuideController : MonoBehaviour
         if (isPerformingRandomBehavior)
             return;
 
-        if (distanceToGoal <= celebrationDistance && currentState != NavigationRuntimeController.NavState.Arrived)
+        if (distanceToGoal <= celebrationDistance &&
+            currentState != NavigationRuntimeController.NavState.Arrived)
         {
             currentState = NavigationRuntimeController.NavState.Arrived;
             SetExpression(DogExpression.Happy);
@@ -172,44 +178,26 @@ public class DogGuideController : MonoBehaviour
             return;
         }
 
-        /**
-        switch (navState)
-        {
-            case NavigationRuntimeController.NavState.GettingCloser:
-                ApplyColor(happyColor);
-                break;
-
-            case NavigationRuntimeController.NavState.GettingFarther:
-            case NavigationRuntimeController.NavState.Lost:
-                ApplyColor(angryColor);
-                break;
-
-            case NavigationRuntimeController.NavState.Arrived:
-                ApplyColor(arrivedColor);
-                break;
-
-            default:
-                ApplyColor(neutralColor);
-                break;
-        }
-        **/
-
         switch (navState)
         {
             case NavigationRuntimeController.NavState.GettingCloser:
                 SetExpression(DogExpression.Happy);
+                PlayWalk();
                 break;
 
             case NavigationRuntimeController.NavState.GettingFarther:
                 SetExpression(DogExpression.Angry);
+                PlayStand();
                 break;
 
             case NavigationRuntimeController.NavState.Lost:
                 SetExpression(DogExpression.Barking);
+                PlayBark();
                 break;
 
             case NavigationRuntimeController.NavState.Arrived:
                 SetExpression(DogExpression.Happy);
+                PlayArrive();
                 break;
 
             case NavigationRuntimeController.NavState.Waiting:
@@ -220,8 +208,9 @@ public class DogGuideController : MonoBehaviour
             case NavigationRuntimeController.NavState.Neutral:
             default:
                 SetExpression(DogExpression.Calm);
+                PlayStand();
                 break;
-}
+        }
     }
 
     private void Update()
@@ -268,56 +257,79 @@ public class DogGuideController : MonoBehaviour
             targetPos.y = currentDog.transform.position.y;
         }
 
-        Vector3 moveDir = targetPos - currentDog.transform.position;
-        moveDir.y = 0f;
-
-        if (moveDir.sqrMagnitude > 0.0001f)
-        {
-            Quaternion targetRot = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
-            currentDog.transform.rotation = Quaternion.Slerp(
-                currentDog.transform.rotation,
-                targetRot,
-                rotateSpeed * Time.deltaTime
-            );
-        }
-
-        currentDog.transform.position = Vector3.MoveTowards(
-            currentDog.transform.position,
-            targetPos,
-            moveSpeed * Time.deltaTime
-        );
+        MoveDogTo(targetPos, moveSpeed);
     }
 
-    private void ApplyColor(Color color)
-    {
-        if (dogRenderer != null && dogRenderer.material != null)
-            dogRenderer.material.color = color;
-    }
-
-    private void SetupExpressionRenderers()
+    private void SetupExpressionMaterials()
     {
         eyesRenderer = null;
         mouthRenderer = null;
+        eyesRuntimeMaterial = null;
+        mouthRuntimeMaterial = null;
+        eyesMaterialIndex = -1;
+        mouthMaterialIndex = -1;
 
         if (currentDog == null)
             return;
 
-        Renderer[] renderers = currentDog.GetComponentsInChildren<Renderer>();
+        Renderer[] renderers = currentDog.GetComponentsInChildren<Renderer>(true);
 
-        foreach (Renderer r in renderers)
+        foreach (Renderer renderer in renderers)
         {
-            if (r.gameObject.name == "Eyes")
-                eyesRenderer = r;
+            Material[] sharedMaterials = renderer.sharedMaterials;
 
-            if (r.gameObject.name == "Mouth")
-                mouthRenderer = r;
+            for (int i = 0; i < sharedMaterials.Length; i++)
+            {
+                Material sharedMat = sharedMaterials[i];
+
+                if (sharedMat == null)
+                    continue;
+
+                string matName = sharedMat.name.ToLower();
+
+                if (eyesRuntimeMaterial == null &&
+                    matName.Contains(eyesMaterialKeyword.ToLower()))
+                {
+                    eyesRenderer = renderer;
+                    eyesMaterialIndex = i;
+
+                    Material[] runtimeMaterials = renderer.materials;
+                    eyesRuntimeMaterial = runtimeMaterials[i];
+
+                    Debug.Log(
+                        $"DogGuideController: found eyes material on Renderer '{renderer.name}', slot {i}, material '{sharedMat.name}'."
+                    );
+                }
+
+                if (mouthRuntimeMaterial == null &&
+                    matName.Contains(mouthMaterialKeyword.ToLower()))
+                {
+                    mouthRenderer = renderer;
+                    mouthMaterialIndex = i;
+
+                    Material[] runtimeMaterials = renderer.materials;
+                    mouthRuntimeMaterial = runtimeMaterials[i];
+
+                    Debug.Log(
+                        $"DogGuideController: found mouth material on Renderer '{renderer.name}', slot {i}, material '{sharedMat.name}'."
+                    );
+                }
+            }
         }
 
-        if (eyesRenderer == null)
-            Debug.LogWarning("DogGuideController: Eyes renderer not found. Make sure there is a child object named Eyes.");
+        if (eyesRuntimeMaterial == null)
+        {
+            Debug.LogWarning(
+                "DogGuideController: eyes material not found. Make sure the material name contains 'eyes', for example 'eyes-rig.001'."
+            );
+        }
 
-        if (mouthRenderer == null)
-            Debug.LogWarning("DogGuideController: Mouth renderer not found. Make sure there is a child object named Mouth.");
+        if (mouthRuntimeMaterial == null)
+        {
+            Debug.LogWarning(
+                "DogGuideController: mouth material not found. Make sure the material name contains 'mouth', for example 'mouth-rig.001'."
+            );
+        }
     }
 
     private void SetExpression(DogExpression expression)
@@ -332,20 +344,28 @@ public class DogGuideController : MonoBehaviour
         {
             case DogExpression.Happy:
                 return happyEyes;
+
             case DogExpression.LookingAround:
                 return lookingAroundEyes;
+
             case DogExpression.Angry:
                 return angryEyes;
+
             case DogExpression.Calm:
                 return calmEyes;
+
             case DogExpression.Tearful:
                 return tearfulEyes;
+
             case DogExpression.Barking:
                 return barkingEyes;
+
             case DogExpression.Resting:
                 return restingEyes;
+
             case DogExpression.Smug:
                 return smugEyes;
+
             default:
                 return calmEyes;
         }
@@ -357,20 +377,28 @@ public class DogGuideController : MonoBehaviour
         {
             case DogExpression.Happy:
                 return happyMouth;
+
             case DogExpression.LookingAround:
                 return lookingAroundMouth;
+
             case DogExpression.Angry:
                 return angryMouth;
+
             case DogExpression.Calm:
                 return calmMouth;
+
             case DogExpression.Tearful:
                 return tearfulMouth;
+
             case DogExpression.Barking:
                 return barkingMouth;
+
             case DogExpression.Resting:
                 return restingMouth;
+
             case DogExpression.Smug:
                 return smugMouth;
+
             default:
                 return calmMouth;
         }
@@ -378,20 +406,44 @@ public class DogGuideController : MonoBehaviour
 
     private void SetEyesTexture(Texture texture)
     {
-        if (eyesRenderer == null || texture == null)
-            return;
-
-        eyesRenderer.material.mainTexture = texture;
+        SetMaterialBaseMap(eyesRuntimeMaterial, texture, "Eyes");
     }
 
     private void SetMouthTexture(Texture texture)
     {
-        if (mouthRenderer == null || texture == null)
-            return;
-
-        mouthRenderer.material.mainTexture = texture;
+        SetMaterialBaseMap(mouthRuntimeMaterial, texture, "Mouth");
     }
-    
+
+    private void SetMaterialBaseMap(Material material, Texture texture, string label)
+    {
+        if (material == null)
+        {
+            Debug.LogWarning($"DogGuideController: {label} material is null.");
+            return;
+        }
+
+        if (texture == null)
+        {
+            Debug.LogWarning($"DogGuideController: {label} texture is null.");
+            return;
+        }
+
+        if (material.HasProperty(BaseMapId))
+        {
+            material.SetTexture(BaseMapId, texture);
+        }
+        else if (material.HasProperty(MainTexId))
+        {
+            material.SetTexture(MainTexId, texture);
+        }
+        else
+        {
+            material.mainTexture = texture;
+        }
+
+        Debug.Log($"DogGuideController: {label} texture changed to '{texture.name}'.");
+    }
+
     private void PlayStand()
     {
         ResetAnimationBools();
@@ -464,6 +516,7 @@ public class DogGuideController : MonoBehaviour
         if (moveDir.sqrMagnitude > 0.0001f)
         {
             Quaternion targetRot = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
+
             currentDog.transform.rotation = Quaternion.Slerp(
                 currentDog.transform.rotation,
                 targetRot,
@@ -492,7 +545,6 @@ public class DogGuideController : MonoBehaviour
             if (!isGuiding || currentDog == null || xrCamera == null)
                 continue;
 
-            // 到达、迷路、走错方向时，不触发随机行为
             if (currentState == NavigationRuntimeController.NavState.Arrived ||
                 currentState == NavigationRuntimeController.NavState.Lost ||
                 currentState == NavigationRuntimeController.NavState.GettingFarther)
@@ -525,7 +577,6 @@ public class DogGuideController : MonoBehaviour
 
         isPerformingRandomBehavior = false;
 
-        // 随机行为结束后，恢复当前导航状态对应表情/动画
         ApplyNavigationState(
             currentState,
             999f,

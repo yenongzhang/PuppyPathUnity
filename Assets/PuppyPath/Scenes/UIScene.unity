@@ -1532,9 +1532,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c8875b922a9fce42a099b7a024b5020, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DogGuideController
-  dogPrefab: {fileID: 356183919799981111, guid: 52241723b045429b589f252213d95f0f, type: 3}
-  eyesRenderer: {fileID: 0}
-  mouthRenderer: {fileID: 0}
+  dogPrefab: {fileID: 6434007789705133071, guid: aaf31dfb881487d4da6fa2c79d9924ce, type: 3}
+  eyesMaterialKeyword: eyes
+  mouthMaterialKeyword: mouth
   happyEyes: {fileID: 2800000, guid: 779838edbce5189138e9a18c1c414497, type: 3}
   lookingAroundEyes: {fileID: 2800000, guid: e27b1300b6563e4c2924f24e2e643232, type: 3}
   angryEyes: {fileID: 2800000, guid: fa2ee4bbb048a28ab8dfcd4bdc5176de, type: 3}
@@ -1556,10 +1556,6 @@ MonoBehaviour:
   rotateSpeed: 5
   minDistanceToUser: 1
   maxDistanceToUser: 3
-  neutralColor: {r: 1, g: 1, b: 1, a: 1}
-  happyColor: {r: 0.4862745, g: 0.9882354, b: 0, a: 1}
-  angryColor: {r: 0.6980392, g: 0.1333333, b: 0.1333333, a: 1}
-  arrivedColor: {r: 0.4156863, g: 0.3529412, b: 0.8039216, a: 1}
   dogAnimator: {fileID: 0}
   celebrationDistance: 0.5
   enableRandomBehaviors: 1
