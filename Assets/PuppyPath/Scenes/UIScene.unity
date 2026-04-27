@@ -1594,7 +1594,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c8875b922a9fce42a099b7a024b5020, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DogGuideController
-  dogPrefab: {fileID: 3644809327266501957, guid: 2b028803ca5eb6548b2ce0da23b8fafb, type: 3}
+  dogPrefab: {fileID: 356183919799981111, guid: 52241723b045429b589f252213d95f0f, type: 3}
   leadDistance: 1.8
   moveSpeed: 1.2
   rotateSpeed: 5

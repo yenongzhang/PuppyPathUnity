@@ -7,6 +7,7 @@ public class NavigationRuntimeController : MonoBehaviour
     public enum NavState
     {
         Neutral,
+        Waiting,
         GettingCloser,
         GettingFarther,
         Lost,
@@ -27,6 +28,10 @@ public class NavigationRuntimeController : MonoBehaviour
     [SerializeField] private float offPathThreshold = 3.0f;
     [SerializeField] private float lostThresholdTime = 4.0f;
 
+    [Header("User Movement Detection")]
+    [SerializeField] private float userMoveEpsilon = 0.03f;
+    [SerializeField] private float waitingThresholdTime = 0.5f;
+
     [Header("Arrival")]
     [SerializeField] private bool autoCompleteOnArrival = false;
     [SerializeField] private float autoCompleteDelay = 2.0f;
@@ -45,6 +50,10 @@ public class NavigationRuntimeController : MonoBehaviour
 
     private bool arrivalHandled;
     private float arrivalTimer;
+
+    // for waiting state
+    private Vector3 previousUserPosition;
+    private float timeStandingStill;
 
     public event Action<NavState> OnNavStateChanged;
 
@@ -89,6 +98,8 @@ public class NavigationRuntimeController : MonoBehaviour
         );
 
         previousDistanceToGoal = CurrentDistanceToGoal;
+        previousUserPosition = xrCamera.position;
+        timeStandingStill = 0f;
 
         UpdateRecommendedDirection();
         SetState(NavState.Neutral, true);
@@ -111,6 +122,9 @@ public class NavigationRuntimeController : MonoBehaviour
             dogGuideController.StopGuiding();
 
         SetState(NavState.Neutral, true);
+
+        timeStandingStill = 0f;
+        previousUserPosition = Vector3.zero;
     }
 
     private void Update()
@@ -151,22 +165,35 @@ public class NavigationRuntimeController : MonoBehaviour
 
         CurrentDistanceToGoal = GetFlatDistance(userPos, goalPos);
 
-    if (CurrentDistanceToGoal <= arriveThreshold)
-    {
-        SetState(NavState.Arrived);
+        float userMoveDistance = GetFlatDistance(userPos, previousUserPosition);
 
-        if (dogGuideController != null)
-            dogGuideController.ApplyNavigationState(
-                CurrentState,
-                CurrentDistanceToGoal,
-                CurrentRecommendedDirection
-            );
+        bool userIsMoving = userMoveDistance > userMoveEpsilon;
 
-        if (navigationController != null)
-            navigationController.CompleteNavigation();
+        if (!userIsMoving)
+        {
+            timeStandingStill += updateInterval;
+        }
+        else
+        {
+            timeStandingStill = 0f;
+        }
 
-        return;
-    }
+        if (CurrentDistanceToGoal <= arriveThreshold)
+        {
+            SetState(NavState.Arrived);
+
+            if (dogGuideController != null)
+                dogGuideController.ApplyNavigationState(
+                    CurrentState,
+                    CurrentDistanceToGoal,
+                    CurrentRecommendedDirection
+                );
+
+            if (navigationController != null)
+                navigationController.CompleteNavigation();
+
+            return;
+        }
 
         currentSegmentIndex = FindClosestSegmentIndex(userPos);
         UpdateRecommendedDirection();
@@ -176,6 +203,23 @@ public class NavigationRuntimeController : MonoBehaviour
             currentWaypoints[currentSegmentIndex].position,
             currentWaypoints[currentSegmentIndex + 1].position
         );
+
+        if (!userIsMoving && timeStandingStill >= waitingThresholdTime)
+        {
+            SetState(NavState.Waiting);
+
+            previousDistanceToGoal = CurrentDistanceToGoal;
+            previousUserPosition = userPos;
+
+            if (dogGuideController != null)
+                dogGuideController.ApplyNavigationState(
+                    CurrentState,
+                    CurrentDistanceToGoal,
+                    CurrentRecommendedDirection
+                );
+
+            return;
+        }
 
         bool isProgressing = CurrentDistanceToGoal < previousDistanceToGoal - progressEpsilon;
 
@@ -207,6 +251,7 @@ public class NavigationRuntimeController : MonoBehaviour
         }
 
         previousDistanceToGoal = CurrentDistanceToGoal;
+        previousUserPosition = userPos;
 
         if (dogGuideController != null)
             dogGuideController.ApplyNavigationState(
