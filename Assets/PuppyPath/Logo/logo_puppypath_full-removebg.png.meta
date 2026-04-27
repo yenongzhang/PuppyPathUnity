@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 35dd66bbf5862074dba1c774a8e42584
+guid: 0c3e86cc747b9264093942014e14875e
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: logo puppypath_full_0
+      name: logo_puppypath_full-removebg_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1080
-        height: 476
+        x: 30
+        y: 18
+        width: 684
+        height: 270
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -125,8 +125,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6ce261f9bd1a6e74c9a9b82bb22b40d7
-      internalID: -153102398
+      spriteID: a817b4eb8c2a6ce4dab337de1e2b781e
+      internalID: 543992130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: logo_puppypath_full-removebg_1
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 18
+        width: 12
+        height: 4
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d2e141e2f1e1e6846b0799813010864e
+      internalID: -127099829
       vertices: []
       indices: 
       edges: []
@@ -135,7 +157,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: c69b70cdd4bcd3a42ab58a8fde654fe9
+    spriteID: 942b1b72481b41c4d88647e71913b1a8
     internalID: 0
     vertices: []
     indices: 
@@ -147,7 +169,8 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      logo puppypath_full_0: -153102398
+      logo_puppypath_full-removebg_0: 543992130
+      logo_puppypath_full-removebg_1: -127099829
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

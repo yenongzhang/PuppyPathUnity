@@ -32,12 +32,15 @@ public class NavigationController : MonoBehaviour
     [SerializeField] private bool destroyFireworksAfterDelay = true;
     [SerializeField] private float fireworkDestroyDelay = 4f;
     [SerializeField] private bool debugFireworks = true;
+    [Header("Arrival Reset")]
+    [SerializeField] private float returnToMainMenuDelay = 10f;
 
     private string pendingPathId;
     private string pendingTargetName = "Destination";
     private bool isInNavigationMode;
     private bool hasCompletedNavigation;
     private Coroutine fireworkRoutine;
+    private Coroutine returnToMenuRoutine;
 
     private void Start()
     {
@@ -174,10 +177,25 @@ public class NavigationController : MonoBehaviour
             hudController.UpdateStateText("You made it!");
 
         isInNavigationMode = false;
+
+        if (returnToMenuRoutine != null)
+            StopCoroutine(returnToMenuRoutine);
+
+        returnToMenuRoutine = StartCoroutine(ReturnToMainMenuAfterDelay());
     }
 
     public void GiveUpNavigation()
     {
+        StopNavigationAndReturnToMenu();
+    }
+
+    private IEnumerator ReturnToMainMenuAfterDelay()
+    {
+        if (returnToMainMenuDelay > 0f)
+            yield return new WaitForSeconds(returnToMainMenuDelay);
+
+        returnToMenuRoutine = null;
+
         StopNavigationAndReturnToMenu();
     }
 
@@ -237,6 +255,12 @@ public class NavigationController : MonoBehaviour
 
     private void StopNavigationAndReturnToMenu()
     {
+        if (returnToMenuRoutine != null)
+        {
+            StopCoroutine(returnToMenuRoutine);
+            returnToMenuRoutine = null;
+        }
+
         if (runtimeController != null)
             runtimeController.StopRuntime();
 
