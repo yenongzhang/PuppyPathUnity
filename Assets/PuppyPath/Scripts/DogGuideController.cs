@@ -4,9 +4,54 @@ using System.Collections.Generic;
 
 public class DogGuideController : MonoBehaviour
 {
+    private enum DogBehavior
+    {
+        SniffAhead,
+        ShortCanter,
+        TurnCircleUser,
+        WalkBeside,
+        WalkBehind,
+        PauseAndLook,
+        BarkAtUser,
+        SitWait,
+        Arrived
+    }
 
     [Header("References")]
     [SerializeField] private GameObject dogPrefab;
+
+    [Header("Loop / Main Animation State Names")]
+    [SerializeField] private string standState = "Stand";
+    [SerializeField] private string walkState = "walk";
+    [SerializeField] private string trotState = "Trot";
+    [SerializeField] private string canterState = "Canter";
+    [SerializeField] private string sniffState = "Sniff";
+    [SerializeField] private string barkState = "Bark";
+    [SerializeField] private string happyState = "Happy";
+    [SerializeField] private string sitState = "Sit";
+
+    [Header("One-shot Transition Animation State Names")]
+    [SerializeField] private string happyStartState = "HappyStart";
+    [SerializeField] private string standToWalkState = "StandWalk";
+    [SerializeField] private string walkToStandState = "WalkStand";
+    [SerializeField] private string standToSitState = "StandSit";
+    [SerializeField] private string sitToStandState = "SitStand";
+
+    [Header("Turn Animation State Names")]
+    [SerializeField] private string turnBackState = "TurnBack";
+    [SerializeField] private string turnFrontState = "TurnFront";
+    [SerializeField] private string turnLoopState = "TurnLoop";
+
+    [Header("Animation Settings")]
+    [SerializeField] private float animationCrossFadeTime = 0.12f;
+    [SerializeField] private float shortTransitionDuration = 0.45f;
+    [SerializeField] private float longTransitionDuration = 0.75f;
+
+    [Header("Animation Stability")]
+    [SerializeField] private float minAnimationHoldTime = 0.28f;
+    [SerializeField] private float locomotionStartExtraDistance = 0.12f;
+    [SerializeField] private float locomotionStopRatio = 0.55f;
+    [SerializeField] private float nearTargetStandDelay = 0.25f;
 
     [Header("Expression Material Search")]
     [SerializeField] private string eyesMaterialKeyword = "eyes";
@@ -23,44 +68,77 @@ public class DogGuideController : MonoBehaviour
     [Header("State Expression Groups")]
     [SerializeField] private DogStateExpressionGroup[] expressionGroups;
 
-    [Header("Guide Movement")]
-    [SerializeField] private float leadDistance = 1.8f;
-    [SerializeField] private float moveSpeed = 1.2f;
-    [SerializeField] private float rotateSpeed = 5f;
-    [SerializeField] private float minDistanceToUser = 1.0f;
-    [SerializeField] private float maxDistanceToUser = 3.0f;
+    [Header("Guide Position")]
+    [SerializeField] private float leadDistance = 1.45f;
+    [SerializeField] private float besideDistance = 0.75f;
+    [SerializeField] private float behindDistance = 0.9f;
+    [SerializeField] private float minDistanceToUser = 0.7f;
+    [SerializeField] private float maxDistanceToUser = 2.3f;
 
-    [Header("Animation")]
-    [SerializeField] private Animator dogAnimator;
-    [SerializeField] private float celebrationDistance = 0.5f;
+    [Header("Movement Speeds")]
+    [SerializeField] private float sniffMoveSpeed = 0.28f;
+    [SerializeField] private float walkMoveSpeed = 0.52f;
+    [SerializeField] private float trotMoveSpeed = 0.78f;
+    [SerializeField] private float canterMoveSpeed = 1.05f;
+    [SerializeField] private float turnMoveSpeed = 0.7f;
+    [SerializeField] private float catchUpMoveSpeed = 0.9f;
+    [SerializeField] private float rotateSpeed = 5.5f;
+
+    [Header("Locomotion Animation Gate")]
+    [SerializeField] private float minDistanceForWalkAnimation = 0.20f;
+    [SerializeField] private float minDistanceForSniffAnimation = 0.14f;
+    [SerializeField] private float minDistanceForTrotAnimation = 0.28f;
+    [SerializeField] private float minDistanceForCanterAnimation = 0.40f;
+    [SerializeField] private float minDistanceForTurnAnimation = 0.28f;
 
     [Header("Random Behaviors")]
     [SerializeField] private bool enableRandomBehaviors = true;
-    [SerializeField] private float randomBehaviorMinInterval = 12f;
-    [SerializeField] private float randomBehaviorMaxInterval = 42f;
-    [SerializeField] private float randomBehaviorDuration = 2f;
-    [SerializeField] private float runSpeed = 2.0f;
-    [SerializeField] private float circleRadius = 1.3f;
-    [SerializeField] private float circleSpeed = 180f;
+    [SerializeField] private float randomBehaviorMinInterval = 1.4f;
+    [SerializeField] private float randomBehaviorMaxInterval = 3.2f;
+    [SerializeField] private float randomBehaviorMinDuration = 1.4f;
+    [SerializeField] private float randomBehaviorMaxDuration = 2.6f;
+    [SerializeField] private float circleRadius = 1.1f;
+    [SerializeField] private float circleAngularSpeed = 130f;
+
+    [Header("Negative State Behavior")]
+    [SerializeField] private float barkDuration = 1.2f;
+    [SerializeField] private float sitWaitDuration = 1.1f;
+    [SerializeField] private float negativeReactionCooldown = 2.0f;
+
+    [Header("Arrival")]
+    [SerializeField] private float celebrationDistance = 0.5f;
+
+    [Header("Debug")]
+    [SerializeField] private bool logAnimationChanges = false;
 
     private GameObject currentDog;
     private Transform xrCamera;
+    private Animator dogAnimator;
+
     private readonly List<Transform> path = new List<Transform>();
 
     private bool isGuiding;
+    private bool isPerformingBehavior;
+    private bool currentBehaviorIsStateReaction;
+
     private NavigationRuntimeController.NavState currentState = NavigationRuntimeController.NavState.Neutral;
+    private NavigationRuntimeController.NavState previousState = NavigationRuntimeController.NavState.Neutral;
+
     private Vector3 currentRecommendedDirection = Vector3.forward;
     private bool hasAppliedExpression;
 
-    private bool isPerformingRandomBehavior;
     private Coroutine randomBehaviorRoutine;
+    private Coroutine behaviorRoutine;
 
     private Renderer eyesRenderer;
     private Renderer mouthRenderer;
     private Material eyesRuntimeMaterial;
     private Material mouthRuntimeMaterial;
-    private int eyesMaterialIndex = -1;
-    private int mouthMaterialIndex = -1;
+
+    private string currentAnimationState = "";
+    private float lastAnimationChangeTime = -999f;
+    private float nearTargetTimer = 0f;
+    private float lastNegativeReactionTime = -999f;
 
     private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
     private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
@@ -85,20 +163,36 @@ public class DogGuideController : MonoBehaviour
         if (currentDog != null)
             Destroy(currentDog);
 
-        Vector3 spawnPos = xrCamera.position + xrCamera.forward * 1.2f;
+        Vector3 spawnPos = xrCamera.position + GetFlatForward(xrCamera) * 1.2f;
         spawnPos.y = path[0].position.y;
 
         currentDog = Instantiate(dogPrefab, spawnPos, Quaternion.identity);
-
         dogAnimator = currentDog.GetComponentInChildren<Animator>();
 
+        if (dogAnimator != null)
+        {
+            dogAnimator.applyRootMotion = false;
+            dogAnimator.speed = 1f;
+        }
+
         SetupExpressionMaterials();
-        hasAppliedExpression = false;
-        SetRandomExpressionForState(NavigationRuntimeController.NavState.Neutral);
-        PlayStand();
+
+        currentState = NavigationRuntimeController.NavState.Neutral;
+        previousState = NavigationRuntimeController.NavState.Neutral;
 
         isGuiding = true;
-        isPerformingRandomBehavior = false;
+        isPerformingBehavior = false;
+        currentBehaviorIsStateReaction = false;
+
+        currentAnimationState = "";
+        lastAnimationChangeTime = -999f;
+        nearTargetTimer = 0f;
+        hasAppliedExpression = false;
+
+        SetRandomExpressionForState(NavigationRuntimeController.NavState.Neutral);
+        hasAppliedExpression = true;
+
+        PlayAnimation(standState, 1f, true);
 
         if (enableRandomBehaviors)
         {
@@ -112,13 +206,20 @@ public class DogGuideController : MonoBehaviour
     public void StopGuiding()
     {
         isGuiding = false;
-        isPerformingRandomBehavior = false;
+        isPerformingBehavior = false;
+        currentBehaviorIsStateReaction = false;
         hasAppliedExpression = false;
 
         if (randomBehaviorRoutine != null)
         {
             StopCoroutine(randomBehaviorRoutine);
             randomBehaviorRoutine = null;
+        }
+
+        if (behaviorRoutine != null)
+        {
+            StopCoroutine(behaviorRoutine);
+            behaviorRoutine = null;
         }
 
         if (currentDog != null)
@@ -128,16 +229,15 @@ public class DogGuideController : MonoBehaviour
         }
 
         dogAnimator = null;
-
         eyesRenderer = null;
         mouthRenderer = null;
         eyesRuntimeMaterial = null;
         mouthRuntimeMaterial = null;
-        eyesMaterialIndex = -1;
-        mouthMaterialIndex = -1;
 
         path.Clear();
         xrCamera = null;
+        currentAnimationState = "";
+        nearTargetTimer = 0f;
     }
 
     public void ApplyNavigationState(
@@ -154,13 +254,17 @@ public class DogGuideController : MonoBehaviour
             effectiveState = NavigationRuntimeController.NavState.Arrived;
         }
 
+        previousState = currentState;
         bool stateChanged = currentState != effectiveState;
-
         currentState = effectiveState;
-        currentRecommendedDirection = recommendedDirection;
 
-        if (isPerformingRandomBehavior)
-            return;
+        currentRecommendedDirection = recommendedDirection;
+        currentRecommendedDirection.y = 0f;
+
+        if (currentRecommendedDirection.sqrMagnitude < 0.0001f && xrCamera != null)
+            currentRecommendedDirection = GetFlatForward(xrCamera);
+
+        currentRecommendedDirection.Normalize();
 
         if (!hasAppliedExpression || stateChanged)
         {
@@ -168,31 +272,43 @@ public class DogGuideController : MonoBehaviour
             hasAppliedExpression = true;
         }
 
+        if (currentState == NavigationRuntimeController.NavState.Arrived)
+        {
+            StartBehavior(DogBehavior.Arrived, true);
+            return;
+        }
+
+        if ((currentState == NavigationRuntimeController.NavState.GettingCloser ||
+             currentState == NavigationRuntimeController.NavState.Neutral) &&
+            isPerformingBehavior &&
+            currentBehaviorIsStateReaction)
+        {
+            StopCurrentBehavior();
+            StartBehavior(DogBehavior.ShortCanter, false);
+            return;
+        }
+
+        if (isPerformingBehavior)
+            return;
+
         switch (currentState)
         {
             case NavigationRuntimeController.NavState.GettingCloser:
-                PlayWalk();
-                break;
-
-            case NavigationRuntimeController.NavState.GettingFarther:
-                PlaySniffing();
-                break;
-
-            case NavigationRuntimeController.NavState.Lost:
-                PlayBark();
-                break;
-
-            case NavigationRuntimeController.NavState.Arrived:
-                PlayArrive();
+            case NavigationRuntimeController.NavState.Neutral:
+                // Animation for movement is decided in Update(), based on actual distance to target.
                 break;
 
             case NavigationRuntimeController.NavState.Waiting:
-                PlayStand();
+                PlayStand(1f);
+                LookAtUser();
                 break;
 
-            case NavigationRuntimeController.NavState.Neutral:
-            default:
-                PlayStand();
+            case NavigationRuntimeController.NavState.GettingFarther:
+                TryStartNegativeReaction(false);
+                break;
+
+            case NavigationRuntimeController.NavState.Lost:
+                TryStartNegativeReaction(true);
                 break;
         }
     }
@@ -202,46 +318,453 @@ public class DogGuideController : MonoBehaviour
         if (!isGuiding || currentDog == null || xrCamera == null)
             return;
 
-        if (isPerformingRandomBehavior)
+        if (isPerformingBehavior)
             return;
 
-        if (currentState == NavigationRuntimeController.NavState.GettingFarther ||
-            currentState == NavigationRuntimeController.NavState.Lost ||
-            currentState == NavigationRuntimeController.NavState.Arrived)
+        if (currentState == NavigationRuntimeController.NavState.Arrived)
+            return;
+
+        if (currentState == NavigationRuntimeController.NavState.Lost ||
+            currentState == NavigationRuntimeController.NavState.GettingFarther)
         {
+            LookAtUser();
             return;
         }
 
+        if (currentState == NavigationRuntimeController.NavState.Waiting)
+        {
+            LookAtUser();
+            return;
+        }
+
+        DoNormalGuideMovement();
+    }
+
+    private void DoNormalGuideMovement()
+    {
         Vector3 userPos = xrCamera.position;
-        Vector3 flatDir = currentRecommendedDirection;
-        flatDir.y = 0f;
-
-        if (flatDir.sqrMagnitude < 0.0001f)
-            flatDir = xrCamera.forward;
-
-        flatDir.y = 0f;
-        flatDir.Normalize();
+        Vector3 flatDir = GetRecommendedDirection();
 
         Vector3 targetPos = userPos + flatDir * leadDistance;
         targetPos.y = currentDog.transform.position.y;
 
-        float userDogDistance = Vector3.Distance(
-            new Vector3(userPos.x, 0f, userPos.z),
-            new Vector3(currentDog.transform.position.x, 0f, currentDog.transform.position.z)
-        );
+        float userDogDistance = GetFlatDistance(userPos, currentDog.transform.position);
+
+        if (userDogDistance > maxDistanceToUser)
+        {
+            targetPos = userPos + flatDir * maxDistanceToUser;
+            targetPos.y = currentDog.transform.position.y;
+
+            TryPlayLocomotionAndMove(
+                targetPos,
+                trotState,
+                0.9f,
+                catchUpMoveSpeed,
+                minDistanceForTrotAnimation
+            );
+
+            return;
+        }
 
         if (userDogDistance < minDistanceToUser)
         {
             targetPos = userPos + flatDir * minDistanceToUser;
             targetPos.y = currentDog.transform.position.y;
-        }
-        else if (userDogDistance > maxDistanceToUser)
-        {
-            targetPos = userPos + flatDir * maxDistanceToUser;
-            targetPos.y = currentDog.transform.position.y;
+
+            TryPlayLocomotionAndMove(
+                targetPos,
+                walkState,
+                0.75f,
+                sniffMoveSpeed,
+                minDistanceForWalkAnimation
+            );
+
+            return;
         }
 
-        MoveDogTo(targetPos, moveSpeed);
+        TryPlayLocomotionAndMove(
+            targetPos,
+            walkState,
+            0.85f,
+            walkMoveSpeed,
+            minDistanceForWalkAnimation
+        );
+    }
+
+    private IEnumerator RandomBehaviorLoop()
+    {
+        while (isGuiding)
+        {
+            float waitTime = Random.Range(randomBehaviorMinInterval, randomBehaviorMaxInterval);
+            yield return new WaitForSeconds(waitTime);
+
+            if (!CanDoPositiveRandomBehavior())
+                continue;
+
+            DogBehavior behavior = PickPositiveBehavior();
+            yield return StartCoroutine(PerformBehavior(behavior, false));
+        }
+    }
+
+    private bool CanDoPositiveRandomBehavior()
+    {
+        if (!isGuiding || currentDog == null || xrCamera == null)
+            return false;
+
+        if (isPerformingBehavior)
+            return false;
+
+        return currentState == NavigationRuntimeController.NavState.Neutral ||
+               currentState == NavigationRuntimeController.NavState.GettingCloser;
+    }
+
+    private DogBehavior PickPositiveBehavior()
+    {
+        float r = Random.value;
+
+        if (r < 0.34f) return DogBehavior.SniffAhead;
+        if (r < 0.56f) return DogBehavior.WalkBeside;
+        if (r < 0.74f) return DogBehavior.WalkBehind;
+        if (r < 0.90f) return DogBehavior.ShortCanter;
+        if (r < 0.96f) return DogBehavior.PauseAndLook;
+
+        return DogBehavior.TurnCircleUser;
+    }
+
+    private void TryStartNegativeReaction(bool strong)
+    {
+        if (Time.time - lastNegativeReactionTime < negativeReactionCooldown)
+        {
+            PlayStand(1f);
+            LookAtUser();
+            return;
+        }
+
+        lastNegativeReactionTime = Time.time;
+
+        if (strong)
+        {
+            StartBehavior(Random.value < 0.7f ? DogBehavior.BarkAtUser : DogBehavior.SitWait, true);
+        }
+        else
+        {
+            StartBehavior(Random.value < 0.6f ? DogBehavior.BarkAtUser : DogBehavior.PauseAndLook, true);
+        }
+    }
+
+    private void StartBehavior(DogBehavior behavior, bool isStateReaction)
+    {
+        if (behaviorRoutine != null)
+            StopCoroutine(behaviorRoutine);
+
+        behaviorRoutine = StartCoroutine(PerformBehavior(behavior, isStateReaction));
+    }
+
+    private void StopCurrentBehavior()
+    {
+        if (behaviorRoutine != null)
+        {
+            StopCoroutine(behaviorRoutine);
+            behaviorRoutine = null;
+        }
+
+        isPerformingBehavior = false;
+        currentBehaviorIsStateReaction = false;
+    }
+
+    private IEnumerator PerformBehavior(DogBehavior behavior, bool isStateReaction)
+    {
+        isPerformingBehavior = true;
+        currentBehaviorIsStateReaction = isStateReaction;
+        nearTargetTimer = 0f;
+
+        switch (behavior)
+        {
+            case DogBehavior.SniffAhead:
+                yield return StartCoroutine(DoSniffAhead());
+                break;
+
+            case DogBehavior.ShortCanter:
+                yield return StartCoroutine(DoShortCanter());
+                break;
+
+            case DogBehavior.TurnCircleUser:
+                yield return StartCoroutine(DoTurnCircleUser());
+                break;
+
+            case DogBehavior.WalkBeside:
+                yield return StartCoroutine(DoWalkBeside());
+                break;
+
+            case DogBehavior.WalkBehind:
+                yield return StartCoroutine(DoWalkBehind());
+                break;
+
+            case DogBehavior.PauseAndLook:
+                yield return StartCoroutine(DoPauseAndLook());
+                break;
+
+            case DogBehavior.BarkAtUser:
+                yield return StartCoroutine(DoBarkAtUser());
+                break;
+
+            case DogBehavior.SitWait:
+                yield return StartCoroutine(DoSitWait());
+                break;
+
+            case DogBehavior.Arrived:
+                yield return StartCoroutine(DoArrived());
+                break;
+        }
+
+        isPerformingBehavior = false;
+        currentBehaviorIsStateReaction = false;
+        behaviorRoutine = null;
+        nearTargetTimer = 0f;
+
+        if (currentState != NavigationRuntimeController.NavState.Arrived)
+        {
+            ApplyNavigationState(currentState, 999f, currentRecommendedDirection);
+        }
+    }
+
+    private IEnumerator DoSniffAhead()
+    {
+        float duration = Random.Range(2.0f, 5.0f);
+        float elapsed = 0f;
+
+        while (elapsed < duration && CanContinuePositiveMovement())
+        {
+            elapsed += Time.deltaTime;
+
+            Vector3 targetPos = xrCamera.position + GetRecommendedDirection() * (leadDistance * 0.78f);
+            targetPos.y = currentDog.transform.position.y;
+
+            TryPlayLocomotionAndMove(
+                targetPos,
+                sniffState,
+                1f,
+                sniffMoveSpeed,
+                minDistanceForSniffAnimation
+            );
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator DoShortCanter()
+    {
+        yield return PlayTransitionOnly(standToWalkState, shortTransitionDuration);
+
+        float duration = Random.Range(1.0f, 5.0f);
+        float elapsed = 0f;
+
+        while (elapsed < duration && CanContinuePositiveMovement())
+        {
+            elapsed += Time.deltaTime;
+
+            Vector3 targetPos = xrCamera.position + GetRecommendedDirection() * (leadDistance + 0.35f);
+            targetPos.y = currentDog.transform.position.y;
+
+            TryPlayLocomotionAndMove(
+                targetPos,
+                canterState,
+                0.82f,
+                canterMoveSpeed,
+                minDistanceForCanterAnimation
+            );
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator DoTurnCircleUser()
+    {
+        float duration = Random.Range(1.2f, 2.6f);
+        float elapsed = 0f;
+        float angle = Random.Range(0f, 360f);
+        float direction = Random.value < 0.5f ? -1f : 1f;
+
+        while (elapsed < duration && CanContinuePositiveMovement())
+        {
+            elapsed += Time.deltaTime;
+            angle += direction * circleAngularSpeed * Time.deltaTime;
+
+            float radians = angle * Mathf.Deg2Rad;
+
+            Vector3 offset = new Vector3(
+                Mathf.Cos(radians) * circleRadius,
+                0f,
+                Mathf.Sin(radians) * circleRadius
+            );
+
+            Vector3 targetPos = xrCamera.position + offset;
+            targetPos.y = currentDog.transform.position.y;
+
+            TryPlayLocomotionAndMove(
+                targetPos,
+                turnLoopState,
+                0.9f,
+                turnMoveSpeed,
+                minDistanceForTurnAnimation
+            );
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator DoWalkBeside()
+    {
+        float duration = Random.Range(randomBehaviorMinDuration, randomBehaviorMaxDuration);
+        float elapsed = 0f;
+        float sideSign = Random.value < 0.5f ? -1f : 1f;
+
+        while (elapsed < duration && CanContinuePositiveMovement())
+        {
+            elapsed += Time.deltaTime;
+
+            Vector3 dir = GetRecommendedDirection();
+            Vector3 sideDir = new Vector3(dir.z, 0f, -dir.x) * sideSign;
+
+            Vector3 targetPos = xrCamera.position + sideDir * besideDistance + dir * 0.15f;
+            targetPos.y = currentDog.transform.position.y;
+
+            TryPlayLocomotionAndMove(
+                targetPos,
+                walkState,
+                0.85f,
+                walkMoveSpeed,
+                minDistanceForWalkAnimation
+            );
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator DoWalkBehind()
+    {
+        float duration = Random.Range(randomBehaviorMinDuration, randomBehaviorMaxDuration);
+        float elapsed = 0f;
+
+        while (elapsed < duration && CanContinuePositiveMovement())
+        {
+            elapsed += Time.deltaTime;
+
+            Vector3 dir = GetRecommendedDirection();
+
+            Vector3 targetPos = xrCamera.position - dir * behindDistance;
+            targetPos.y = currentDog.transform.position.y;
+
+            TryPlayLocomotionAndMove(
+                targetPos,
+                walkState,
+                0.8f,
+                walkMoveSpeed,
+                minDistanceForWalkAnimation
+            );
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator DoPauseAndLook()
+    {
+        yield return PlayTransitionOnly(walkToStandState, shortTransitionDuration);
+
+        PlayAnimation(standState, 1f, true);
+
+        float duration = Random.Range(0.45f, 0.9f);
+        float elapsed = 0f;
+
+        while (elapsed < duration && currentState != NavigationRuntimeController.NavState.Arrived)
+        {
+            elapsed += Time.deltaTime;
+            LookAtUser();
+            yield return null;
+        }
+
+        yield return PlayTransitionOnly(standToWalkState, shortTransitionDuration);
+    }
+
+    private IEnumerator DoBarkAtUser()
+    {
+        if (!string.IsNullOrWhiteSpace(barkState))
+            PlayAnimation(barkState, 1f, true);
+        else
+            PlayAnimation(standState, 1f, true);
+
+        float elapsed = 0f;
+
+        while (elapsed < barkDuration)
+        {
+            elapsed += Time.deltaTime;
+            LookAtUser();
+            yield return null;
+        }
+    }
+
+    private IEnumerator DoSitWait()
+    {
+        yield return PlayTransitionOnly(standToSitState, longTransitionDuration);
+
+        PlayAnimation(sitState, 1f, true);
+
+        float elapsed = 0f;
+
+        while (elapsed < sitWaitDuration)
+        {
+            elapsed += Time.deltaTime;
+            LookAtUser();
+
+            if (currentState == NavigationRuntimeController.NavState.GettingCloser ||
+                currentState == NavigationRuntimeController.NavState.Neutral)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+
+        yield return PlayTransitionOnly(sitToStandState, longTransitionDuration);
+    }
+
+    private IEnumerator DoArrived()
+    {
+        currentState = NavigationRuntimeController.NavState.Arrived;
+
+        yield return PlayTransitionOnly(happyStartState, shortTransitionDuration);
+
+        PlayAnimation(happyState, 1f, true);
+
+        float elapsed = 0f;
+        float duration = 3.0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            LookAtUser();
+            yield return null;
+        }
+    }
+
+    private IEnumerator PlayTransitionOnly(string stateName, float duration)
+    {
+        if (!string.IsNullOrWhiteSpace(stateName))
+        {
+            PlayAnimation(stateName, 1f, true);
+            yield return new WaitForSeconds(duration);
+        }
+    }
+
+    private bool CanContinuePositiveMovement()
+    {
+        return isGuiding &&
+               currentDog != null &&
+               xrCamera != null &&
+               currentState != NavigationRuntimeController.NavState.Arrived &&
+               currentState != NavigationRuntimeController.NavState.Lost &&
+               currentState != NavigationRuntimeController.NavState.GettingFarther &&
+               currentState != NavigationRuntimeController.NavState.Waiting;
     }
 
     private void SetupExpressionMaterials()
@@ -250,8 +773,6 @@ public class DogGuideController : MonoBehaviour
         mouthRenderer = null;
         eyesRuntimeMaterial = null;
         mouthRuntimeMaterial = null;
-        eyesMaterialIndex = -1;
-        mouthMaterialIndex = -1;
 
         if (currentDog == null)
             return;
@@ -275,45 +796,25 @@ public class DogGuideController : MonoBehaviour
                     matName.Contains(eyesMaterialKeyword.ToLower()))
                 {
                     eyesRenderer = renderer;
-                    eyesMaterialIndex = i;
-
                     Material[] runtimeMaterials = renderer.materials;
                     eyesRuntimeMaterial = runtimeMaterials[i];
-
-                    Debug.Log(
-                        $"DogGuideController: found eyes material on Renderer '{renderer.name}', slot {i}, material '{sharedMat.name}'."
-                    );
                 }
 
                 if (mouthRuntimeMaterial == null &&
                     matName.Contains(mouthMaterialKeyword.ToLower()))
                 {
                     mouthRenderer = renderer;
-                    mouthMaterialIndex = i;
-
                     Material[] runtimeMaterials = renderer.materials;
                     mouthRuntimeMaterial = runtimeMaterials[i];
-
-                    Debug.Log(
-                        $"DogGuideController: found mouth material on Renderer '{renderer.name}', slot {i}, material '{sharedMat.name}'."
-                    );
                 }
             }
         }
 
         if (eyesRuntimeMaterial == null)
-        {
-            Debug.LogWarning(
-                "DogGuideController: eyes material not found. Make sure the material name contains 'eyes', for example 'eyes-rig.001'."
-            );
-        }
+            Debug.LogWarning("DogGuideController: eyes material not found.");
 
         if (mouthRuntimeMaterial == null)
-        {
-            Debug.LogWarning(
-                "DogGuideController: mouth material not found. Make sure the material name contains 'mouth', for example 'mouth-rig.001'."
-            );
-        }
+            Debug.LogWarning("DogGuideController: mouth material not found.");
     }
 
     private void SetRandomExpressionForState(NavigationRuntimeController.NavState state)
@@ -357,103 +858,157 @@ public class DogGuideController : MonoBehaviour
 
     private void SetEyesTexture(Texture texture)
     {
-        SetMaterialBaseMap(eyesRuntimeMaterial, texture, "Eyes");
+        SetMaterialBaseMap(eyesRuntimeMaterial, texture);
     }
 
     private void SetMouthTexture(Texture texture)
     {
-        SetMaterialBaseMap(mouthRuntimeMaterial, texture, "Mouth");
+        SetMaterialBaseMap(mouthRuntimeMaterial, texture);
     }
 
-    private void SetMaterialBaseMap(Material material, Texture texture, string label)
+    private void SetMaterialBaseMap(Material material, Texture texture)
     {
-        if (material == null)
-        {
-            Debug.LogWarning($"DogGuideController: {label} material is null.");
+        if (material == null || texture == null)
             return;
-        }
-
-        if (texture == null)
-        {
-            Debug.LogWarning($"DogGuideController: {label} texture is null.");
-            return;
-        }
 
         if (material.HasProperty(BaseMapId))
-        {
             material.SetTexture(BaseMapId, texture);
-        }
         else if (material.HasProperty(MainTexId))
-        {
             material.SetTexture(MainTexId, texture);
-        }
         else
-        {
             material.mainTexture = texture;
+    }
+
+    private void PlayStand(float speed)
+    {
+        PlayAnimation(standState, speed);
+    }
+
+    private void PlaySit(float speed)
+    {
+        PlayAnimation(sitState, speed);
+    }
+
+    private void PlayAnimation(string stateName, float speed)
+    {
+        PlayAnimation(stateName, speed, false);
+    }
+
+    private void PlayAnimation(string stateName, float speed, bool force)
+    {
+        if (dogAnimator == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(stateName))
+            return;
+
+        dogAnimator.speed = speed;
+
+        if (currentAnimationState == stateName)
+            return;
+
+        if (!force && Time.time - lastAnimationChangeTime < minAnimationHoldTime)
+            return;
+
+        currentAnimationState = stateName;
+        lastAnimationChangeTime = Time.time;
+
+        dogAnimator.CrossFadeInFixedTime(stateName, animationCrossFadeTime);
+
+        if (logAnimationChanges)
+            Debug.Log("Dog animation changed to: " + stateName);
+    }
+
+    private bool TryPlayLocomotionAndMove(
+        Vector3 targetPos,
+        string locomotionState,
+        float animationSpeed,
+        float moveSpeed,
+        float minDistanceForAnimation
+    )
+    {
+        if (currentDog == null)
+            return false;
+
+        targetPos.y = currentDog.transform.position.y;
+
+        float distanceToTarget = GetFlatDistance(
+            currentDog.transform.position,
+            targetPos
+        );
+
+        bool currentlyUsingThisLocomotion = currentAnimationState == locomotionState;
+
+        float startMoveDistance = minDistanceForAnimation + locomotionStartExtraDistance;
+        float stopMoveDistance = minDistanceForAnimation * locomotionStopRatio;
+
+        if (currentlyUsingThisLocomotion)
+        {
+            if (distanceToTarget <= stopMoveDistance)
+            {
+                nearTargetTimer += Time.deltaTime;
+
+                FaceDirectionOrUser(targetPos);
+
+                if (nearTargetTimer >= nearTargetStandDelay)
+                {
+                    PlayStand(1f);
+                    nearTargetTimer = 0f;
+                }
+
+                return false;
+            }
+
+            nearTargetTimer = 0f;
+
+            PlayAnimation(locomotionState, animationSpeed);
+            MoveDogTo(targetPos, moveSpeed);
+            return true;
         }
 
-        Debug.Log($"DogGuideController: {label} texture changed to '{texture.name}'.");
+        if (distanceToTarget < startMoveDistance)
+        {
+            nearTargetTimer += Time.deltaTime;
+
+            FaceDirectionOrUser(targetPos);
+
+            if (nearTargetTimer >= nearTargetStandDelay)
+            {
+                PlayStand(1f);
+                nearTargetTimer = 0f;
+            }
+
+            return false;
+        }
+
+        nearTargetTimer = 0f;
+
+        PlayAnimation(locomotionState, animationSpeed);
+        MoveDogTo(targetPos, moveSpeed);
+        return true;
     }
 
-    private void PlayStand()
+    private void FaceDirectionOrUser(Vector3 targetPos)
     {
-        ResetAnimationBools();
-
-        if (dogAnimator == null)
+        if (currentDog == null)
             return;
 
-        dogAnimator.SetBool("IsStanding", true);
-    }
+        Vector3 lookDir = targetPos - currentDog.transform.position;
+        lookDir.y = 0f;
 
-    private void PlayWalk()
-    {
-        ResetAnimationBools();
-
-        if (dogAnimator == null)
+        if (lookDir.sqrMagnitude < 0.0001f)
+        {
+            LookAtUser();
             return;
+        }
 
-        dogAnimator.SetBool("IsWalking", true);
-        dogAnimator.SetBool("IsWaggingTail", true);
-    }
+        Quaternion targetRot = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
 
-    private void PlaySniffing()
-    {
-        ResetAnimationBools();
-
-        if (dogAnimator == null)
-            return;
-
-        dogAnimator.SetBool("IsSniffing", true);
-    }
-
-    private void PlayArrive()
-    {
-        ResetAnimationBools();
-
-        if (dogAnimator == null)
-            return;
-
-        dogAnimator.SetTrigger("Arrive");
-        dogAnimator.SetBool("IsWaggingTail", true);
-    }
-
-    private void PlayBark()
-    {
-        if (dogAnimator == null)
-            return;
-
-        dogAnimator.SetTrigger("Bark");
-    }
-
-    private void ResetAnimationBools()
-    {
-        if (dogAnimator == null)
-            return;
-
-        dogAnimator.SetBool("IsWalking", false);
-        dogAnimator.SetBool("IsSniffing", false);
-        dogAnimator.SetBool("IsStanding", false);
-        dogAnimator.SetBool("IsWaggingTail", false);
+        currentDog.transform.rotation = Quaternion.Slerp(
+            currentDog.transform.rotation,
+            targetRot,
+            rotateSpeed * Time.deltaTime
+        );
     }
 
     private void MoveDogTo(Vector3 targetPos, float speed)
@@ -461,7 +1016,9 @@ public class DogGuideController : MonoBehaviour
         if (currentDog == null)
             return;
 
-        Vector3 moveDir = targetPos - currentDog.transform.position;
+        Vector3 currentPos = currentDog.transform.position;
+
+        Vector3 moveDir = targetPos - currentPos;
         moveDir.y = 0f;
 
         if (moveDir.sqrMagnitude > 0.0001f)
@@ -476,143 +1033,58 @@ public class DogGuideController : MonoBehaviour
         }
 
         currentDog.transform.position = Vector3.MoveTowards(
-            currentDog.transform.position,
+            currentPos,
             targetPos,
             speed * Time.deltaTime
         );
     }
 
-    private IEnumerator RandomBehaviorLoop()
+    private void LookAtUser()
     {
-        while (isGuiding)
-        {
-            float waitTime = Random.Range(
-                randomBehaviorMinInterval,
-                randomBehaviorMaxInterval
-            );
+        if (currentDog == null || xrCamera == null)
+            return;
 
-            yield return new WaitForSeconds(waitTime);
+        Vector3 lookDir = xrCamera.position - currentDog.transform.position;
+        lookDir.y = 0f;
 
-            if (!isGuiding || currentDog == null || xrCamera == null)
-                continue;
+        if (lookDir.sqrMagnitude < 0.0001f)
+            return;
 
-            if (currentState == NavigationRuntimeController.NavState.Arrived ||
-                currentState == NavigationRuntimeController.NavState.Lost ||
-                currentState == NavigationRuntimeController.NavState.GettingFarther)
-            {
-                continue;
-            }
+        Quaternion targetRot = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
 
-            yield return StartCoroutine(PerformRandomBehavior());
-        }
-    }
-
-    private IEnumerator PerformRandomBehavior()
-    {
-        isPerformingRandomBehavior = true;
-
-        int randomIndex = Random.Range(0, 3);
-
-        if (randomIndex == 0)
-        {
-            yield return StartCoroutine(RandomExcitedBehavior());
-        }
-        else if (randomIndex == 1)
-        {
-            yield return StartCoroutine(RandomCircleUserBehavior());
-        }
-        else
-        {
-            yield return StartCoroutine(RandomLazyBehavior());
-        }
-
-        isPerformingRandomBehavior = false;
-
-        ApplyNavigationState(
-            currentState,
-            999f,
-            currentRecommendedDirection
+        currentDog.transform.rotation = Quaternion.Slerp(
+            currentDog.transform.rotation,
+            targetRot,
+            rotateSpeed * Time.deltaTime
         );
     }
 
-    private IEnumerator RandomExcitedBehavior()
+    private Vector3 GetRecommendedDirection()
     {
-        SetRandomExpressionForState(NavigationRuntimeController.NavState.GettingCloser);
-        PlayWalk();
+        Vector3 flatDir = currentRecommendedDirection;
+        flatDir.y = 0f;
 
-        float elapsed = 0f;
+        if (flatDir.sqrMagnitude < 0.0001f && xrCamera != null)
+            flatDir = GetFlatForward(xrCamera);
 
-        while (elapsed < randomBehaviorDuration)
-        {
-            if (currentState == NavigationRuntimeController.NavState.Arrived ||
-                currentState == NavigationRuntimeController.NavState.Lost)
-            {
-                break;
-            }
-
-            elapsed += Time.deltaTime;
-
-            Vector3 userPos = xrCamera.position;
-            Vector3 flatDir = currentRecommendedDirection;
-            flatDir.y = 0f;
-
-            if (flatDir.sqrMagnitude < 0.0001f)
-                flatDir = xrCamera.forward;
-
-            flatDir.y = 0f;
-            flatDir.Normalize();
-
-            Vector3 targetPos = userPos + flatDir * (leadDistance + 0.5f);
-            targetPos.y = currentDog.transform.position.y;
-
-            MoveDogTo(targetPos, runSpeed);
-
-            yield return null;
-        }
+        return flatDir.normalized;
     }
 
-    private IEnumerator RandomCircleUserBehavior()
+    private Vector3 GetFlatForward(Transform t)
     {
-        SetRandomExpressionForState(NavigationRuntimeController.NavState.Neutral);
-        PlayWalk();
+        Vector3 forward = t.forward;
+        forward.y = 0f;
 
-        float elapsed = 0f;
-        float angle = 0f;
+        if (forward.sqrMagnitude < 0.0001f)
+            return Vector3.forward;
 
-        while (elapsed < randomBehaviorDuration)
-        {
-            if (currentState == NavigationRuntimeController.NavState.Arrived ||
-                currentState == NavigationRuntimeController.NavState.Lost)
-            {
-                break;
-            }
-
-            elapsed += Time.deltaTime;
-            angle += circleSpeed * Time.deltaTime;
-
-            Vector3 userPos = xrCamera.position;
-            float radians = angle * Mathf.Deg2Rad;
-
-            Vector3 offset = new Vector3(
-                Mathf.Cos(radians) * circleRadius,
-                0f,
-                Mathf.Sin(radians) * circleRadius
-            );
-
-            Vector3 targetPos = userPos + offset;
-            targetPos.y = currentDog.transform.position.y;
-
-            MoveDogTo(targetPos, moveSpeed);
-
-            yield return null;
-        }
+        return forward.normalized;
     }
 
-    private IEnumerator RandomLazyBehavior()
+    private float GetFlatDistance(Vector3 a, Vector3 b)
     {
-        SetRandomExpressionForState(NavigationRuntimeController.NavState.Waiting);
-        PlayStand();
-
-        yield return new WaitForSeconds(randomBehaviorDuration);
+        a.y = 0f;
+        b.y = 0f;
+        return Vector3.Distance(a, b);
     }
 }

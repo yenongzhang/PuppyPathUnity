@@ -1,24 +1,9 @@
 fileFormatVersion: 2
-guid: ee6f8ffa57028d7cdadc01444c7e6871
+guid: 5cb5f614b8a4eb8479b76f25e607f028
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: eyes-rig.001
-    second: {fileID: 2100000, guid: 34d585f82a112b44093c6baa5801eee2, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: mouth-rig.001
-    second: {fileID: 2100000, guid: b4d8f4bec50357b4c8b9c2715e46b9bc, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: "\u6750\u8D28"
-    second: {fileID: 2100000, guid: 42cb3adfd7219df4ba774c169a12821e, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -115,7 +100,7 @@ ModelImporter:
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 1
+  avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
