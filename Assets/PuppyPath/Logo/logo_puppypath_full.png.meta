@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0c3e86cc747b9264093942014e14875e
+guid: 07525ed057d0ca54fbfdd5e4e86ddeac
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: logo_puppypath_full-removebg_0
+      name: logo_puppypath_full_0
       rect:
         serializedVersion: 2
-        x: 30
-        y: 18
-        width: 684
-        height: 270
+        x: 48
+        y: 53
+        width: 984
+        height: 338
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -125,20 +125,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a817b4eb8c2a6ce4dab337de1e2b781e
-      internalID: 543992130
+      spriteID: cdb64ee1ca89db740a7358a74ec34e2e
+      internalID: 444304964
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: logo_puppypath_full-removebg_1
+      name: logo_puppypath_full_1
       rect:
         serializedVersion: 2
-        x: 84
-        y: 18
-        width: 12
-        height: 4
+        x: 233
+        y: 48
+        width: 158
+        height: 39
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,8 +147,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d2e141e2f1e1e6846b0799813010864e
-      internalID: -127099829
+      spriteID: 07fa2f6888f602542bc783b8b1591db4
+      internalID: -1350287239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: logo_puppypath_full_2
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 52
+        width: 65
+        height: 23
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7b12aeb0d9443a647ad3e38574a17547
+      internalID: -1148586910
       vertices: []
       indices: 
       edges: []
@@ -157,7 +179,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 942b1b72481b41c4d88647e71913b1a8
+    spriteID: a639d197627931a49a9843ef3cbbae83
     internalID: 0
     vertices: []
     indices: 
@@ -169,8 +191,9 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      logo_puppypath_full-removebg_0: 543992130
-      logo_puppypath_full-removebg_1: -127099829
+      logo_puppypath_full_0: 444304964
+      logo_puppypath_full_1: -1350287239
+      logo_puppypath_full_2: -1148586910
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1533,6 +1533,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DogGuideController
   dogPrefab: {fileID: 5764794651156842405, guid: 759e5088c1bc2614a827226aaaea4400, type: 3}
+  barkClip: {fileID: 8300000, guid: d943f18745fcf5945ade13e85ffd7f07, type: 3}
+  barkVolume: 0.75
+  barkMinInterval: 0.45
+  barkRepeatInterval: 1
+  barkRepeatChance: 3
   standState: Stand
   walkState: walk
   trotState: Trot
@@ -1552,6 +1557,10 @@ MonoBehaviour:
   animationCrossFadeTime: 0.18
   shortTransitionDuration: 0.45
   longTransitionDuration: 0.75
+  turnInPlaceAngleThreshold: 35
+  turnFrontDuration: 0.55
+  turnBackDuration: 0.85
+  turnBackAngleThreshold: 120
   minAnimationHoldTime: 0.28
   locomotionStartExtraDistance: 0.12
   locomotionStopRatio: 0.55
