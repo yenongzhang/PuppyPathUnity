@@ -1485,7 +1485,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RouteRootSpawner
   xrCamera: {fileID: 1824646805}
-  routeRootPrefab: {fileID: 1373492903280038113, guid: 38c875caa13ed554cb1311d6e8d834d6, type: 3}
+  routeRootPrefab: {fileID: 2287573602349232326, guid: 38c875caa13ed554cb1311d6e8d834d6, type: 3}
   forwardDistance: 1.2
   eyeToGroundOffset: 1.55
 --- !u!4 &867437598
