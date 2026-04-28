@@ -25,14 +25,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6434007789705133071}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.008726558, z: 0, w: 0.999962}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8366228031223185679}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 1, z: 0}
 --- !u!95 &6064298557244973542
 Animator:
   serializedVersion: 7
@@ -41,8 +41,8 @@ Animator:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6434007789705133071}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
+  m_Enabled: 0
+  m_Avatar: {fileID: 9000000, guid: 04f6912778fbab346bbb9f3e202ae8c1, type: 3}
   m_Controller: {fileID: 9100000, guid: 9c64786ddc3876ff0a25f4928f688f8a, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
@@ -119,6 +119,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Beagle_still.02
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 04f6912778fbab346bbb9f3e202ae8c1, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 9c64786ddc3876ff0a25f4928f688f8a, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

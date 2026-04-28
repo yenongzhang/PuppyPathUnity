@@ -379,9 +379,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c8875b922a9fce42a099b7a024b5020, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DogGuideController
-  dogPrefab: {fileID: 356183919799981111, guid: 52241723b045429b589f252213d95f0f, type: 3}
-  eyesRenderer: {fileID: 0}
-  mouthRenderer: {fileID: 0}
+  dogPrefab: {fileID: 6434007789705133071, guid: aaf31dfb881487d4da6fa2c79d9924ce, type: 3}
+  eyesMaterialKeyword: eyes
+  mouthMaterialKeyword: mouth
   happyEyes: {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
   lookingAroundEyes: {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
   angryEyes: {fileID: 2800000, guid: e27b1300b6563e4c2924f24e2e643232, type: 3}
@@ -403,12 +403,15 @@ MonoBehaviour:
   rotateSpeed: 5
   minDistanceToUser: 0.98
   maxDistanceToUser: 3
-  neutralColor: {r: 1, g: 1, b: 1, a: 1}
-  happyColor: {r: 0, g: 1, b: 0, a: 1}
-  angryColor: {r: 1, g: 0, b: 0, a: 1}
-  arrivedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   dogAnimator: {fileID: 0}
   celebrationDistance: 0.5
+  enableRandomBehaviors: 1
+  randomBehaviorMinInterval: 12
+  randomBehaviorMaxInterval: 42
+  randomBehaviorDuration: 2
+  runSpeed: 2
+  circleRadius: 1.3
+  circleSpeed: 180
 --- !u!114 &1891824881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,13 +436,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1891824879}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -7.43847, y: -0, z: 5.63306}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &1918962847
 GameObject:
   m_ObjectHideFlags: 0

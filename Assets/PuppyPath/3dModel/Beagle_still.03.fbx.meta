@@ -1,24 +1,9 @@
 fileFormatVersion: 2
-guid: 04f6912778fbab346bbb9f3e202ae8c1
+guid: ee6f8ffa57028d7cdadc01444c7e6871
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: eyes-rig.001
-    second: {fileID: 2100000, guid: 86f40b439d0c8644ca00e3ee0b244420, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: mouth-rig.001
-    second: {fileID: 2100000, guid: 469c565d8e0e2964b83a41f682859fe4, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: "\u6750\u8D28"
-    second: {fileID: 2100000, guid: 10834d53684acf140b108b75b74644ac, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
