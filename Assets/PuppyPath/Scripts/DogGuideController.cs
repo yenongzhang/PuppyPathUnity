@@ -4,17 +4,6 @@ using System.Collections.Generic;
 
 public class DogGuideController : MonoBehaviour
 {
-    public enum DogExpression
-    {
-        Happy,
-        LookingAround,
-        Angry,
-        Calm,
-        Tearful,
-        Barking,
-        Resting,
-        Smug
-    }
 
     [Header("References")]
     [SerializeField] private GameObject dogPrefab;
@@ -23,25 +12,16 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private string eyesMaterialKeyword = "eyes";
     [SerializeField] private string mouthMaterialKeyword = "mouth";
 
-    [Header("Eye Textures")]
-    [SerializeField] private Texture happyEyes;
-    [SerializeField] private Texture lookingAroundEyes;
-    [SerializeField] private Texture angryEyes;
-    [SerializeField] private Texture calmEyes;
-    [SerializeField] private Texture tearfulEyes;
-    [SerializeField] private Texture barkingEyes;
-    [SerializeField] private Texture restingEyes;
-    [SerializeField] private Texture smugEyes;
+    [System.Serializable]
+    private class DogStateExpressionGroup
+    {
+        public NavigationRuntimeController.NavState state;
+        public Texture[] eyes;
+        public Texture[] mouths;
+    }
 
-    [Header("Mouth Textures")]
-    [SerializeField] private Texture happyMouth;
-    [SerializeField] private Texture lookingAroundMouth;
-    [SerializeField] private Texture angryMouth;
-    [SerializeField] private Texture calmMouth;
-    [SerializeField] private Texture tearfulMouth;
-    [SerializeField] private Texture barkingMouth;
-    [SerializeField] private Texture restingMouth;
-    [SerializeField] private Texture smugMouth;
+    [Header("State Expression Groups")]
+    [SerializeField] private DogStateExpressionGroup[] expressionGroups;
 
     [Header("Guide Movement")]
     [SerializeField] private float leadDistance = 1.8f;
@@ -70,6 +50,7 @@ public class DogGuideController : MonoBehaviour
     private bool isGuiding;
     private NavigationRuntimeController.NavState currentState = NavigationRuntimeController.NavState.Neutral;
     private Vector3 currentRecommendedDirection = Vector3.forward;
+    private bool hasAppliedExpression;
 
     private bool isPerformingRandomBehavior;
     private Coroutine randomBehaviorRoutine;
@@ -112,7 +93,8 @@ public class DogGuideController : MonoBehaviour
         dogAnimator = currentDog.GetComponentInChildren<Animator>();
 
         SetupExpressionMaterials();
-        SetExpression(DogExpression.Calm);
+        hasAppliedExpression = false;
+        SetRandomExpressionForState(NavigationRuntimeController.NavState.Neutral);
         PlayStand();
 
         isGuiding = true;
@@ -131,6 +113,7 @@ public class DogGuideController : MonoBehaviour
     {
         isGuiding = false;
         isPerformingRandomBehavior = false;
+        hasAppliedExpression = false;
 
         if (randomBehaviorRoutine != null)
         {
@@ -163,51 +146,52 @@ public class DogGuideController : MonoBehaviour
         Vector3 recommendedDirection
     )
     {
-        currentState = navState;
+        NavigationRuntimeController.NavState effectiveState = navState;
+
+        if (distanceToGoal <= celebrationDistance &&
+            navState != NavigationRuntimeController.NavState.Arrived)
+        {
+            effectiveState = NavigationRuntimeController.NavState.Arrived;
+        }
+
+        bool stateChanged = currentState != effectiveState;
+
+        currentState = effectiveState;
         currentRecommendedDirection = recommendedDirection;
 
         if (isPerformingRandomBehavior)
             return;
 
-        if (distanceToGoal <= celebrationDistance &&
-            currentState != NavigationRuntimeController.NavState.Arrived)
+        if (!hasAppliedExpression || stateChanged)
         {
-            currentState = NavigationRuntimeController.NavState.Arrived;
-            SetExpression(DogExpression.Happy);
-            PlayArrive();
-            return;
+            SetRandomExpressionForState(currentState);
+            hasAppliedExpression = true;
         }
 
-        switch (navState)
+        switch (currentState)
         {
             case NavigationRuntimeController.NavState.GettingCloser:
-                SetExpression(DogExpression.Happy);
                 PlayWalk();
                 break;
 
             case NavigationRuntimeController.NavState.GettingFarther:
-                SetExpression(DogExpression.Angry);
-                PlayStand();
+                PlaySniffing();
                 break;
 
             case NavigationRuntimeController.NavState.Lost:
-                SetExpression(DogExpression.Barking);
                 PlayBark();
                 break;
 
             case NavigationRuntimeController.NavState.Arrived:
-                SetExpression(DogExpression.Happy);
                 PlayArrive();
                 break;
 
             case NavigationRuntimeController.NavState.Waiting:
-                SetExpression(DogExpression.Calm);
                 PlayStand();
                 break;
 
             case NavigationRuntimeController.NavState.Neutral:
             default:
-                SetExpression(DogExpression.Calm);
                 PlayStand();
                 break;
         }
@@ -332,76 +316,43 @@ public class DogGuideController : MonoBehaviour
         }
     }
 
-    private void SetExpression(DogExpression expression)
+    private void SetRandomExpressionForState(NavigationRuntimeController.NavState state)
     {
-        SetEyesTexture(GetEyesTexture(expression));
-        SetMouthTexture(GetMouthTexture(expression));
+        DogStateExpressionGroup group = FindExpressionGroup(state);
+
+        if (group == null)
+        {
+            Debug.LogWarning($"DogGuideController: no expression group configured for state {state}.");
+            return;
+        }
+
+        Texture eyeTexture = PickRandomTexture(group.eyes);
+        Texture mouthTexture = PickRandomTexture(group.mouths);
+
+        SetEyesTexture(eyeTexture);
+        SetMouthTexture(mouthTexture);
     }
 
-    private Texture GetEyesTexture(DogExpression expression)
+    private DogStateExpressionGroup FindExpressionGroup(NavigationRuntimeController.NavState state)
     {
-        switch (expression)
+        if (expressionGroups == null)
+            return null;
+
+        foreach (DogStateExpressionGroup group in expressionGroups)
         {
-            case DogExpression.Happy:
-                return happyEyes;
-
-            case DogExpression.LookingAround:
-                return lookingAroundEyes;
-
-            case DogExpression.Angry:
-                return angryEyes;
-
-            case DogExpression.Calm:
-                return calmEyes;
-
-            case DogExpression.Tearful:
-                return tearfulEyes;
-
-            case DogExpression.Barking:
-                return barkingEyes;
-
-            case DogExpression.Resting:
-                return restingEyes;
-
-            case DogExpression.Smug:
-                return smugEyes;
-
-            default:
-                return calmEyes;
+            if (group != null && group.state == state)
+                return group;
         }
+
+        return null;
     }
 
-    private Texture GetMouthTexture(DogExpression expression)
+    private Texture PickRandomTexture(Texture[] textures)
     {
-        switch (expression)
-        {
-            case DogExpression.Happy:
-                return happyMouth;
+        if (textures == null || textures.Length == 0)
+            return null;
 
-            case DogExpression.LookingAround:
-                return lookingAroundMouth;
-
-            case DogExpression.Angry:
-                return angryMouth;
-
-            case DogExpression.Calm:
-                return calmMouth;
-
-            case DogExpression.Tearful:
-                return tearfulMouth;
-
-            case DogExpression.Barking:
-                return barkingMouth;
-
-            case DogExpression.Resting:
-                return restingMouth;
-
-            case DogExpression.Smug:
-                return smugMouth;
-
-            default:
-                return calmMouth;
-        }
+        return textures[Random.Range(0, textures.Length)];
     }
 
     private void SetEyesTexture(Texture texture)
@@ -586,7 +537,7 @@ public class DogGuideController : MonoBehaviour
 
     private IEnumerator RandomExcitedBehavior()
     {
-        SetExpression(DogExpression.Happy);
+        SetRandomExpressionForState(NavigationRuntimeController.NavState.GettingCloser);
         PlayWalk();
 
         float elapsed = 0f;
@@ -622,7 +573,7 @@ public class DogGuideController : MonoBehaviour
 
     private IEnumerator RandomCircleUserBehavior()
     {
-        SetExpression(DogExpression.LookingAround);
+        SetRandomExpressionForState(NavigationRuntimeController.NavState.Neutral);
         PlayWalk();
 
         float elapsed = 0f;
@@ -659,7 +610,7 @@ public class DogGuideController : MonoBehaviour
 
     private IEnumerator RandomLazyBehavior()
     {
-        SetExpression(DogExpression.Resting);
+        SetRandomExpressionForState(NavigationRuntimeController.NavState.Waiting);
         PlayStand();
 
         yield return new WaitForSeconds(randomBehaviorDuration);

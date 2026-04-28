@@ -51,16 +51,27 @@ public class DogNavStateTester : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            Debug.Log("Test NavState: GettingCloser");
+            Debug.Log("Test NavState: Waiting");
 
             dogGuideController.ApplyNavigationState(
-                NavigationRuntimeController.NavState.GettingCloser,
+                NavigationRuntimeController.NavState.Waiting,
                 2.0f,
                 Vector3.forward
             );
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            Debug.Log("Test NavState: GettingCloser");
+
+            dogGuideController.ApplyNavigationState(
+                NavigationRuntimeController.NavState.GettingCloser,
+                2.5f,
+                Vector3.forward
+            );
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha4))
         {
             Debug.Log("Test NavState: GettingFarther");
 
@@ -71,23 +82,12 @@ public class DogNavStateTester : MonoBehaviour
             );
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha4))
+        if (Input.GetKeyDown(KeyCode.Alpha5))
         {
             Debug.Log("Test NavState: Lost");
 
             dogGuideController.ApplyNavigationState(
                 NavigationRuntimeController.NavState.Lost,
-                2.5f,
-                Vector3.forward
-            );
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            Debug.Log("Test NavState: Arrived by state");
-
-            dogGuideController.ApplyNavigationState(
-                NavigationRuntimeController.NavState.Arrived,
                 0.8f,
                 Vector3.forward
             );
@@ -95,10 +95,10 @@ public class DogNavStateTester : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha6))
         {
-            Debug.Log("Test NavState: Arrived by distance < 0.5");
+            Debug.Log("Test NavState: Arrived");
 
             dogGuideController.ApplyNavigationState(
-                NavigationRuntimeController.NavState.GettingCloser,
+                NavigationRuntimeController.NavState.Arrived,
                 0.4f,
                 Vector3.forward
             );
