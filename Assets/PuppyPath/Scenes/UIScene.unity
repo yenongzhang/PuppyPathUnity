@@ -154,7 +154,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1080, y: 476}
+  m_SizeDelta: {x: 984, y: 338}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &62190665
 MonoBehaviour:
@@ -1556,7 +1556,32 @@ MonoBehaviour:
   lineMaterial: {fileID: 2100000, guid: ac03e7f49f855b140b4aa053f2446be4, type: 2}
   lineWidth: 0.1
   lineHeightOffset: 0.8
-  secondSegmentPreviewRatio: 0.3
+  animatePreviewLine: 1
+  previewDrawDuration: 2.5
+  previewDrawCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &867437597
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1656,44 +1681,51 @@ MonoBehaviour:
   - state: 0
     eyes:
     - {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
+    - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
     - {fileID: 2800000, guid: e27b1300b6563e4c2924f24e2e643232, type: 3}
     - {fileID: 2800000, guid: f6d062eadfde1317b9e009fed515db6d, type: 3}
+    - {fileID: 2800000, guid: 0937e6845612ec6b1b10149ddb49a45e, type: 3}
+    - {fileID: 2800000, guid: 779838edbce5189138e9a18c1c414497, type: 3}
     mouths:
-    - {fileID: 2800000, guid: 32be4dc0d078949768c8bc312fe56965, type: 3}
-    - {fileID: 2800000, guid: 8da9dc0b4e3314efc960437758b6af77, type: 3}
     - {fileID: 2800000, guid: c999aaaf13d018d7e8c980e2580ec12a, type: 3}
-    - {fileID: 2800000, guid: a9552c6e60ed8f7f2b1363104c000784, type: 3}
     - {fileID: 2800000, guid: 0fa20bdf4aba4f8c083a6178e1c13936, type: 3}
+    - {fileID: 2800000, guid: a9552c6e60ed8f7f2b1363104c000784, type: 3}
+    - {fileID: 2800000, guid: 523e37e185db82b06a6edc6e21d36213, type: 3}
+    - {fileID: 2800000, guid: 8da9dc0b4e3314efc960437758b6af77, type: 3}
   - state: 1
     eyes:
     - {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
+    - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
     - {fileID: 2800000, guid: e27b1300b6563e4c2924f24e2e643232, type: 3}
-    - {fileID: 2800000, guid: 459c0f12dbb160dd3b5956e8f40397b5, type: 3}
     - {fileID: 2800000, guid: f6d062eadfde1317b9e009fed515db6d, type: 3}
     - {fileID: 2800000, guid: 0937e6845612ec6b1b10149ddb49a45e, type: 3}
-    - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
+    - {fileID: 2800000, guid: 459c0f12dbb160dd3b5956e8f40397b5, type: 3}
     mouths:
-    - {fileID: 2800000, guid: 523e37e185db82b06a6edc6e21d36213, type: 3}
-    - {fileID: 2800000, guid: 8da9dc0b4e3314efc960437758b6af77, type: 3}
-    - {fileID: 2800000, guid: 5d2eaecb0a313dd898a1add361b4465f, type: 3}
     - {fileID: 2800000, guid: c999aaaf13d018d7e8c980e2580ec12a, type: 3}
     - {fileID: 2800000, guid: 0fa20bdf4aba4f8c083a6178e1c13936, type: 3}
     - {fileID: 2800000, guid: a9552c6e60ed8f7f2b1363104c000784, type: 3}
+    - {fileID: 2800000, guid: 5d2eaecb0a313dd898a1add361b4465f, type: 3}
+    - {fileID: 2800000, guid: 523e37e185db82b06a6edc6e21d36213, type: 3}
+    - {fileID: 2800000, guid: 8da9dc0b4e3314efc960437758b6af77, type: 3}
   - state: 2
     eyes:
     - {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
     - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
-    - {fileID: 2800000, guid: 779838edbce5189138e9a18c1c414497, type: 3}
+    - {fileID: 2800000, guid: e27b1300b6563e4c2924f24e2e643232, type: 3}
+    - {fileID: 2800000, guid: f6d062eadfde1317b9e009fed515db6d, type: 3}
     mouths:
+    - {fileID: 2800000, guid: c999aaaf13d018d7e8c980e2580ec12a, type: 3}
     - {fileID: 2800000, guid: 63d580f18fc7cc27289d6f04e2e4e7bb, type: 3}
     - {fileID: 2800000, guid: a9552c6e60ed8f7f2b1363104c000784, type: 3}
     - {fileID: 2800000, guid: 5d2eaecb0a313dd898a1add361b4465f, type: 3}
     - {fileID: 2800000, guid: 523e37e185db82b06a6edc6e21d36213, type: 3}
+    - {fileID: 2800000, guid: 8da9dc0b4e3314efc960437758b6af77, type: 3}
   - state: 3
     eyes:
     - {fileID: 2800000, guid: e27b1300b6563e4c2924f24e2e643232, type: 3}
     - {fileID: 2800000, guid: f6d062eadfde1317b9e009fed515db6d, type: 3}
     - {fileID: 2800000, guid: 0937e6845612ec6b1b10149ddb49a45e, type: 3}
+    - {fileID: 2800000, guid: 779838edbce5189138e9a18c1c414497, type: 3}
     - {fileID: 2800000, guid: fa2ee4bbb048a28ab8dfcd4bdc5176de, type: 3}
     - {fileID: 2800000, guid: 459c0f12dbb160dd3b5956e8f40397b5, type: 3}
     mouths:
@@ -1703,30 +1735,39 @@ MonoBehaviour:
     - {fileID: 2800000, guid: 32be4dc0d078949768c8bc312fe56965, type: 3}
   - state: 4
     eyes:
+    - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
     - {fileID: 2800000, guid: 0937e6845612ec6b1b10149ddb49a45e, type: 3}
     - {fileID: 2800000, guid: fa2ee4bbb048a28ab8dfcd4bdc5176de, type: 3}
     - {fileID: 2800000, guid: 459c0f12dbb160dd3b5956e8f40397b5, type: 3}
-    - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
     mouths:
     - {fileID: 2800000, guid: 523e37e185db82b06a6edc6e21d36213, type: 3}
     - {fileID: 2800000, guid: 5d2eaecb0a313dd898a1add361b4465f, type: 3}
     - {fileID: 2800000, guid: a9552c6e60ed8f7f2b1363104c000784, type: 3}
+    - {fileID: 2800000, guid: 32be4dc0d078949768c8bc312fe56965, type: 3}
   - state: 5
     eyes:
     - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
-    - {fileID: 2800000, guid: 779838edbce5189138e9a18c1c414497, type: 3}
+    - {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
     mouths:
     - {fileID: 2800000, guid: 63d580f18fc7cc27289d6f04e2e4e7bb, type: 3}
     - {fileID: 2800000, guid: a9552c6e60ed8f7f2b1363104c000784, type: 3}
+  useBarkExpressionOverride: 1
+  barkEyesTexture: {fileID: 2800000, guid: 779838edbce5189138e9a18c1c414497, type: 3}
+  barkMouthTexture: {fileID: 2800000, guid: 5d2eaecb0a313dd898a1add361b4465f, type: 3}
+  restoreExpressionAfterBark: 1
+  useHappyExpressionOverride: 1
+  happyEyesTexture: {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
+  happyMouthTexture: {fileID: 2800000, guid: 63d580f18fc7cc27289d6f04e2e4e7bb, type: 3}
+  restoreExpressionAfterHappy: 0
   leadDistance: 1.8
-  besideDistance: 0.9
+  besideDistance: 1
   behindDistance: 1
   minDistanceToUser: 1
   maxDistanceToUser: 3
   sniffMoveSpeed: 0.3
   walkMoveSpeed: 0.55
-  trotMoveSpeed: 0.8
-  canterMoveSpeed: 1.1
+  trotMoveSpeed: 0.85
+  canterMoveSpeed: 1.2
   turnMoveSpeed: 0.7
   catchUpMoveSpeed: 0.9
   rotateSpeed: 3
@@ -5768,7 +5809,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 1.15}
-  m_SizeDelta: {x: 1080, y: 476}
+  m_SizeDelta: {x: 984, y: 338}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1941179120
 GameObject:

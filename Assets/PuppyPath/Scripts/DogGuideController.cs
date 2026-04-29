@@ -81,6 +81,18 @@ public class DogGuideController : MonoBehaviour
     [Header("State Expression Groups")]
     [SerializeField] private DogStateExpressionGroup[] expressionGroups;
 
+    [Header("Bark Expression Override")]
+    [SerializeField] private bool useBarkExpressionOverride = true;
+    [SerializeField] private Texture barkEyesTexture;
+    [SerializeField] private Texture barkMouthTexture;
+    [SerializeField] private bool restoreExpressionAfterBark = true;
+
+    [Header("Happy Expression Override")]
+    [SerializeField] private bool useHappyExpressionOverride = true;
+    [SerializeField] private Texture happyEyesTexture;
+    [SerializeField] private Texture happyMouthTexture;
+    [SerializeField] private bool restoreExpressionAfterHappy = false;
+
     [Header("Guide Position")]
     [SerializeField] private float leadDistance = 1.45f;
     [SerializeField] private float besideDistance = 0.75f;
@@ -701,6 +713,11 @@ public class DogGuideController : MonoBehaviour
 
     private IEnumerator DoBarkAtUser()
     {
+        Texture previousEyesTexture = GetCurrentEyesTexture();
+        Texture previousMouthTexture = GetCurrentMouthTexture();
+
+        ApplyBarkExpressionOverride();
+
         yield return TurnTowardUserIfNeeded();
 
         if (!string.IsNullOrWhiteSpace(barkState))
@@ -727,6 +744,12 @@ public class DogGuideController : MonoBehaviour
             }
 
             yield return null;
+        }
+
+        if (restoreExpressionAfterBark)
+        {
+            SetEyesTexture(previousEyesTexture);
+            SetMouthTexture(previousMouthTexture);
         }
     }
 
@@ -759,7 +782,13 @@ public class DogGuideController : MonoBehaviour
     {
         currentState = NavigationRuntimeController.NavState.Arrived;
 
+        Texture previousEyesTexture = GetCurrentEyesTexture();
+        Texture previousMouthTexture = GetCurrentMouthTexture();
+
         yield return TurnTowardUserIfNeeded();
+
+        ApplyHappyExpressionOverride();
+
         yield return PlayTransitionOnly(happyStartState, shortTransitionDuration);
 
         PlayAnimation(happyState, 1f, true);
@@ -771,6 +800,12 @@ public class DogGuideController : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             yield return null;
+        }
+
+        if (restoreExpressionAfterHappy)
+        {
+            SetEyesTexture(previousEyesTexture);
+            SetMouthTexture(previousMouthTexture);
         }
     }
 
@@ -974,6 +1009,54 @@ public class DogGuideController : MonoBehaviour
     private void SetMouthTexture(Texture texture)
     {
         SetMaterialBaseMap(mouthRuntimeMaterial, texture);
+    }
+
+    private Texture GetCurrentEyesTexture()
+    {
+        return GetMaterialBaseMap(eyesRuntimeMaterial);
+    }
+
+    private Texture GetCurrentMouthTexture()
+    {
+        return GetMaterialBaseMap(mouthRuntimeMaterial);
+    }
+
+    private Texture GetMaterialBaseMap(Material material)
+    {
+        if (material == null)
+            return null;
+
+        if (material.HasProperty(BaseMapId))
+            return material.GetTexture(BaseMapId);
+
+        if (material.HasProperty(MainTexId))
+            return material.GetTexture(MainTexId);
+
+        return material.mainTexture;
+    }
+
+    private void ApplyBarkExpressionOverride()
+    {
+        if (!useBarkExpressionOverride)
+            return;
+
+        if (barkEyesTexture != null)
+            SetEyesTexture(barkEyesTexture);
+
+        if (barkMouthTexture != null)
+            SetMouthTexture(barkMouthTexture);
+    }
+
+    private void ApplyHappyExpressionOverride()
+    {
+        if (!useHappyExpressionOverride)
+            return;
+
+        if (happyEyesTexture != null)
+            SetEyesTexture(happyEyesTexture);
+
+        if (happyMouthTexture != null)
+            SetMouthTexture(happyMouthTexture);
     }
 
     private void SetMaterialBaseMap(Material material, Texture texture)
