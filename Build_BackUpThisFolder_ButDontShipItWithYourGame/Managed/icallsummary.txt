@@ -351,6 +351,7 @@ UnityEngine.Animator::StringToHash_Injected
 UnityEngine.Animator::GetBoneTransformInternal_Injected
 UnityEngine.Animator::get_avatar_Injected
 UnityEngine.Animator::GetLayerWeight_Injected
+UnityEngine.Animator::CrossFadeInFixedTime_Injected
 UnityEngine.Animator::ResetTriggerString_Injected
 UnityEngine.Animator::SetBoolString_Injected
 UnityEngine.Animator::SetFloatID_Injected
@@ -359,7 +360,9 @@ UnityEngine.Animator::SetIntegerString_Injected
 UnityEngine.Animator::SetLayerWeight_Injected
 UnityEngine.Animator::SetTriggerString_Injected
 UnityEngine.Animator::Update_Injected
+UnityEngine.Animator::set_applyRootMotion_Injected
 UnityEngine.Animator::set_runtimeAnimatorController_Injected
+UnityEngine.Animator::set_speed_Injected
 UnityEngine.Application::get_isBatchMode
 UnityEngine.Application::get_isFocused
 UnityEngine.Application::get_isPlaying
@@ -410,10 +413,14 @@ UnityEngine.AudioSource::PlayHelper_Injected
 UnityEngine.AudioSource::PlayOneShotHelper_Injected
 UnityEngine.AudioSource::SetPitch_Injected
 UnityEngine.AudioSource::Stop_Injected
+UnityEngine.AudioSource::set_dopplerLevel_Injected
 UnityEngine.AudioSource::set_generatorObject_Injected
 UnityEngine.AudioSource::set_loop_Injected
+UnityEngine.AudioSource::set_maxDistance_Injected
+UnityEngine.AudioSource::set_minDistance_Injected
 UnityEngine.AudioSource::set_panStereo_Injected
 UnityEngine.AudioSource::set_playOnAwake_Injected
+UnityEngine.AudioSource::set_spatialBlend_Injected
 UnityEngine.AudioSource::set_spatialize_Injected
 UnityEngine.AudioSource::set_time_Injected
 UnityEngine.AudioSource::set_volume_Injected

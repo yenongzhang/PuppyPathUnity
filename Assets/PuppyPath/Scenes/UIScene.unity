@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 543992130, guid: 0c3e86cc747b9264093942014e14875e, type: 3}
+  m_Sprite: {fileID: 444304964, guid: 07525ed057d0ca54fbfdd5e4e86ddeac, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -267,7 +267,7 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
+    m_HighlightedSprite: {fileID: 1810730519, guid: a34404b1ebc799b439ca183033ffbd9f, type: 3}
     m_PressedSprite: {fileID: 1810730519, guid: a34404b1ebc799b439ca183033ffbd9f, type: 3}
     m_SelectedSprite: {fileID: 1810730519, guid: a34404b1ebc799b439ca183033ffbd9f, type: 3}
     m_DisabledSprite: {fileID: 0}
@@ -353,7 +353,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -7}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &365820408
@@ -729,14 +729,14 @@ RectTransform:
   m_GameObject: {fileID: 730631196}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1600044599}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 585, y: -118}
+  m_AnchoredPosition: {x: 580, y: -105}
   m_SizeDelta: {x: 49, y: 37}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &730631198
@@ -1293,15 +1293,67 @@ MonoBehaviour:
   markerPrefab: {fileID: 8194977440839321959, guid: 2c0eb923d046471409b50aefda82395f, type: 3}
   markerParent: {fileID: 847605894}
   markerOffset: {x: 0, y: 0}
+  gridRows: 3
+  gridColumns: 5
+  locationGridPathIds:
+  - path_location_r1_c1
+  - path_location_r1_c2
+  - path_location_r1_c3
+  - path_location_r1_c4
+  - path_location_r1_c5
+  - path_location_r2_c1
+  - path_location_r2_c2
+  - path_location_r2_c3
+  - path_location_r2_c4
+  - path_location_r2_c5
+  - path_location_r3_c1
+  - path_location_r3_c2
+  - path_location_r3_c3
+  - path_location_r3_c4
+  - path_location_r3_c5
+  locationGridDisplayNames:
+  - Germany
+  - Ireland - World of Children
+  - England
+  - Austria and Fairy Tale Forest
+  - Spain
+  - Italy and France
+  - Switzerland
+  - Luxembourg and Croatia
+  - Adventure Land and Portugal
+  - Hotel Entrance and Spain
+  - Main Entrance
+  - Greece
+  - Russia
+  - Holland and Scandinavia
+  - Iceland
+  logGridSelection: 1
+  friendMarkerData:
+  - friendName: Kevin
+    pathId: Path_Kevin
+    normalizedX: 0.18
+    normalizedY: 0.72
+  - friendName: Yenong
+    pathId: Path_Yenong
+    normalizedX: 0.48
+    normalizedY: 0.52
+  - friendName: Si
+    pathId: Path_Si
+    normalizedX: 0.73
+    normalizedY: 0.6
+  - friendName: Ying
+    pathId: Path_Ying
+    normalizedX: 0.82
+    normalizedY: 0.22
   phase1FirstText: {fileID: 1941179120}
   phase1SecondText: {fileID: 884410774}
   phase1ThirdText: {fileID: 1329689108}
   phase1NextButton: {fileID: 730631196}
   phase2SelectionText: {fileID: 1123994130}
-  locationPhase2Text: 'Do you want to go to the location you marked?
+  locationPhase2TextTemplate: 'Do you want to go to {0} in Europa-Park?
 
-    Click "Show
-    Path" to preview your path.'
+    Click
+    "Show Path" to preview your path.'
   friendPhase2TextTemplate: 'Do you want to go find {0}?
 
     Click "Show Path" to
@@ -1313,7 +1365,8 @@ MonoBehaviour:
   selectedButtonColor: {r: 0.70246416, g: 0.71352506, b: 0.74213827, a: 1}
   normalTextColor: {r: 0.2784314, g: 0.3019608, b: 0.5019608, a: 1}
   selectedTextColor: {r: 0.1753293, g: 0.18666504, b: 0.2830189, a: 1}
-  locationPathId: path_location_a
+  fallbackLocationPathId: path_location_a
+  fallbackLocationDisplayName: this location
 --- !u!1 &859058636
 GameObject:
   m_ObjectHideFlags: 0
@@ -1466,8 +1519,40 @@ MonoBehaviour:
     pathPrefab: {fileID: 927794119427604723, guid: 86301bc336a2f664c935a09642fd5853, type: 3}
   - id: path_yenong
     pathPrefab: {fileID: 8066382168557222883, guid: 0d4e99d1ecc795846a4c45f311099992, type: 3}
-  - id: path_location_a
+  - id: path_location_r1_c1
     pathPrefab: {fileID: 2319594580852500572, guid: 8188e12859939e842ad4114b46e787dc, type: 3}
+  - id: path_location_r1_c2
+    pathPrefab: {fileID: 1546486142833339203, guid: ada570f94b6bbdf44983ff39e9060ff0, type: 3}
+  - id: path_location_r1_c3
+    pathPrefab: {fileID: 7507268404667752802, guid: 03066c8c79b918241b59cdf3f9b67815, type: 3}
+  - id: path_location_r1_c4
+    pathPrefab: {fileID: 9175929969212134620, guid: dfdbbd205c3035545a065727343c838d, type: 3}
+  - id: path_location_r1_c5
+    pathPrefab: {fileID: 4284422448412271012, guid: 02b28367b96672c4995da86f671cccd6, type: 3}
+  - id: path_location_r2_c1
+    pathPrefab: {fileID: 4657477435191783218, guid: d4a2a106d8dd86246a239ce5bbb90873, type: 3}
+  - id: path_location_r2_c2
+    pathPrefab: {fileID: 7413614325715249630, guid: 5d0176cf26c527d40876cc62ff1088d3, type: 3}
+  - id: path_location_r2_c3
+    pathPrefab: {fileID: 7466057742282139222, guid: a97079fa22348c74ea1fda8b3c2c849f, type: 3}
+  - id: path_location_r2_c4
+    pathPrefab: {fileID: 7502683597273278077, guid: a63d3ce9572630742b83e2b8d106be74, type: 3}
+  - id: path_location_r2_c5
+    pathPrefab: {fileID: 2073758316869564138, guid: 96820a769542f1a41aaecf65d3cb34f4, type: 3}
+  - id: path_location_r3_c1
+    pathPrefab: {fileID: 6992954575471113765, guid: f3ba0e56910fab74aac28722f377e56c, type: 3}
+  - id: path_location_r3_c2
+    pathPrefab: {fileID: 2754448152269008375, guid: 719b33dcbcc89ee4fbff079b3c0ff5bd, type: 3}
+  - id: path_location_r3_c3
+    pathPrefab: {fileID: 7574200347580882796, guid: 4fcb79c545fb9624cad6ee44d10099ac, type: 3}
+  - id: path_location_r3_c4
+    pathPrefab: {fileID: 1539709143204524046, guid: ecf437082faa15a4795da2e0a2856de5, type: 3}
+  - id: path_location_r3_c5
+    pathPrefab: {fileID: 3033061061752624692, guid: 92c13901179c54c47a6094674adbc5ff, type: 3}
+  - id: path_si
+    pathPrefab: {fileID: 2898581550096827142, guid: aa4b4c13cea5b564da1bfb0c55ca18f0, type: 3}
+  - id: path_ying
+    pathPrefab: {fileID: 5222335625179413144, guid: a721a3ccc0f84d74d9a3d9109a826eb4, type: 3}
   lineMaterial: {fileID: 2100000, guid: ac03e7f49f855b140b4aa053f2446be4, type: 2}
   lineWidth: 0.1
   lineHeightOffset: 0.8
@@ -1534,7 +1619,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DogGuideController
   dogPrefab: {fileID: 5764794651156842405, guid: 759e5088c1bc2614a827226aaaea4400, type: 3}
   barkClip: {fileID: 8300000, guid: d943f18745fcf5945ade13e85ffd7f07, type: 3}
-  barkVolume: 0.75
+  barkVolume: 1
   barkMinInterval: 0.45
   barkRepeatInterval: 1
   barkRepeatChance: 3
@@ -1638,10 +1723,10 @@ MonoBehaviour:
   behindDistance: 1
   minDistanceToUser: 1
   maxDistanceToUser: 3
-  sniffMoveSpeed: 0.28
-  walkMoveSpeed: 0.52
-  trotMoveSpeed: 0.78
-  canterMoveSpeed: 1.05
+  sniffMoveSpeed: 0.3
+  walkMoveSpeed: 0.55
+  trotMoveSpeed: 0.8
+  canterMoveSpeed: 1.1
   turnMoveSpeed: 0.7
   catchUpMoveSpeed: 0.9
   rotateSpeed: 3
@@ -1710,7 +1795,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &884410775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1933,7 +2018,7 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_PressedColor: {r: 0.7843138, g: 0.7843138, b: 0.7843138, a: 1}
     m_SelectedColor: {r: 0.68235296, g: 0.78431374, b: 0.92941177, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
@@ -2084,7 +2169,7 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_PressedColor: {r: 0.7843138, g: 0.7843138, b: 0.7843138, a: 1}
     m_SelectedColor: {r: 0.68235296, g: 0.78431374, b: 0.92941177, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
@@ -3123,7 +3208,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1329689109
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3986,7 +4071,7 @@ RectTransform:
   m_GameObject: {fileID: 1562129483}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.7}
-  m_LocalScale: {x: 0.0005, y: 0.0005, z: 0.0005}
+  m_LocalScale: {x: 0.0007, y: 0.0007, z: 0.0007}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 715063620}
@@ -4118,7 +4203,7 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_PressedColor: {r: 0.7843138, g: 0.7843138, b: 0.7843138, a: 1}
     m_SelectedColor: {r: 0.6820141, g: 0.78408736, b: 0.9308176, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
@@ -4222,7 +4307,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1600044599
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4325,7 +4410,7 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_PressedColor: {r: 0.7843138, g: 0.7843138, b: 0.7843138, a: 1}
     m_SelectedColor: {r: 0.68235296, g: 0.78431374, b: 0.92941177, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
@@ -5674,7 +5759,7 @@ RectTransform:
   m_GameObject: {fileID: 1906117664}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.7}
-  m_LocalScale: {x: 0.001, y: 0.001, z: 0.0011}
+  m_LocalScale: {x: 0.0014, y: 0.0014, z: 0.0014}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 62190664}
@@ -5702,7 +5787,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1941179121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6182,7 +6267,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2066483808
 RectTransform:
   m_ObjectHideFlags: 0

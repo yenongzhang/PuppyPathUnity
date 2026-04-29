@@ -1121,7 +1121,9 @@
           },
           {
             "name": "MeshCollider",
-            "scenes": [],
+            "scenes": [
+              "Assets/PuppyPath/Scenes/UIScene.unity"
+            ],
             "dependencyType": 0,
             "icon": null
           },
