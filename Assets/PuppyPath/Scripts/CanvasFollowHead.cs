@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class CanvasFollowHead : MonoBehaviour
@@ -32,31 +31,34 @@ public class CanvasFollowHead : MonoBehaviour
     private Quaternion targetRotation;
     private bool hasInitialized;
 
-    private void Start()
+    private void Awake()
     {
-        if (headTransform == null)
-        {
-            Camera mainCam = Camera.main;
-            if (mainCam != null)
-                headTransform = mainCam.transform;
-        }
-
-        StartCoroutine(DelayedInitialSnap());
+        ResolveHeadTransform();
     }
 
-    private IEnumerator DelayedInitialSnap()
+    private void OnEnable()
     {
-        yield return null;
-        yield return new WaitForSeconds(0.2f);
+        ResolveHeadTransform();
+        ForceSnapNow();
+    }
 
-        SnapToHeadView();
-        hasInitialized = true;
+    private void Start()
+    {
+        ResolveHeadTransform();
+        ForceSnapNow();
     }
 
     private void LateUpdate()
     {
-        if (headTransform == null || !hasInitialized)
-            return;
+        if (headTransform == null)
+        {
+            ResolveHeadTransform();
+            if (headTransform == null)
+                return;
+        }
+
+        if (!hasInitialized)
+            ForceSnapNow();
 
         GetFlatDirections(out Vector3 flatForward, out Vector3 flatRight);
 
@@ -68,9 +70,6 @@ public class CanvasFollowHead : MonoBehaviour
 
         Quaternion desiredRotation = Quaternion.LookRotation(flatForward, Vector3.up);
 
-        // Important change:
-        // Position follows the head every frame, even when the user only walks forward.
-        // The old version only updated targetPosition after a head rotation, so the canvas stayed behind.
         targetPosition = desiredPosition;
 
         float angle = Vector3.Angle(transform.forward, flatForward);
@@ -99,10 +98,20 @@ public class CanvasFollowHead : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rt);
     }
 
+    public void ForceSnapNow()
+    {
+        SnapToHeadView();
+        hasInitialized = true;
+    }
+
     public void SnapToHeadView()
     {
         if (headTransform == null)
-            return;
+        {
+            ResolveHeadTransform();
+            if (headTransform == null)
+                return;
+        }
 
         GetFlatDirections(out Vector3 flatForward, out Vector3 flatRight);
 
@@ -116,6 +125,16 @@ public class CanvasFollowHead : MonoBehaviour
 
         transform.position = targetPosition;
         transform.rotation = targetRotation;
+    }
+
+    private void ResolveHeadTransform()
+    {
+        if (headTransform != null)
+            return;
+
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+            headTransform = mainCam.transform;
     }
 
     private void GetFlatDirections(out Vector3 flatForward, out Vector3 flatRight)

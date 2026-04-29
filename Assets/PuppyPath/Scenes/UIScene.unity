@@ -761,9 +761,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.52201253, g: 0.52201253, b: 0.52201253, a: 1}
+    m_PressedColor: {r: 0.5254902, g: 0.5254902, b: 0.5254902, a: 1}
+    m_SelectedColor: {r: 0.5254902, g: 0.5254902, b: 0.5254902, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1643,11 +1643,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DogGuideController
   dogPrefab: {fileID: 5764794651156842405, guid: 759e5088c1bc2614a827226aaaea4400, type: 3}
+  barkClips:
+  - {fileID: 8300000, guid: 39563817b098dce40a139db93df06a25, type: 3}
+  - {fileID: 8300000, guid: d6d4409b620715e46adb545c8a37bd93, type: 3}
+  - {fileID: 8300000, guid: 3cb55a88607cc9545af8c7cd0bc8bf29, type: 3}
   barkClip: {fileID: 8300000, guid: d943f18745fcf5945ade13e85ffd7f07, type: 3}
+  avoidRepeatingSameBarkClip: 1
   barkVolume: 1
   barkMinInterval: 0.45
   barkRepeatInterval: 1
-  barkRepeatChance: 3
+  barkRepeatChance: 0
   standState: Stand
   walkState: walk
   trotState: Trot
@@ -1661,7 +1666,6 @@ MonoBehaviour:
   walkToStandState: WalkStand
   standToSitState: StandSit
   sitToStandState: SitStand
-  turnBackState: TurnBack
   turnFrontState: TurnFront
   turnLoopState: TurnLoop
   animationCrossFadeTime: 0.18
@@ -1669,8 +1673,6 @@ MonoBehaviour:
   longTransitionDuration: 0.75
   turnInPlaceAngleThreshold: 35
   turnFrontDuration: 0.55
-  turnBackDuration: 0.85
-  turnBackAngleThreshold: 120
   minAnimationHoldTime: 0.28
   locomotionStartExtraDistance: 0.12
   locomotionStopRatio: 0.55
@@ -1696,9 +1698,6 @@ MonoBehaviour:
     eyes:
     - {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
     - {fileID: 2800000, guid: f553d39978cf2f356b365fb86a3e6d07, type: 3}
-    - {fileID: 2800000, guid: e27b1300b6563e4c2924f24e2e643232, type: 3}
-    - {fileID: 2800000, guid: f6d062eadfde1317b9e009fed515db6d, type: 3}
-    - {fileID: 2800000, guid: 0937e6845612ec6b1b10149ddb49a45e, type: 3}
     - {fileID: 2800000, guid: 459c0f12dbb160dd3b5956e8f40397b5, type: 3}
     mouths:
     - {fileID: 2800000, guid: c999aaaf13d018d7e8c980e2580ec12a, type: 3}
@@ -1751,14 +1750,6 @@ MonoBehaviour:
     mouths:
     - {fileID: 2800000, guid: 63d580f18fc7cc27289d6f04e2e4e7bb, type: 3}
     - {fileID: 2800000, guid: a9552c6e60ed8f7f2b1363104c000784, type: 3}
-  useBarkExpressionOverride: 1
-  barkEyesTexture: {fileID: 2800000, guid: 779838edbce5189138e9a18c1c414497, type: 3}
-  barkMouthTexture: {fileID: 2800000, guid: 5d2eaecb0a313dd898a1add361b4465f, type: 3}
-  restoreExpressionAfterBark: 1
-  useHappyExpressionOverride: 1
-  happyEyesTexture: {fileID: 2800000, guid: d170991002fdcfc25826bc387a175505, type: 3}
-  happyMouthTexture: {fileID: 2800000, guid: 63d580f18fc7cc27289d6f04e2e4e7bb, type: 3}
-  restoreExpressionAfterHappy: 0
   leadDistance: 1.8
   besideDistance: 1
   behindDistance: 1
@@ -1766,15 +1757,15 @@ MonoBehaviour:
   maxDistanceToUser: 3
   sniffMoveSpeed: 0.3
   walkMoveSpeed: 0.55
-  trotMoveSpeed: 0.85
-  canterMoveSpeed: 1.2
+  trotMoveSpeed: 0.8
+  canterMoveSpeed: 1.4
   turnMoveSpeed: 0.7
   catchUpMoveSpeed: 0.9
   rotateSpeed: 3
   minDistanceForWalkAnimation: 0.18
   minDistanceForSniffAnimation: 0.12
-  minDistanceForTrotAnimation: 0.25
-  minDistanceForCanterAnimation: 0.35
+  minDistanceForTrotAnimation: 0.35
+  minDistanceForCanterAnimation: 0.5
   minDistanceForTurnAnimation: 0.25
   enableRandomBehaviors: 1
   randomBehaviorMinInterval: 1.5
@@ -1784,7 +1775,8 @@ MonoBehaviour:
   circleRadius: 1.3
   circleAngularSpeed: 130
   barkDuration: 1.3
-  sitWaitDuration: 1
+  sitWaitDuration: 1.1
+  sitWaitRandomExtraDuration: 0.8
   negativeReactionCooldown: 2
   celebrationDistance: 2
   logAnimationChanges: 0
@@ -1814,8 +1806,8 @@ MonoBehaviour:
   offPathThreshold: 6
   gettingFartherThresholdTime: 2.5
   lostThresholdTime: 8
-  userMoveEpsilon: 0.015
-  waitingThresholdTime: 8
+  userMoveEpsilon: 0.05
+  waitingThresholdTime: 5
   autoCompleteOnArrival: 1
   autoCompleteDelay: 0
   logDetailedState: 0
@@ -2530,7 +2522,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 380}
+  m_AnchoredPosition: {x: 0, y: 92}
   m_SizeDelta: {x: 1310, y: 220}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1051460376
@@ -3888,6 +3880,8 @@ MonoBehaviour:
   logoCanvasGroup: {fileID: 1906117665}
   logoRoot: {fileID: 1906117664}
   mainCanvasRoot: {fileID: 1562129483}
+  mainCanvasFollow: {fileID: 0}
+  mainCanvasGroup: {fileID: 0}
   fadeInDuration: 1.5
   holdDuration: 2
   fadeOutDuration: 1.5

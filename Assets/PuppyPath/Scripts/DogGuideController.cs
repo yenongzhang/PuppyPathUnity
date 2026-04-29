@@ -21,7 +21,9 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private GameObject dogPrefab;
 
     [Header("Audio")]
-    [SerializeField] private AudioClip barkClip;
+    [SerializeField] private AudioClip[] barkClips;
+    [SerializeField] private AudioClip barkClip; // Optional fallback / old single bark clip.
+    [SerializeField] private bool avoidRepeatingSameBarkClip = true;
     [SerializeField] private float barkVolume = 0.75f;
     [SerializeField] private float barkMinInterval = 0.45f;
     [SerializeField] private float barkRepeatInterval = 0.55f;
@@ -45,7 +47,6 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private string sitToStandState = "SitStand";
 
     [Header("Turn Animation State Names")]
-    [SerializeField] private string turnBackState = "TurnBack";
     [SerializeField] private string turnFrontState = "TurnFront";
     [SerializeField] private string turnLoopState = "TurnLoop";
 
@@ -57,8 +58,6 @@ public class DogGuideController : MonoBehaviour
     [Header("Turn Settings")]
     [SerializeField] private float turnInPlaceAngleThreshold = 35f;
     [SerializeField] private float turnFrontDuration = 0.55f;
-    [SerializeField] private float turnBackDuration = 0.85f;
-    [SerializeField] private float turnBackAngleThreshold = 120f;
 
     [Header("Animation Stability")]
     [SerializeField] private float minAnimationHoldTime = 0.28f;
@@ -80,18 +79,6 @@ public class DogGuideController : MonoBehaviour
 
     [Header("State Expression Groups")]
     [SerializeField] private DogStateExpressionGroup[] expressionGroups;
-
-    [Header("Bark Expression Override")]
-    [SerializeField] private bool useBarkExpressionOverride = true;
-    [SerializeField] private Texture barkEyesTexture;
-    [SerializeField] private Texture barkMouthTexture;
-    [SerializeField] private bool restoreExpressionAfterBark = true;
-
-    [Header("Happy Expression Override")]
-    [SerializeField] private bool useHappyExpressionOverride = true;
-    [SerializeField] private Texture happyEyesTexture;
-    [SerializeField] private Texture happyMouthTexture;
-    [SerializeField] private bool restoreExpressionAfterHappy = false;
 
     [Header("Guide Position")]
     [SerializeField] private float leadDistance = 1.45f;
@@ -125,9 +112,10 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private float circleRadius = 1.1f;
     [SerializeField] private float circleAngularSpeed = 130f;
 
-    [Header("Negative State Behavior")]
+    [Header("Negative / Waiting State Behavior")]
     [SerializeField] private float barkDuration = 1.2f;
-    [SerializeField] private float sitWaitDuration = 1.1f;
+    [SerializeField] private float sitWaitDuration = 2.4f;
+    [SerializeField] private float sitWaitRandomExtraDuration = 0.8f;
     [SerializeField] private float negativeReactionCooldown = 2.0f;
 
     [Header("Arrival")]
@@ -141,6 +129,7 @@ public class DogGuideController : MonoBehaviour
     private Animator dogAnimator;
     private AudioSource dogAudioSource;
     private float lastBarkTime = -999f;
+    private int lastBarkClipIndex = -1;
 
     private readonly List<Transform> path = new List<Transform>();
 
@@ -324,7 +313,7 @@ public class DogGuideController : MonoBehaviour
         switch (currentState)
         {
             case NavigationRuntimeController.NavState.Waiting:
-                PlayStand(1f);
+                TryStartWaitingReaction();
                 break;
 
             case NavigationRuntimeController.NavState.GettingFarther:
@@ -359,7 +348,8 @@ public class DogGuideController : MonoBehaviour
             currentState == NavigationRuntimeController.NavState.Waiting)
         {
             // Important: no free body rotation here.
-            // If the dog needs to turn while static, it must do it through TurnFront / TurnBack.
+            // If the dog needs to turn while static, it must do it through TurnFront only.
+            // TurnBack is intentionally not used anywhere in this script.
             return;
         }
 
@@ -457,6 +447,19 @@ public class DogGuideController : MonoBehaviour
         return DogBehavior.TurnCircleUser;
     }
 
+    private void TryStartWaitingReaction()
+    {
+        if (Time.time - lastNegativeReactionTime < negativeReactionCooldown)
+        {
+            // During Waiting, prefer staying seated instead of falling back to Stand.
+            PlayAnimation(sitState, 1f);
+            return;
+        }
+
+        lastNegativeReactionTime = Time.time;
+        StartBehavior(DogBehavior.SitWait, true);
+    }
+
     private void TryStartNegativeReaction(bool strong)
     {
         if (Time.time - lastNegativeReactionTime < negativeReactionCooldown)
@@ -469,11 +472,19 @@ public class DogGuideController : MonoBehaviour
 
         if (strong)
         {
-            StartBehavior(Random.value < 0.7f ? DogBehavior.BarkAtUser : DogBehavior.SitWait, true);
+            // Lost feels more serious, but still lets the dog sit more often than before.
+            StartBehavior(Random.value < 0.45f ? DogBehavior.BarkAtUser : DogBehavior.SitWait, true);
         }
         else
         {
-            StartBehavior(Random.value < 0.6f ? DogBehavior.BarkAtUser : DogBehavior.PauseAndLook, true);
+            float r = Random.value;
+
+            if (r < 0.45f)
+                StartBehavior(DogBehavior.BarkAtUser, true);
+            else if (r < 0.80f)
+                StartBehavior(DogBehavior.SitWait, true);
+            else
+                StartBehavior(DogBehavior.PauseAndLook, true);
         }
     }
 
@@ -713,11 +724,6 @@ public class DogGuideController : MonoBehaviour
 
     private IEnumerator DoBarkAtUser()
     {
-        Texture previousEyesTexture = GetCurrentEyesTexture();
-        Texture previousMouthTexture = GetCurrentMouthTexture();
-
-        ApplyBarkExpressionOverride();
-
         yield return TurnTowardUserIfNeeded();
 
         if (!string.IsNullOrWhiteSpace(barkState))
@@ -745,12 +751,6 @@ public class DogGuideController : MonoBehaviour
 
             yield return null;
         }
-
-        if (restoreExpressionAfterBark)
-        {
-            SetEyesTexture(previousEyesTexture);
-            SetMouthTexture(previousMouthTexture);
-        }
     }
 
     private IEnumerator DoSitWait()
@@ -761,8 +761,9 @@ public class DogGuideController : MonoBehaviour
         PlayAnimation(sitState, 1f, true);
 
         float elapsed = 0f;
+        float duration = sitWaitDuration + Random.Range(0f, sitWaitRandomExtraDuration);
 
-        while (elapsed < sitWaitDuration)
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
 
@@ -782,13 +783,7 @@ public class DogGuideController : MonoBehaviour
     {
         currentState = NavigationRuntimeController.NavState.Arrived;
 
-        Texture previousEyesTexture = GetCurrentEyesTexture();
-        Texture previousMouthTexture = GetCurrentMouthTexture();
-
         yield return TurnTowardUserIfNeeded();
-
-        ApplyHappyExpressionOverride();
-
         yield return PlayTransitionOnly(happyStartState, shortTransitionDuration);
 
         PlayAnimation(happyState, 1f, true);
@@ -800,12 +795,6 @@ public class DogGuideController : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             yield return null;
-        }
-
-        if (restoreExpressionAfterHappy)
-        {
-            SetEyesTexture(previousEyesTexture);
-            SetMouthTexture(previousMouthTexture);
         }
     }
 
@@ -844,8 +833,9 @@ public class DogGuideController : MonoBehaviour
         if (angle < turnInPlaceAngleThreshold)
             yield break;
 
-        string turnState = angle >= turnBackAngleThreshold ? turnBackState : turnFrontState;
-        float duration = angle >= turnBackAngleThreshold ? turnBackDuration : turnFrontDuration;
+        // TurnBack is completely disabled. Even for large angles, use TurnFront only.
+        string turnState = turnFrontState;
+        float duration = turnFrontDuration;
 
         if (string.IsNullOrWhiteSpace(turnState))
             yield break;
@@ -902,14 +892,86 @@ public class DogGuideController : MonoBehaviour
 
     private void PlayBarkSound()
     {
-        if (barkClip == null || dogAudioSource == null)
+        if (dogAudioSource == null)
+            return;
+
+        AudioClip selectedClip = PickRandomBarkClip();
+
+        if (selectedClip == null)
             return;
 
         if (Time.time - lastBarkTime < barkMinInterval)
             return;
 
         lastBarkTime = Time.time;
-        dogAudioSource.PlayOneShot(barkClip, barkVolume);
+        dogAudioSource.PlayOneShot(selectedClip, barkVolume);
+    }
+
+    private AudioClip PickRandomBarkClip()
+    {
+        if (barkClips != null && barkClips.Length > 0)
+        {
+            int validCount = 0;
+
+            for (int i = 0; i < barkClips.Length; i++)
+            {
+                if (barkClips[i] != null)
+                    validCount++;
+            }
+
+            if (validCount > 0)
+            {
+                int selectedIndex = -1;
+
+                if (validCount == 1)
+                {
+                    for (int i = 0; i < barkClips.Length; i++)
+                    {
+                        if (barkClips[i] != null)
+                        {
+                            selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int attempt = 0; attempt < 12; attempt++)
+                    {
+                        int candidateIndex = Random.Range(0, barkClips.Length);
+
+                        if (barkClips[candidateIndex] == null)
+                            continue;
+
+                        if (avoidRepeatingSameBarkClip && candidateIndex == lastBarkClipIndex)
+                            continue;
+
+                        selectedIndex = candidateIndex;
+                        break;
+                    }
+
+                    if (selectedIndex < 0)
+                    {
+                        for (int i = 0; i < barkClips.Length; i++)
+                        {
+                            if (barkClips[i] != null && i != lastBarkClipIndex)
+                            {
+                                selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (selectedIndex >= 0)
+                {
+                    lastBarkClipIndex = selectedIndex;
+                    return barkClips[selectedIndex];
+                }
+            }
+        }
+
+        return barkClip;
     }
 
     private void SetupExpressionMaterials()
@@ -1009,54 +1071,6 @@ public class DogGuideController : MonoBehaviour
     private void SetMouthTexture(Texture texture)
     {
         SetMaterialBaseMap(mouthRuntimeMaterial, texture);
-    }
-
-    private Texture GetCurrentEyesTexture()
-    {
-        return GetMaterialBaseMap(eyesRuntimeMaterial);
-    }
-
-    private Texture GetCurrentMouthTexture()
-    {
-        return GetMaterialBaseMap(mouthRuntimeMaterial);
-    }
-
-    private Texture GetMaterialBaseMap(Material material)
-    {
-        if (material == null)
-            return null;
-
-        if (material.HasProperty(BaseMapId))
-            return material.GetTexture(BaseMapId);
-
-        if (material.HasProperty(MainTexId))
-            return material.GetTexture(MainTexId);
-
-        return material.mainTexture;
-    }
-
-    private void ApplyBarkExpressionOverride()
-    {
-        if (!useBarkExpressionOverride)
-            return;
-
-        if (barkEyesTexture != null)
-            SetEyesTexture(barkEyesTexture);
-
-        if (barkMouthTexture != null)
-            SetMouthTexture(barkMouthTexture);
-    }
-
-    private void ApplyHappyExpressionOverride()
-    {
-        if (!useHappyExpressionOverride)
-            return;
-
-        if (happyEyesTexture != null)
-            SetEyesTexture(happyEyesTexture);
-
-        if (happyMouthTexture != null)
-            SetMouthTexture(happyMouthTexture);
     }
 
     private void SetMaterialBaseMap(Material material, Texture texture)
