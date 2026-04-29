@@ -35,6 +35,13 @@ public class NavigationController : MonoBehaviour
     [Header("Arrival Reset")]
     [SerializeField] private float returnToMainMenuDelay = 10f;
 
+    [Header("Destination Beacon")]
+    [SerializeField] private GameObject destinationBeaconPrefab;
+    [SerializeField] private float destinationBeaconHeightOffset = 0.08f;
+    [SerializeField] private bool destinationBeaconFollowWaypoint = true;
+
+    private GameObject currentDestinationBeacon;
+
     private string pendingPathId;
     private string pendingTargetName = "Destination";
     private bool isInNavigationMode;
@@ -158,6 +165,8 @@ public class NavigationController : MonoBehaviour
         if (hudController != null)
             hudController.EnterNavigationMode();
 
+        ShowDestinationBeacon();
+
         runtimeController.StartRuntime();
     }
 
@@ -171,6 +180,7 @@ public class NavigationController : MonoBehaviour
         if (debugFireworks)
             Debug.Log("NavigationController: CompleteNavigation() called. Playing destination fireworks.");
 
+        HideDestinationBeacon();
         PlayDestinationFireworks();
 
         if (hudController != null)
@@ -208,6 +218,7 @@ public class NavigationController : MonoBehaviour
         isInNavigationMode = false;
         hasCompletedNavigation = false;
 
+        HideDestinationBeacon();
         if (previewController != null)
             previewController.ClearAll();
 
@@ -279,6 +290,54 @@ public class NavigationController : MonoBehaviour
         Transform previewLine = routeRoot.Find("PreviewLine");
         if (previewLine != null)
             Destroy(previewLine.gameObject);
+    }
+
+    private void ShowDestinationBeacon()
+    {
+        HideDestinationBeacon();
+
+        if (destinationBeaconPrefab == null)
+        {
+            Debug.LogWarning("NavigationController: destinationBeaconPrefab is not assigned.");
+            return;
+        }
+
+        if (previewController == null)
+            return;
+
+        Transform destinationWaypoint = previewController.GetCurrentDestinationWaypoint();
+        if (destinationWaypoint == null)
+        {
+            Debug.LogWarning("NavigationController: destination waypoint not found.");
+            return;
+        }
+
+        Vector3 spawnPosition = destinationWaypoint.position + Vector3.up * destinationBeaconHeightOffset;
+
+        currentDestinationBeacon = Instantiate(
+            destinationBeaconPrefab,
+            spawnPosition,
+            destinationBeaconPrefab.transform.rotation
+        );
+
+        currentDestinationBeacon.name = "DestinationBeacon_Runtime";
+
+        if (destinationBeaconFollowWaypoint)
+        {
+            currentDestinationBeacon.transform.SetParent(destinationWaypoint, true);
+            currentDestinationBeacon.transform.localPosition = Vector3.up * destinationBeaconHeightOffset;
+
+            currentDestinationBeacon.transform.localRotation = destinationBeaconPrefab.transform.localRotation;
+        }
+    }
+
+    private void HideDestinationBeacon()
+    {
+        if (currentDestinationBeacon != null)
+        {
+            Destroy(currentDestinationBeacon);
+            currentDestinationBeacon = null;
+        }
     }
 
     private void PlayDestinationFireworks()

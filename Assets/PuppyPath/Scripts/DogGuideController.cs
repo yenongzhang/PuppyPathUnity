@@ -81,26 +81,26 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private DogStateExpressionGroup[] expressionGroups;
 
     [Header("Guide Position")]
-    [SerializeField] private float leadDistance = 1.45f;
+    [SerializeField] private float leadDistance = 1.8f;
     [SerializeField] private float besideDistance = 0.75f;
     [SerializeField] private float behindDistance = 0.9f;
-    [SerializeField] private float minDistanceToUser = 0.7f;
-    [SerializeField] private float maxDistanceToUser = 2.3f;
+    [SerializeField] private float minDistanceToUser = 0.85f;
+    [SerializeField] private float maxDistanceToUser = 2.2f;
 
     [Header("Movement Speeds")]
-    [SerializeField] private float sniffMoveSpeed = 0.28f;
-    [SerializeField] private float walkMoveSpeed = 0.52f;
-    [SerializeField] private float trotMoveSpeed = 0.78f;
-    [SerializeField] private float canterMoveSpeed = 1.05f;
+    [SerializeField] private float sniffMoveSpeed = 0.55f;
+    [SerializeField] private float walkMoveSpeed = 0.85f;
+    [SerializeField] private float trotMoveSpeed = 1.35f;
+    [SerializeField] private float canterMoveSpeed = 1.85f;
     [SerializeField] private float turnMoveSpeed = 0.7f;
     [SerializeField] private float catchUpMoveSpeed = 0.9f;
-    [SerializeField] private float rotateSpeed = 5.5f;
+    [SerializeField] private float rotateSpeed = 7.5f;
 
     [Header("Locomotion Animation Gate")]
-    [SerializeField] private float minDistanceForWalkAnimation = 0.20f;
-    [SerializeField] private float minDistanceForSniffAnimation = 0.14f;
-    [SerializeField] private float minDistanceForTrotAnimation = 0.28f;
-    [SerializeField] private float minDistanceForCanterAnimation = 0.40f;
+    [SerializeField] private float minDistanceForWalkAnimation = 0.18f;
+    [SerializeField] private float minDistanceForSniffAnimation = 0.16f;
+    [SerializeField] private float minDistanceForTrotAnimation = 0.25f;
+    [SerializeField] private float minDistanceForCanterAnimation = 0.35f;
     [SerializeField] private float minDistanceForTurnAnimation = 0.28f;
 
     [Header("Random Behaviors")]
@@ -361,50 +361,71 @@ public class DogGuideController : MonoBehaviour
         Vector3 userPos = xrCamera.position;
         Vector3 flatDir = GetRecommendedDirection();
 
-        Vector3 targetPos = userPos + flatDir * leadDistance;
-        targetPos.y = currentDog.transform.position.y;
+        Vector3 leadTargetPos = userPos + flatDir * leadDistance;
+        leadTargetPos.y = currentDog.transform.position.y;
 
         float userDogDistance = GetFlatDistance(userPos, currentDog.transform.position);
+        float distanceToLeadTarget = GetFlatDistance(currentDog.transform.position, leadTargetPos);
 
-        if (userDogDistance > maxDistanceToUser)
+        bool dogIsBehindUser = IsDogBehindUser(flatDir);
+
+        // 狗已经明显落后：直接跑，不要走。
+        if (dogIsBehindUser || userDogDistance > maxDistanceToUser || distanceToLeadTarget > 1.35f)
         {
-            targetPos = userPos + flatDir * maxDistanceToUser;
-            targetPos.y = currentDog.transform.position.y;
-
             TryPlayLocomotionAndMove(
-                targetPos,
-                trotState,
-                0.9f,
+                leadTargetPos,
+                canterState,
+                1.05f,
                 catchUpMoveSpeed,
+                minDistanceForCanterAnimation
+            );
+
+            return;
+        }
+
+        // 狗离引导位置还有一段距离：默认小跑。
+        if (distanceToLeadTarget > 0.65f)
+        {
+            TryPlayLocomotionAndMove(
+                leadTargetPos,
+                trotState,
+                1.0f,
+                trotMoveSpeed,
                 minDistanceForTrotAnimation
             );
 
             return;
         }
 
-        if (userDogDistance < minDistanceToUser)
+        // 狗快到引导位置了：才慢走。
+        if (distanceToLeadTarget > 0.25f)
         {
-            targetPos = userPos + flatDir * minDistanceToUser;
-            targetPos.y = currentDog.transform.position.y;
-
             TryPlayLocomotionAndMove(
-                targetPos,
+                leadTargetPos,
                 walkState,
-                0.75f,
-                sniffMoveSpeed,
+                0.95f,
+                walkMoveSpeed,
                 minDistanceForWalkAnimation
             );
 
             return;
         }
 
-        TryPlayLocomotionAndMove(
-            targetPos,
-            walkState,
-            0.85f,
-            walkMoveSpeed,
-            minDistanceForWalkAnimation
-        );
+        // 狗已经在合适位置附近：不要频繁切 Stand，保持自然的小动作。
+        if (Random.value < 0.015f)
+        {
+            TryPlayLocomotionAndMove(
+                leadTargetPos,
+                sniffState,
+                1f,
+                sniffMoveSpeed,
+                minDistanceForSniffAnimation
+            );
+        }
+        else
+        {
+            PlayAnimation(trotState, 0.85f);
+        }
     }
 
     private IEnumerator RandomBehaviorLoop()
@@ -438,11 +459,13 @@ public class DogGuideController : MonoBehaviour
     {
         float r = Random.value;
 
-        if (r < 0.34f) return DogBehavior.SniffAhead;
-        if (r < 0.56f) return DogBehavior.WalkBeside;
-        if (r < 0.74f) return DogBehavior.WalkBehind;
-        if (r < 0.90f) return DogBehavior.ShortCanter;
-        if (r < 0.96f) return DogBehavior.PauseAndLook;
+        if (r < 0.42f) return DogBehavior.ShortCanter;
+
+        if (r < 0.62f) return DogBehavior.SniffAhead;
+
+        if (r < 0.82f) return DogBehavior.WalkBeside;
+
+        if (r < 0.92f) return DogBehavior.PauseAndLook;
 
         return DogBehavior.TurnCircleUser;
     }
@@ -599,13 +622,12 @@ public class DogGuideController : MonoBehaviour
         {
             elapsed += Time.deltaTime;
 
-            Vector3 targetPos = xrCamera.position + GetRecommendedDirection() * (leadDistance + 0.35f);
-            targetPos.y = currentDog.transform.position.y;
+            Vector3 targetPos = xrCamera.position + GetRecommendedDirection() * (leadDistance + 0.65f);            targetPos.y = currentDog.transform.position.y;
 
             TryPlayLocomotionAndMove(
                 targetPos,
                 canterState,
-                0.82f,
+                1.1f,
                 canterMoveSpeed,
                 minDistanceForCanterAnimation
             );
@@ -1210,6 +1232,32 @@ public class DogGuideController : MonoBehaviour
             targetPos,
             speed * Time.deltaTime
         );
+    }
+
+    private bool IsDogBehindUser(Vector3 routeDirection)
+    {
+        if (currentDog == null || xrCamera == null)
+            return false;
+
+        routeDirection.y = 0f;
+
+        if (routeDirection.sqrMagnitude < 0.0001f)
+            return false;
+
+        routeDirection.Normalize();
+
+        Vector3 userToDog = currentDog.transform.position - xrCamera.position;
+        userToDog.y = 0f;
+
+        if (userToDog.sqrMagnitude < 0.0001f)
+            return false;
+
+        userToDog.Normalize();
+
+        float dot = Vector3.Dot(routeDirection, userToDog);
+
+        // dot < 0 表示狗在用户行进方向的反方向，也就是落在用户后面。
+        return dot < -0.15f;
     }
 
     private Vector3 GetRecommendedDirection()
