@@ -1,0 +1,404 @@
+# PuppyPath 现有项目 V2 审计文档
+
+最后更新：2026-06-30
+
+## 阅读范围
+
+已阅读和整理 `Assets/PuppyPath` 下的内容，包括：
+
+- `3dModel`
+- `Animations`
+- `Audio`
+- `Images`
+- `Logo`
+- `Material`
+- `Prefabs`
+- `Scenes`
+- `Scripts`
+- `UI`
+
+二进制、模型、音频、图片、prefab、scene 资源主要通过文件结构和命名进行检查。C# 脚本已阅读其当前行为和公开接口。
+
+## 资源清单
+
+### 3dModel
+
+包含 beagle FBX 文件、动画 FBX 文件、小狗眼睛和嘴巴贴图、小狗材质文件、texture map。这是 V2 小狗角色的基础。
+
+V2 可复用：
+
+- 小狗模型。
+- 现有移动、坐下、叫、开心、转身、嗅闻动画文件。
+- 用于表情变化的脸部贴图。
+
+V2 需要补充：
+
+- 在小狗 prefab 上添加饰品 anchor transform。
+- 添加帽子、眼镜、衣服、项圈挂饰等饰品模型。
+- 针对物品出现、坐下等待、奖励时刻优化动画和表情。
+
+### Animations
+
+包含 `DogAnimationController.controller`。
+
+V2 可复用：
+
+- 现有小狗动画控制器可以作为基础。
+
+V2 需要补充：
+
+- 确认动画 state 名称与 `DogGuideController` 中序列化字段匹配。
+- 如有需要，为 V2 状态新增或调整动画过渡。
+
+### Audio
+
+包含狗叫音效和 `track1.mp3`。
+
+V2 可复用：
+
+- 狗叫音效可用于小狗反应和奖励时刻。
+
+V2 需要补充：
+
+- 决定开场介绍和奖励是否需要额外音效。
+- 根据活动现场环境调整音量。
+
+### Images
+
+包含旧图标和旧地图资源，包括 `EuropaParkMap1-modified.png`。
+
+V2 可复用：
+
+- 现有地图 UI 代码思路和 marker / icon 资源。
+
+V2 需要补充：
+
+- 导入最新活动场地地图图片。
+- 如果没有现成资源，需要制作狗爪 marker 图标。
+- 用真实活动场地地图替换旧 Europa-Park 地图数据。
+
+### Logo
+
+包含 PuppyPath logo PDF 和 PNG 文件。
+
+V2 可复用：
+
+- 现有 logo 资源应继续用于启动流程。
+
+### Material
+
+包含小狗眼睛 / 嘴巴材质、路径预览材质、shadow receiver 材质 / shader、烟花 additive 材质。
+
+V2 可复用：
+
+- `M_PathPreview` 或类似材质可以用于地面路线 line。
+- 眼睛 / 嘴巴材质用于表情切换。
+- 烟花材质可用于奖励或惊喜特效。
+
+### Prefabs
+
+包含：
+
+- 小狗 prefabs。
+- 地图 marker prefab。
+- OVRCameraRig variant。
+- RouteRoot prefab。
+- Firework prefab。
+- 旧路径 prefabs。
+
+V2 可复用：
+
+- 小狗 prefabs 是主角基础。
+- Firework prefab 可以作为惊喜特效参考，虽然用户当前优先要求 shaking 动画。
+- Map marker prefab 可能可以替换成狗爪 marker。
+
+V2 需要补充：
+
+- 旧路径 prefabs 是旧地图的静态路线定义，基本不适合真实活动场地。
+- Route root 当前是相对用户生成的，应替换为场地固定路线生成。
+
+### Scenes
+
+包含：
+
+- `DogTestScene.unity`
+- `UIScene.unity`
+
+V2 可复用：
+
+- `DogTestScene` 可用于测试小狗动画和表情。
+- `UIScene` 很可能包含当前 app UI 流程。
+
+V2 需要补充：
+
+- 实现开始后，建议新增或复制一个 V2 scene / prefab setup。
+- 在 V2 稳定前保留旧 scene。
+
+### UI
+
+包含字体资源，以及气泡、按钮、地图、位置、朋友、箭头等 UI 图片。
+
+V2 可复用：
+
+- 对话气泡资源可用于小狗自我介绍和物品提示。
+- 现有字体和按钮风格可保持视觉一致性。
+
+V2 需要补充：
+
+- 新的小地图布局。
+- 居中的大地图。
+- 顶部状态文字。
+- 景点物品提示 UI。
+- 奖励 UI。
+
+## 脚本审计
+
+### `UIBootSequence`
+
+当前行为：
+
+- 显示 logo root。
+- 控制 logo canvas group 淡入、停留、淡出。
+- Logo 期间隐藏主 canvas。
+- 在 `CanvasFollowHead` snap 后安全显示主 canvas。
+
+V2 用法：
+
+- 复用启动流程。
+- 增加完成事件或 callback，让 V2 controller 在 logo 结束后生成小狗并播放开场对话。
+
+### `CanvasFollowHead`
+
+当前行为：
+
+- 把 canvas 放在用户头部前方。
+- 平滑跟随位置和旋转。
+- 当距离太远、在身后或太近时 snap。
+
+V2 用法：
+
+- 可复用给跟随头部的 UI。
+- 小地图 / 顶部 HUD 是否使用它，取决于最终 XR UI 设置。
+
+### `PuppyPathSelectionUI`
+
+当前行为：
+
+- 处理旧地图点击。
+- 把地图点击转换成网格行 / 列。
+- 从 3x5 网格中选择 path id。
+- 支持 friend marker。
+- 更新旧流程阶段文字和按钮。
+
+V2 用法：
+
+- 可作为 UI pointer 点击和 marker 放置逻辑参考。
+
+V2 替换方向：
+
+- 用景点 marker 选择替代网格选择。
+- 除非后续需要恢复找朋友功能，否则移除旧 Europa-Park 地名和 friend-based 流程。
+
+### `NavigationController`
+
+当前行为：
+
+- 管理旧版 intro phases、preview、start、complete、fireworks、destination beacon、reset。
+
+V2 用法：
+
+- 可复用流程组织思路。
+- 如有帮助，可复用到达 / 奖励特效思路。
+
+V2 替换方向：
+
+- 新的高层 V2 game controller 应管理 `Boot`、`Intro`、`FreeWalk`、`MapOpen`、`Navigating`、`AttractionReveal`、`ItemGrab`、`Reward`。
+
+### `PathPreviewController`
+
+当前行为：
+
+- 把 path id 映射到 `PathDefinition` prefab。
+- 生成 route root。
+- 在 route root 下实例化 path prefab。
+- 使用 waypoint 通过 `LineRenderer` 绘制动画路线。
+- 对外提供当前路径和目的地。
+
+V2 用法：
+
+- 复用路线绘制思路。
+
+V2 替换方向：
+
+- 路线应从场地 graph 数据生成，而不是从旧静态 path prefab 选择。
+- 路线应固定在真实场地坐标中，而不是相对用户生成。
+
+### `RouteRootSpawner`
+
+当前行为：
+
+- 在 XR camera 前方生成 route root。
+- 使用 eye-to-ground offset。
+
+V2 用法：
+
+- 只适用于旧原型。
+
+V2 替换方向：
+
+- 场地固定的 route parent 应存在于真实场地坐标系中。
+
+### `NavigationRuntimeController`
+
+当前行为：
+
+- 读取当前路径 waypoints。
+- 跟踪用户沿路径的进度。
+- 计算状态：`Neutral`、`Waiting`、`GettingCloser`、`GettingFarther`、`Lost`、`Arrived`。
+- 更新 HUD。
+- 通知 `DogGuideController`。
+
+V2 用法：
+
+- 可复用导航状态概念。
+
+V2 修改方向：
+
+- 使用生成的场地路线，而不是旧 path prefab waypoints。
+- 到达后应在几秒后回到自由行走。
+- 景点物品显示应该优先于普通到达完成逻辑。
+
+### `NavigationHUDController`
+
+当前行为：
+
+- 导航时隐藏旧 friend / map / intro panels。
+- 显示 navigation HUD 和状态文字。
+
+V2 用法：
+
+- 可复用文字更新模式。
+
+V2 替换方向：
+
+- 用 V2 UI 组替代当前旧 panel 假设。
+
+### `DogGuideController`
+
+当前行为：
+
+- 实例化小狗 prefab。
+- 保存运行时路径。
+- 应用导航状态。
+- 播放 stand / walk / trot / canter / sniff / bark / happy / sit / turn 动画。
+- 播放狗叫音频。
+- 执行随机行为。
+- 切换眼睛 / 嘴巴表情贴图。
+- 根据路线方向和状态让小狗在用户附近移动。
+
+V2 用法：
+
+- 是小狗动画、表情、音频和跟随行为的强复用候选。
+
+V2 修改方向：
+
+- 小狗移动目标必须使用场地可行走区域约束。
+- 添加自由行走、带路、坐下等待、景点显示、奖励等明确命令。
+- 接入饰品管理器。
+- 避免旧行为中让小狗跑到用户身后的逻辑；V2 要求小狗不应在用户身后。
+
+### `DogStateTester`
+
+当前行为：
+
+- 用键盘测试小狗表情和动画 bool / trigger。
+
+V2 用法：
+
+- 保留用于测试小狗动画和表情。
+
+### `DogNavStateTester`
+
+当前行为：
+
+- 创建假路径，用按键测试小狗导航状态。
+
+V2 用法：
+
+- 保留或复制一个 V2 版本，用于测试小狗行为。
+
+### `DogEyeFollowRay`
+
+当前行为：
+
+- 让 UI 眼睛 `RectTransform` 朝向鼠标、手柄或手部射线在 canvas 上的 hit point。
+
+V2 用法：
+
+- 如果小狗 UI 或开场脸部图形需要 pointer-aware 眼睛动作，可以复用。
+
+### `FriendButtonUI`
+
+当前行为：
+
+- 旧版 friend button 选择辅助。
+
+V2 用法：
+
+- 除非后续重新加入找朋友功能，否则大概率不需要。
+
+### `PathDefinition`
+
+当前行为：
+
+- 保存 path id 和子物体 waypoints。
+
+V2 用法：
+
+- 仍可用于手工测试路径，但不足以支持动态真实场地导航。
+
+### `FireworkAutoDestroy`
+
+当前行为：
+
+- 延迟销毁特效对象。
+
+V2 用法：
+
+- 可复用于临时奖励 / 惊喜 VFX。
+
+## V2 关键重构总结
+
+保留：
+
+- Logo 启动流程。
+- 小狗模型、prefab、动画、表情资源。
+- 小狗动画和表情逻辑基础。
+- `LineRenderer` 路线可视化思路。
+- UI 视觉资源和字体。
+- 烟花 / 特效自动清理思路。
+
+替换或大幅改造：
+
+- 旧网格地图。
+- 旧 friend / location 选择。
+- 旧 path prefab library。
+- 相对用户生成的 route root。
+- 旧 Europa-Park 地图内容。
+- 旧 NavigationController 阶段模型。
+
+需要新增系统：
+
+- 场地坐标标定。
+- 可行走区域和障碍物数据。
+- 景点 registry。
+- 基于景点数据的小地图和大地图。
+- 动态路线生成。
+- 小狗可行走区域内的位置选择。
+- 可收集物显示 / 抓取 / 放置。
+- 小狗饰品 attach。
+- 奖励显示流程。
+
+## 必须遵守的文档同步规则
+
+当任何现有脚本被重新用途化、替换、删除或为 V2 大幅修改时，必须更新本文档，让后续开发者知道项目仍然依赖哪些旧内容。
