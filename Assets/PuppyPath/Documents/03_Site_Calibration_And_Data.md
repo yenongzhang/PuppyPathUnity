@@ -16,6 +16,34 @@
 
 ## 标定流程
 
+## Meta Quest 场地对齐建议
+
+为了让 Meta Quest 中的 Unity 场景与真实世界的朝向、方位和位置尽量一致，推荐使用“固定实体校准点 + Spatial Anchor + 启动校准检查”的方案。
+
+推荐方案：
+
+1. 在真实场地中选择一个固定、不会移动、容易重新找到的位置作为主校准点，例如墙角、固定柱子、固定家具边角或入口附近的稳定结构。
+2. 在 Unity 地图中把这个点定义为 `UnityOrigin` 或 `VenueOrigin`。
+3. 再选择第二个固定点来确定朝向，例如沿某面长墙的另一个点，用来定义 Unity `+Z` 或场地 forward。
+4. 第一次现场部署时，让开发者/工作人员站在主校准点，按校准按钮创建或保存 Meta Quest Spatial Anchor。
+5. 使用主锚点决定世界原点，使用第二参考点或已知墙体方向决定旋转朝向。
+6. 每次启动 app 时尝试加载已保存的 anchor；加载成功后把整个场地根节点对齐到 anchor。
+7. 启动后显示一个隐藏式或开发者可见的校准检查：例如在真实 3.45 m 红墙两端显示两个虚拟点，让工作人员确认是否贴合。
+
+关于二维码：
+
+- 二维码可以作为辅助工具，例如贴在主校准点附近，帮助工作人员确认“这是哪个校准点”。
+- 如果后续接入图像识别，二维码也可以用于快速选择对应场地配置。
+- 不建议只依赖二维码作为唯一空间定位依据，因为识别角度、光照、遮挡、打印位置误差都会影响稳定性。
+- 更可靠的方式是使用 Quest 的空间锚点 / 场地锚点能力，把二维码当作辅助标识，而不是唯一坐标系统。
+
+现场对齐最低要求：
+
+- 至少 1 个主校准点决定位置。
+- 至少 1 个方向参考决定朝向。
+- 3.45 m 红墙用于比例尺验证。
+- 每次地图更新后必须重新验证原点、朝向、比例尺和景点位置。
+
 ### 步骤 1：选择地图参考点
 
 在红色墙体上选择两个点：
@@ -136,20 +164,30 @@ Obstacle
 - 路径段不能穿过这些区域。
 - 如果用户正前方的小狗目标点会穿过障碍物，则选择左前方或右前方 fallback。
 
-## 景点数据草案
+## 景点和虚拟物品出现点数据
 
-当前草图地图中的景点：
+当前新版地图中，黄色圆点表示虚拟物品出现位置。景点文字 label 只用于命名和语义说明；真正的 collectible spawn point 应以后续标定出的黄色圆点坐标为准。
 
-| ID | 显示名称 | 地图位置 | 世界位置 | 显示半径 | 物品 | 饰品 | 奖励 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `chess` | Chess | TBD | TBD | 5 m | TBD | TBD | TBD |
-| `sofa` | Sofa | TBD | TBD | 5 m | TBD | TBD | TBD |
-| `photo_wall` | Photo Wall | TBD | TBD | 5 m | TBD | TBD | TBD |
-| `goodies` | Goodies | TBD | TBD | 5 m | TBD | TBD | TBD |
-| `cool_wall` | Cool Wall | TBD | TBD | 5 m | TBD | TBD | TBD |
-| `wc` | WC | TBD | TBD | 5 m | TBD | TBD | TBD |
-| `fridge` | Fridge | TBD | TBD | 5 m | 可乐罐 | TBD | 免费可乐 / TBD |
-| `piano` | Piano | TBD | TBD | 5 m | TBD | TBD | TBD |
+当前已记录 10 个虚拟物品出现点：
+
+| ID | 地图原标记 | 推荐英文显示名 | 中文说明名 | 地图位置 | 世界位置 | 透明度规则 | 物品 | 饰品 | 奖励 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `chess` | Chess | Checkmate Corner | 棋遇小屋 | 左上活动区，Chess 标记附近的上方黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 棋子 / TBD | TBD | TBD |
+| `couch` | Couch | Cozy Couch Cove | 软乎乎沙发湾 | 左上活动区，Couch 标记附近的下方黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 抱枕 / TBD | TBD | TBD |
+| `photo_wall` | Photo Wall | Snapshot Studio | 咔嚓照相馆 | 左中区域，Photo Wall 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 相机或相框 / TBD | TBD | TBD |
+| `goodies` | Goodies | Treat Trove | 甜甜补给站 | 左下内凹区域，Goodies 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 零食袋 / TBD | TBD | TBD |
+| `book_wall` | Book Wall | Storybook Wall | 故事书墙 | 右上中部走廊，Book Wall 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 书签、贴纸或徽章 / TBD | TBD | TBD |
+| `tap_water` | Tap Water | Splash Stop | 汪汪补水站 | 底部中间偏右，Tap Water 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 水滴、杯子或小水壶 / TBD | TBD | TBD |
+| `ice_cream_shop` | Ice Cream Shop | Scoop Station | 冰淇淋小站 | Tap Water 与 Drink Shop 之间、灰色横条右侧附近的黄色点；准备作为冰淇淋店 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 冰淇淋球或甜筒 / TBD | TBD | TBD |
+| `drink_shop` | Drink Shop | Fizzy Fridge | 气泡饮料铺 | 右下区域，右侧 Fridge / 饮料店标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 可乐罐或饮料杯 | TBD | 免费可乐 / TBD |
+| `piano` | Piano | Melody Corner | 音符小舞台 | 右侧中下区域，Piano 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 音符 / TBD | TBD | TBD |
+| `plants` | Plants | Garden Patch | 小狗花园 | 右下角 Plants 虚线区域内的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 小植物或叶子 / TBD | TBD | TBD |
+
+后续标定要求：
+
+- 把每个黄色圆点转换为 `mapPosition` 和 `worldPosition`。
+- 如果景点文字位置与黄色点位置不同，导航目的地和透明度计算应使用黄色点或该点附近的可行走目标点。
+- 如果黄色点距离墙体太近，应额外定义一个用户可到达点 `arrivalPoint`，但物品本身仍从黄色点出现。
 
 ## 小地图数据
 
@@ -199,9 +237,9 @@ worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredP
 ## 现场验证清单
 
 - 测量 Unity 中的红色参考墙：应为 3.45 m。
-- 站在每个景点位置，验证小地图 marker 是否对齐。
-- 从 Sofa 走到 Photo Wall，验证路线方向。
-- 在 Fridge 附近走动，验证物品显示半径。
+- 站在每个黄色虚拟物品出现点附近，验证小地图 marker 是否对齐。
+- 从 Couch 走到 Photo Wall，验证路线方向。
+- 在 Drink Shop 附近走动，验证物品透明度距离规则：3 m 内清楚显示，6 m 半透明，10 m 以上不可见。
 - 确认小狗不会出现在非黄色区域内。
 - 确认小狗在狭窄通道中仍然保持可见。
 - 确认大地图朝向与用户真实移动一致。

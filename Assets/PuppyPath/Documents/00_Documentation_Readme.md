@@ -29,15 +29,17 @@
 - 用户在 2026-06-30 提供的活动场地地图草图。
 - 红色标记墙体是真实比例尺，真实世界长度为 3.45 m。
 - 地图中的黄色区域是人和狗可以活动行走的区域。
-- 当前地图上可见的景点文字标记：
-  - Chess
-  - Sofa
-  - Photo Wall
-  - Goodies
-  - Cool Wall
-  - WC
-  - Fridge
-  - Piano
+- 当前新版地图上可见的景点 / 黄色虚拟物品出现点：
+  - Chess -> Checkmate Corner / 棋遇小屋
+  - Couch -> Cozy Couch Cove / 软乎乎沙发湾
+  - Photo Wall -> Snapshot Studio / 咔嚓照相馆
+  - Goodies -> Treat Trove / 甜甜补给站
+  - Book Wall -> Storybook Wall / 故事书墙
+  - Tap Water -> Splash Stop / 汪汪补水站
+  - Ice Cream Shop -> Scoop Station / 冰淇淋小站
+  - Drink Shop -> Fizzy Fridge / 气泡饮料铺
+  - Piano -> Melody Corner / 音符小舞台
+  - Plants -> Garden Patch / 小狗花园
 
 ## 当前实现状态
 
