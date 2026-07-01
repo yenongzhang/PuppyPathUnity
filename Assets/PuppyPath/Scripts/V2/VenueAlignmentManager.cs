@@ -26,6 +26,11 @@ public class VenueAlignmentManager : MonoBehaviour
         set { venueContentRoot = value; }
     }
 
+    public Transform XrCamera
+    {
+        get { return xrCamera; }
+    }
+
     private void Start()
     {
         if (alignOnStart)

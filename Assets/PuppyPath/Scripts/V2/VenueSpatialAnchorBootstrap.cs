@@ -12,6 +12,7 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
     [Header("Anchor")]
     [SerializeField] private bool createAnchorOnStart;
     [SerializeField] private bool parentVenueContentToAnchor = true;
+    [SerializeField] private bool replaceExistingAnchorWhenCreating = true;
     [SerializeField] private bool trySaveAnchorToDevice;
     [SerializeField] private string playerPrefsAnchorUuidKey = "PuppyPath.VenueOriginAnchorUuid";
 
@@ -30,6 +31,20 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
 
     [ContextMenu("Create Anchor At Venue Origin")]
     public void CreateAnchorAtVenueOrigin()
+    {
+        if (replaceExistingAnchorWhenCreating)
+            ClearRuntimeAnchorObject();
+
+        CreateAnchorAtVenueOriginInternal();
+    }
+
+    public void ReplaceAnchorAtVenueOrigin()
+    {
+        ClearRuntimeAnchorObject();
+        CreateAnchorAtVenueOriginInternal();
+    }
+
+    private void CreateAnchorAtVenueOriginInternal()
     {
         if (venueContentRoot == null)
         {
@@ -57,7 +72,7 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
         if (parentVenueContentToAnchor)
             venueContentRoot.SetParent(anchorTransform, true);
 
-        StartCoroutine(WaitForAnchorCreation(anchorType));
+        StartCoroutine(WaitForAnchorCreation(anchorType, spatialAnchorComponent));
 
         if (logAnchorEvents)
             Debug.Log("VenueSpatialAnchorBootstrap: created OVRSpatialAnchor at VenueOrigin.");
@@ -70,9 +85,9 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    private IEnumerator WaitForAnchorCreation(Type anchorType)
+    private IEnumerator WaitForAnchorCreation(Type anchorType, Component anchorComponent)
     {
-        if (spatialAnchorComponent == null)
+        if (anchorComponent == null)
             yield break;
 
         PropertyInfo createdProperty = anchorType.GetProperty("Created", BindingFlags.Instance | BindingFlags.Public);
@@ -83,14 +98,17 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
 
         while (elapsed < timeout)
         {
+            if (anchorComponent == null)
+                yield break;
+
             elapsed += Time.deltaTime;
 
-            bool created = createdProperty == null || Convert.ToBoolean(createdProperty.GetValue(spatialAnchorComponent));
+            bool created = createdProperty == null || Convert.ToBoolean(createdProperty.GetValue(anchorComponent));
             if (created)
             {
                 if (uuidProperty != null)
                 {
-                    object uuidValue = uuidProperty.GetValue(spatialAnchorComponent);
+                    object uuidValue = uuidProperty.GetValue(anchorComponent);
                     if (uuidValue != null)
                     {
                         PlayerPrefs.SetString(playerPrefsAnchorUuidKey, uuidValue.ToString());
@@ -99,7 +117,7 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
                 }
 
                 if (trySaveAnchorToDevice)
-                    TryInvokeSaveAnchorAsync(anchorType);
+                    TryInvokeSaveAnchorAsync(anchorType, anchorComponent);
 
                 if (logAnchorEvents)
                     Debug.Log("VenueSpatialAnchorBootstrap: spatial anchor created.");
@@ -113,9 +131,9 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
         Debug.LogWarning("VenueSpatialAnchorBootstrap: timed out waiting for spatial anchor creation.");
     }
 
-    private void TryInvokeSaveAnchorAsync(Type anchorType)
+    private void TryInvokeSaveAnchorAsync(Type anchorType, Component anchorComponent)
     {
-        if (spatialAnchorComponent == null)
+        if (anchorComponent == null)
             return;
 
         MethodInfo saveMethod = anchorType.GetMethod("SaveAnchorAsync", BindingFlags.Instance | BindingFlags.Public);
@@ -127,7 +145,7 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
 
         try
         {
-            saveMethod.Invoke(spatialAnchorComponent, null);
+            saveMethod.Invoke(anchorComponent, null);
             if (logAnchorEvents)
                 Debug.Log("VenueSpatialAnchorBootstrap: invoked SaveAnchorAsync. Check device logs for final save result if needed.");
         }
@@ -141,6 +159,25 @@ public class VenueSpatialAnchorBootstrap : MonoBehaviour
     {
         Vector3 localOrigin = mapDefinition != null ? mapDefinition.originWorldPosition : Vector3.zero;
         return venueContentRoot.TransformPoint(localOrigin);
+    }
+
+    private void ClearRuntimeAnchorObject()
+    {
+        if (anchorTransform == null)
+            return;
+
+        Transform previousAnchor = anchorTransform;
+
+        if (venueContentRoot != null && venueContentRoot.parent == previousAnchor)
+            venueContentRoot.SetParent(null, true);
+
+        spatialAnchorComponent = null;
+        anchorTransform = null;
+
+        if (Application.isPlaying)
+            Destroy(previousAnchor.gameObject);
+        else
+            DestroyImmediate(previousAnchor.gameObject);
     }
 
     private static Type FindType(string typeName)

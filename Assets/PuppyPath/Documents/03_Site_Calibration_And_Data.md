@@ -430,6 +430,21 @@ Spatial Anchor 前置设置：
 
 ## 现场验证清单
 
+## Quest 内长按校准
+
+2026-07-01 更新：新增 `VenueControllerCalibrationInput`，用于在真机运行时重新校准 `VenueOrigin` 的位置和朝向。
+
+使用方式：
+
+- 在 Scene 中创建 `VenueControllerCalibrationInput` 物体，或把组件挂到现有的校准管理物体上。
+- `Alignment Manager` 指向场景中的 `VenueAlignmentManager`。
+- `Spatial Anchor Bootstrap` 可选，指向 `VenueSpatialAnchorBootstrap`。如果勾选 `Recreate Spatial Anchor After Calibration`，每次长按校准后会替换运行时 anchor。
+- 默认 `Calibration Button = OVRInput.RawButton.Start`，通常对应 Quest 左手柄菜单键；同时启用 `Alternate Calibration Button = OVRInput.RawButton.Back` 作为备用输入。
+- `Hold Seconds` 默认建议 1.75 秒，避免误触。
+- 用户站在真实 `VenueOrigin`，也就是 Photo Wall 右上角原点，面朝地图北方 / Unity `+Z`，长按校准按钮后，`VenueContentRoot` 会重新对齐到当前 HMD 位置和朝向。
+
+注意：Quest 的系统 Meta / Oculus 键可能被系统保留，应用不一定能稳定捕获。如果 `Start` / `Back` 都没有触发，先在 Inspector 中把 `Calibration Button` 改成 `A`、`B`、`X` 或 `Y` 测试。正式现场版建议使用一个不容易误触的管理员按钮组合或隐藏校准菜单。
+
 ### Editor 标定验证清单
 
 - `VenueMapDefinition.Map Pixel Size` 应保持为 `2468 x 2160`。

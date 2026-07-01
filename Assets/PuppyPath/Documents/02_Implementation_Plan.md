@@ -57,6 +57,7 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `Assets/PuppyPath/Scripts/V2/VenueAlignmentManager.cs`：第一版现场校准组件，将 `VenueContentRoot` 对齐到当前 HMD 所在的真实 `VenueOrigin`。
 - `Assets/PuppyPath/Scripts/V2/VenueSpatialAnchorBootstrap.cs`：第一版 Meta Spatial Anchor bootstrap，可在 `VenueOrigin` 创建 `OVRSpatialAnchor` 并把场地内容挂到 anchor 下。
 - `Assets/PuppyPath/Scripts/V2/VenueWalkableGridVisualizer.cs`：真机可视化工具，用黄色格子铺出当前可行走区域，方便在 Quest 中验证地图对齐。
+- `Assets/PuppyPath/Scripts/V2/VenueControllerCalibrationInput.cs`：Quest 真机长按校准输入组件，可在用户站到 `VenueOrigin` 并面朝地图北方时，通过手柄按钮重置 `VenueContentRoot` 的位置和朝向，并可重新创建运行时 Spatial Anchor。
 - `Assets/PuppyPath/Scripts/V2/VenueMapReferencePlane.cs`：把地图图片按当前标定比例铺到 Scene 的 XZ 平面，方便人工校准。
 - `Assets/PuppyPath/Scripts/V2/Editor/VenueCalibrationDebugViewEditor.cs`：Scene 视图拖拽编辑工具，可直接移动景点点位、polygon 顶点和 nav graph 节点。
 
@@ -257,6 +258,7 @@ V2 小狗行为新规则：
 - 新增 `VenueAlignmentManager`：快速测试时，用户站在真实 Photo Wall 右上角原点，面朝地图北方 / Unity `+Z`，启动后自动把 `VenueContentRoot` 对齐到当前 HMD。
 - 新增 `VenueSpatialAnchorBootstrap`：在 `VenueOrigin` 创建 Meta `OVRSpatialAnchor`，并可把 `VenueContentRoot` 挂到 anchor 下，作为后续持久化场地对齐的基础。
 - 新增 `VenueWalkableGridVisualizer`：根据 `VenueMapDefinition.IsMapPixelWalkable` 生成黄色半透明格子，让 Quest 内能看见可行动区域。
+- 新增 `VenueControllerCalibrationInput`：真机运行时，用户站在真实 `VenueOrigin`、面朝地图北方后，长按手柄按钮即可重新执行位置 + 朝向校准；如果连接了 `VenueSpatialAnchorBootstrap`，还可以同步替换运行时 Spatial Anchor。默认使用 `OVRInput.RawButton.Start`，因为系统 Meta / Oculus 键可能被 Quest OS 保留，应用不一定能稳定捕获。
 - Meta Quest Spatial Anchor 前置设置：在 `OVRCameraRig` 的 `OVRManager > Quest Features > General` 开启 `Anchor Support`；只有需要共享 anchor 时才开启 `Anchor Sharing Support`。
 
 2026-07-01 更新：已增加自动检测草稿入口。在 `VenueMapDefinition` 的右键 / 齿轮菜单执行 `Populate Detected Draft Map Data`，会从当前 `map_with_spawn_points.jpg` 自动检测结果中填入：

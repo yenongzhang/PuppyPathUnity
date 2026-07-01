@@ -11177,7 +11177,7 @@ bool InternalDataRemover_Invoke_m1938E006212ED85331963E742CBE90D9D8F0E7DF_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mA7A34471336E3926FA91076C27B58D09AC4D1F26_gshared (InternalDataRemover_t39ACAF1A7B4E0C155A7B5AF47A3A402B47698860* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11206,13 +11206,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mA7A34471336E3
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m1938E006212ED85331963E742CBE90D9D8F0E7DF_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m1938E006212ED85331963E742CBE90D9D8F0E7DF_gshared (InternalDataRemover_t39ACAF1A7B4E0C155A7B5AF47A3A402B47698860* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mB41F8EAF7ADE20D651E3CB9E43511F8F781A21AA_gshared (InternalDataRemover_t39ACAF1A7B4E0C155A7B5AF47A3A402B47698860* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11225,7 +11225,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m6B60AFF7A0E45066E2A76EC6C3A05E49C7BCA65E_gshared (InternalDataRemover_t39ACAF1A7B4E0C155A7B5AF47A3A402B47698860* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11262,7 +11262,7 @@ bool InternalDataRemover_Invoke_m44D87930E2C6745CA0FCED601C68627D83F93CFD_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mAEC299E47C32A5BD3DCE91FF76DC37C94F1122A6_gshared (InternalDataRemover_tA09A2745A4F78550CA3296F03E821283EC3A2031* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11291,13 +11291,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mAEC299E47C32A
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m44D87930E2C6745CA0FCED601C68627D83F93CFD_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m44D87930E2C6745CA0FCED601C68627D83F93CFD_gshared (InternalDataRemover_tA09A2745A4F78550CA3296F03E821283EC3A2031* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_m1F0EBFD2A36555417A7891478AA60A1B01784D16_gshared (InternalDataRemover_tA09A2745A4F78550CA3296F03E821283EC3A2031* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11310,7 +11310,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_mF0F5F9FEA899F5282C57B86B29D8042952682E4D_gshared (InternalDataRemover_tA09A2745A4F78550CA3296F03E821283EC3A2031* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11347,7 +11347,7 @@ bool InternalDataRemover_Invoke_mCD14305A4E4C4846FD927ECB7BE6B2953E88D8B4_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m5E03A3ACCE583EB6FFCA18924A5403F6E733CA80_gshared (InternalDataRemover_tCB3F6E96B6911660C0210DBDBEA007817769C2D7* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11376,13 +11376,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m5E03A3ACCE583
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_mCD14305A4E4C4846FD927ECB7BE6B2953E88D8B4_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_mCD14305A4E4C4846FD927ECB7BE6B2953E88D8B4_gshared (InternalDataRemover_tCB3F6E96B6911660C0210DBDBEA007817769C2D7* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mD822F7DA862A1D30B10BD80D48E9344EEE7A43D6_gshared (InternalDataRemover_tCB3F6E96B6911660C0210DBDBEA007817769C2D7* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11395,7 +11395,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_mC0039EED725CB37024F2D7B6937E62B6BCDC0D0F_gshared (InternalDataRemover_tCB3F6E96B6911660C0210DBDBEA007817769C2D7* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11432,7 +11432,7 @@ bool InternalDataRemover_Invoke_m7E19FC2E785622F16B1B059C1C957131B8998318_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mF650AB616CD74802AECD994DA667E864A76B165D_gshared (InternalDataRemover_t6320D2612126A1A58DF592113A02473C47CDF4DE* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11461,13 +11461,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mF650AB616CD74
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m7E19FC2E785622F16B1B059C1C957131B8998318_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m7E19FC2E785622F16B1B059C1C957131B8998318_gshared (InternalDataRemover_t6320D2612126A1A58DF592113A02473C47CDF4DE* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_m6151C9EA45E240339F5CE37D9D739E5E025B4446_gshared (InternalDataRemover_t6320D2612126A1A58DF592113A02473C47CDF4DE* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11480,7 +11480,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m68344FB7945A347AD0E0BC9F7EEEDB906B4D392C_gshared (InternalDataRemover_t6320D2612126A1A58DF592113A02473C47CDF4DE* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11517,7 +11517,7 @@ bool InternalDataRemover_Invoke_m6AAC89D7A09C654607884A5CF84044A0E5800849_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m74C88166C4DACD8C0A891C3105079EF9A82F9001_gshared (InternalDataRemover_tFA1C29DC611CB95EA2EFD6F8146CB0CFC6C6B4F2* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11546,13 +11546,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m74C88166C4DAC
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m6AAC89D7A09C654607884A5CF84044A0E5800849_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m6AAC89D7A09C654607884A5CF84044A0E5800849_gshared (InternalDataRemover_tFA1C29DC611CB95EA2EFD6F8146CB0CFC6C6B4F2* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mA035CD602B6A2190A44EE4543F24BC0050BED45A_gshared (InternalDataRemover_tFA1C29DC611CB95EA2EFD6F8146CB0CFC6C6B4F2* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11565,7 +11565,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m8DB56B04150DC0F88A43458BD6B5C16F24411669_gshared (InternalDataRemover_tFA1C29DC611CB95EA2EFD6F8146CB0CFC6C6B4F2* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11602,7 +11602,7 @@ bool InternalDataRemover_Invoke_m6DBDB62B7EC4F1AFD7DF8F13BA90FD24BAB8E69B_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mC9F8463A2223DC76327FD2A9C6A0CC80D009A132_gshared (InternalDataRemover_t335E36239FF6E66127BEA8873838E0EB34D079D9* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11631,13 +11631,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mC9F8463A2223D
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m6DBDB62B7EC4F1AFD7DF8F13BA90FD24BAB8E69B_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m6DBDB62B7EC4F1AFD7DF8F13BA90FD24BAB8E69B_gshared (InternalDataRemover_t335E36239FF6E66127BEA8873838E0EB34D079D9* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_m11FC1FDD897EAEF58F6DF3EA88E9F23825C4AB13_gshared (InternalDataRemover_t335E36239FF6E66127BEA8873838E0EB34D079D9* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11650,7 +11650,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m2429028F5E2B8A826D1C7BB2C32797B91026289F_gshared (InternalDataRemover_t335E36239FF6E66127BEA8873838E0EB34D079D9* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11687,7 +11687,7 @@ bool InternalDataRemover_Invoke_m40C69B98835AED4CA8D3B782F0935C84C6CC38C2_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m4E88E7BBAF32E2656D05F10D50F1E9D7005363C3_gshared (InternalDataRemover_t5367B2620C8E268AE844125287A062FFBCD2731F* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11716,13 +11716,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m4E88E7BBAF32E
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m40C69B98835AED4CA8D3B782F0935C84C6CC38C2_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m40C69B98835AED4CA8D3B782F0935C84C6CC38C2_gshared (InternalDataRemover_t5367B2620C8E268AE844125287A062FFBCD2731F* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mE8A8A3515C8CC4F3283D49DEBE45B54E61403AEC_gshared (InternalDataRemover_t5367B2620C8E268AE844125287A062FFBCD2731F* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11735,7 +11735,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m0B06137352EB08FA05CC69550CEA70CDB24E72E5_gshared (InternalDataRemover_t5367B2620C8E268AE844125287A062FFBCD2731F* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11772,7 +11772,7 @@ bool InternalDataRemover_Invoke_m2299F9BDE791963A7866E2F52C6ED0CDA642B5E0_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m20739CC7CDEAB097421F08737FEC653F8B8E865C_gshared (InternalDataRemover_t7D04D632E79B489B58CC0128DEA85AFEAC5BA4E7* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11801,13 +11801,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m20739CC7CDEAB
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m2299F9BDE791963A7866E2F52C6ED0CDA642B5E0_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m2299F9BDE791963A7866E2F52C6ED0CDA642B5E0_gshared (InternalDataRemover_t7D04D632E79B489B58CC0128DEA85AFEAC5BA4E7* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mE1517230A8B9882A8F1B34E4316074643427AF35_gshared (InternalDataRemover_t7D04D632E79B489B58CC0128DEA85AFEAC5BA4E7* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11820,7 +11820,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m9FB3CF59596DE979064617B8C14E1C169AD9F87A_gshared (InternalDataRemover_t7D04D632E79B489B58CC0128DEA85AFEAC5BA4E7* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11857,7 +11857,7 @@ bool InternalDataRemover_Invoke_mB606687BB242348F0B194174C6C5608B329E4C67_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m203956813DD7BBF40E8C64DBF52FF78BF92455C5_gshared (InternalDataRemover_tF45F79002E0DAF6D38682BD8266EA12E30F65620* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11886,13 +11886,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m203956813DD7B
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_mB606687BB242348F0B194174C6C5608B329E4C67_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_mB606687BB242348F0B194174C6C5608B329E4C67_gshared (InternalDataRemover_tF45F79002E0DAF6D38682BD8266EA12E30F65620* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mF39036253D9C56E832E607CDFD3E6F39F5F685E6_gshared (InternalDataRemover_tF45F79002E0DAF6D38682BD8266EA12E30F65620* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11905,7 +11905,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_mC66DBFC344069F080DED288DA16C71FE2BB13F73_gshared (InternalDataRemover_tF45F79002E0DAF6D38682BD8266EA12E30F65620* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -11942,7 +11942,7 @@ bool InternalDataRemover_Invoke_mC8E2F0EECDF2CD363CD52E975FDD407904A7013D_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mA5C241635993C852449D4F659224CE253DDB5A54_gshared (InternalDataRemover_tDBE47E12442F818ED133256AAF67173F77BD0AFA* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -11971,13 +11971,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mA5C241635993C
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_mC8E2F0EECDF2CD363CD52E975FDD407904A7013D_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_mC8E2F0EECDF2CD363CD52E975FDD407904A7013D_gshared (InternalDataRemover_tDBE47E12442F818ED133256AAF67173F77BD0AFA* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mC58805E87360C08B7C8031FD27DF1474C01D480B_gshared (InternalDataRemover_tDBE47E12442F818ED133256AAF67173F77BD0AFA* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -11990,7 +11990,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_mE235AB7818D4FAB24B79FA40EBDAAC173F8E59EA_gshared (InternalDataRemover_tDBE47E12442F818ED133256AAF67173F77BD0AFA* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -12027,7 +12027,7 @@ bool InternalDataRemover_Invoke_mEE513101440131BCF4DB733A68F6878EE9AD1857_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m8C3F8D2574216C99402B37373796A88C5E48636D_gshared (InternalDataRemover_t85FA16492A1396CAA381F3113D2FAE9D052532FC* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -12056,13 +12056,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_m8C3F8D2574216
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_mEE513101440131BCF4DB733A68F6878EE9AD1857_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_mEE513101440131BCF4DB733A68F6878EE9AD1857_gshared (InternalDataRemover_t85FA16492A1396CAA381F3113D2FAE9D052532FC* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_m7FBF22365DDB5998803307863294DB34157C5550_gshared (InternalDataRemover_t85FA16492A1396CAA381F3113D2FAE9D052532FC* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12075,7 +12075,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_mFF7D21BD8E9EEC534F3C9904298B40D55C488E18_gshared (InternalDataRemover_t85FA16492A1396CAA381F3113D2FAE9D052532FC* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -12112,7 +12112,7 @@ bool InternalDataRemover_Invoke_m86C5CCF6B1823788574A7A0932CB1980650EC1E3_OpenSt
 	typedef bool (*FunctionPointerType) (Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___method_ptr)(___0_guid, method);
 }
-// Method Definition Index: 36439
+// Method Definition Index: 36440
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mBDC037A2EF6557CF0349A49835B339007E7E879E_gshared (InternalDataRemover_tB62676749F9A95ED7F676361CAFF078D0EAB010A* __this, RuntimeObject* ___0_object, intptr_t ___1_method, const RuntimeMethod* method) 
 {
 	__this->___method_ptr = (intptr_t)il2cpp_codegen_get_method_pointer((RuntimeMethod*)___1_method);
@@ -12141,13 +12141,13 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDataRemover__ctor_mBDC037A2EF655
 	}
 	__this->___extra_arg = (intptr_t)&InternalDataRemover_Invoke_m86C5CCF6B1823788574A7A0932CB1980650EC1E3_Multicast;
 }
-// Method Definition Index: 36440
+// Method Definition Index: 36441
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_Invoke_m86C5CCF6B1823788574A7A0932CB1980650EC1E3_gshared (InternalDataRemover_tB62676749F9A95ED7F676361CAFF078D0EAB010A* __this, Guid_t ___0_guid, const RuntimeMethod* method) 
 {
 	typedef bool (*FunctionPointerType) (RuntimeObject*, Guid_t, const RuntimeMethod*);
 	return ((FunctionPointerType)__this->___invoke_impl)((Il2CppObject*)__this->___method_code, ___0_guid, reinterpret_cast<RuntimeMethod*>(__this->___method));
 }
-// Method Definition Index: 36441
+// Method Definition Index: 36442
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvoke_mBF0A00B348E0E01A58871E25D7676464A502B7A0_gshared (InternalDataRemover_tB62676749F9A95ED7F676361CAFF078D0EAB010A* __this, Guid_t ___0_guid, AsyncCallback_t7FEF460CBDCFB9C5FA2EF776984778B9A4145F4C* ___1_callback, RuntimeObject* ___2_object, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12160,7 +12160,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR RuntimeObject* InternalDataRemover_BeginInvok
 	__d_args[0] = Box(Guid_t_il2cpp_TypeInfo_var, &___0_guid);
 	return (RuntimeObject*)il2cpp_codegen_delegate_begin_invoke((RuntimeDelegate*)__this, __d_args, (RuntimeDelegate*)___1_callback, (RuntimeObject*)___2_object);
 }
-// Method Definition Index: 36442
+// Method Definition Index: 36443
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m1B19BBEF3199BFB6974B0D1381747FCE43FE5323_gshared (InternalDataRemover_tB62676749F9A95ED7F676361CAFF078D0EAB010A* __this, RuntimeObject* ___0_result, const RuntimeMethod* method) 
 {
 	RuntimeObject *__result = il2cpp_codegen_delegate_end_invoke((Il2CppAsyncResult*) ___0_result, 0);
@@ -12174,7 +12174,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalDataRemover_EndInvoke_m1B19BBEF3
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 36443
+// Method Definition Index: 36444
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_TryGet_m6B928FBF0EC6308E4FB04831DF7F5BEEB285EE2B_gshared (Guid_t ___0_taskId, FetchTaskData_tB518B10A9D77AC9C2E0485C73FFF78F4AD0098B7* ___1_data, const RuntimeMethod* method) 
 {
 	{
@@ -12189,7 +12189,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_TryGet_m6B928FBF0EC6308E4
 		return L_3;
 	}
 }
-// Method Definition Index: 36444
+// Method Definition Index: 36445
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Set_mC2FA518E1AA0F86A71A8C253B4BA2A36307E4FBD_gshared (Guid_t ___0_taskId, FetchTaskData_tB518B10A9D77AC9C2E0485C73FFF78F4AD0098B7 ___1_data, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12223,7 +12223,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Set_mC2FA518E1AA0F86A71A8
 		return;
 	}
 }
-// Method Definition Index: 36445
+// Method Definition Index: 36446
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_Remove_mE12BAB6659BE3B57ABBFC7AD639864AC3ADB7851_gshared (Guid_t ___0_taskId, const RuntimeMethod* method) 
 {
 	{
@@ -12237,7 +12237,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_Remove_mE12BAB6659BE3B57A
 		return L_2;
 	}
 }
-// Method Definition Index: 36446
+// Method Definition Index: 36447
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Clear_m7B81E30C4AC814DEBE7A1D1B6A42F61CA396B960_gshared (const RuntimeMethod* method) 
 {
 	{
@@ -12249,7 +12249,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Clear_m7B81E30C4AC814DEBE
 		return;
 	}
 }
-// Method Definition Index: 36447
+// Method Definition Index: 36448
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1__cctor_mDE865D85C9B969BB3F9866C2D39519D6A3AD50C5_gshared (const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12285,7 +12285,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1__cctor_mDE865D85C9B969BB3
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 36443
+// Method Definition Index: 36444
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_TryGet_mF86C067670E21EC3A246232AB832AC58908C4028_gshared (Guid_t ___0_taskId, RuntimeObject** ___1_data, const RuntimeMethod* method) 
 {
 	{
@@ -12300,7 +12300,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_TryGet_mF86C067670E21EC3A
 		return L_3;
 	}
 }
-// Method Definition Index: 36444
+// Method Definition Index: 36445
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Set_m74C14D4382A29FE3F7FDACECFCFCD837F40716DA_gshared (Guid_t ___0_taskId, RuntimeObject* ___1_data, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12334,7 +12334,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Set_m74C14D4382A29FE3F7FD
 		return;
 	}
 }
-// Method Definition Index: 36445
+// Method Definition Index: 36446
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_Remove_m971FE5AC198872F02D39CB672DF62131283F4BDA_gshared (Guid_t ___0_taskId, const RuntimeMethod* method) 
 {
 	{
@@ -12348,7 +12348,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_Remove_m971FE5AC198872F02
 		return L_2;
 	}
 }
-// Method Definition Index: 36446
+// Method Definition Index: 36447
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Clear_m9EDEF639992F484BE4E3A4B71DE992D87CAA7D23_gshared (const RuntimeMethod* method) 
 {
 	{
@@ -12360,7 +12360,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Clear_m9EDEF639992F484BE4
 		return;
 	}
 }
-// Method Definition Index: 36447
+// Method Definition Index: 36448
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1__cctor_mFCD0CFB4CE7053680A1D41F77B5CCF172EA59240_gshared (const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12396,7 +12396,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1__cctor_mFCD0CFB4CE7053680
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 36443
+// Method Definition Index: 36444
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_TryGet_m58F44AE17DD2106716A9A317376DB1D7C394BB56_gshared (Guid_t ___0_taskId, Il2CppFullySharedGenericAny* ___1_data, const RuntimeMethod* method) 
 {
 	{
@@ -12411,7 +12411,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_TryGet_m58F44AE17DD210671
 		return L_3;
 	}
 }
-// Method Definition Index: 36444
+// Method Definition Index: 36445
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Set_mE100AF73F675819F75F25E3B5F04079C54103B1F_gshared (Guid_t ___0_taskId, Il2CppFullySharedGenericAny ___1_data, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12447,7 +12447,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Set_mE100AF73F675819F75F2
 		return;
 	}
 }
-// Method Definition Index: 36445
+// Method Definition Index: 36446
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_Remove_mAE8CBD7CC5F8A7BAE71C825EEC9865F03BE1FB21_gshared (Guid_t ___0_taskId, const RuntimeMethod* method) 
 {
 	{
@@ -12461,7 +12461,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool InternalData_1_Remove_mAE8CBD7CC5F8A7BAE
 		return L_2;
 	}
 }
-// Method Definition Index: 36446
+// Method Definition Index: 36447
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Clear_m71F8BB95E33668B407D64B63AA1C1A1927CF05F4_gshared (const RuntimeMethod* method) 
 {
 	{
@@ -12473,7 +12473,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1_Clear_m71F8BB95E33668B407
 		return;
 	}
 }
-// Method Definition Index: 36447
+// Method Definition Index: 36448
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1__cctor_mC337CD643B8F88CB7BAD09066E8D585325D4408E_gshared (const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -12509,7 +12509,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalData_1__cctor_mC337CD643B8F88CB7
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 61309
+// Method Definition Index: 61310
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void InternalDecorator__ctor_mFEF0BDC95BFAB846894C42EC84EC45E0E73F7467_gshared (InternalDecorator_t0B530485C98A2E98E3427A43C102F5F14035185F* __this, const RuntimeMethod* method) 
 {
 	{
