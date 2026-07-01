@@ -409,6 +409,10 @@ V2 用法：
 - `VenuePathfinder.cs`：新增第一版手工 waypoint graph 寻路工具。
 - `VenueRouteLineController.cs`：新增第一版场地固定路线 LineRenderer 绘制组件；可接收地图像素起终点，也可接收已计算好的世界坐标路线。
 - `VenueNavigationRuntime.cs`：新增第一版 V2 场地导航运行时，用 HMD 世界位置生成到景点的真实场地路线，刷新 `VenueRouteLineController`，并可临时驱动 `DogGuideController`。
+- `VenueMapUiController.cs`：新增第一版 V2 小地图 / 大地图 UI 控制器，将用户和景点的真实场地坐标映射到 UI marker，并把大地图景点点击接入 `VenueNavigationRuntime`。
+- `VenueMapMarker.cs`：新增地图 marker 组件，用于保存 attraction id、显示选中状态和处理点击。
+- `VenueMapOpenButton.cs`：新增小地图打开大地图的轻量点击入口。
+- `PuppyPathV2FlowController.cs`：新增 storyboard flow 控制器，用于在复用旧 Canvas 的基础上切换 `Intro`、`FreeRoam`、`BigMap`、`Navigation`、`Reward`、`ItemGrab`、`RewardPopup` 等 UI panel。
 - `VenueAlignmentManager.cs`：新增现场校准组件，可在用户站到真实 `VenueOrigin` 并面朝地图北方时，将 `VenueContentRoot` 对齐到当前 HMD。
 - `VenueSpatialAnchorBootstrap.cs`：新增 Meta Spatial Anchor bootstrap，可在 `VenueOrigin` 创建 `OVRSpatialAnchor`，并把 `VenueContentRoot` 挂到 anchor 下。
 - `VenueWalkableGridVisualizer.cs`：新增黄色可行走区域网格可视化，用于 Quest 真机内确认地图对齐、比例和方向。
@@ -447,6 +451,16 @@ V2 用法：
 - `VenueAlignmentManager`：快速现场测试时使用 HMD 当前位置和朝向对齐场地。
 - `VenueSpatialAnchorBootstrap`：为后续持久化 Spatial Anchor 对齐打基础；使用前需要在 `OVRManager` 开启 `Anchor Support`。
 - `VenueWalkableGridVisualizer`：用半透明黄色格子显示当前 `walkableAreas - obstacleAreas` 结果，解决 Quest 内没有可视化内容的问题。
+
+## 2026-07-01 Storyboard / Canvas 复用结论
+
+Storyboard 明确了 `MiniMap` 是游戏 HUD 式局部小地图，不是完整场地缩略图。旧 `Canvas` 应继续作为 V2 主 UI 容器使用：
+
+- 保留 `UIBootSequence`、`CanvasFollowHead`、`OVROverlayCanvas`、`GraphicRaycaster`、`PointableCanvasModule`。
+- 保留旧按钮、字体、气泡和地图图片资源作为视觉资产。
+- 停用旧 `PuppyPathSelectionUI` 的网格选择逻辑、旧 `NavigationController` 的 path prefab 流程、旧 `PathPreviewController` 的静态路径库。
+- 在旧 Canvas 中新增或改造 panel：`IntroPanel`、`FreeRoamHud`、`BigMapPanel`、`NavigationHud`、`RewardPanel`、`ItemGrabPanel`、`RewardPopupPanel`。
+- 使用 `PuppyPathV2FlowController` 管理 storyboard 状态流，使用 `VenueMapUiController` 管理局部 minimap 和完整 big map。
 
 ## 2026-07-01 旧导航复用边界
 

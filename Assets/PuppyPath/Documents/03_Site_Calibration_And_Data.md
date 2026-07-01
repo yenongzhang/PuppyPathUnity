@@ -336,7 +336,7 @@ Obstacle
 
 ## 小地图数据
 
-小地图应该使用与场地世界坐标相同的数据来源。
+小地图应该使用与场地世界坐标相同的数据来源。根据 storyboard，`MiniMap` 指游戏 HUD 式局部小地图，只显示用户附近不远处的地理信息；完整场地选择由 `BigMap` 负责。
 
 必须显示的 marker：
 
@@ -352,6 +352,17 @@ worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredP
 ```
 
 这个转换必须使用与世界场景相同的原点、比例和旋转，避免小地图和真实位置漂移。
+
+2026-07-01 第一版实现：
+
+- `VenueMapUiController` 负责局部小地图 / 完整大地图 UI 的坐标映射。
+- 小地图放在视界右上方，并通过 `RawImage.uvRect` 裁切到用户附近区域；大地图作为居中 panel 打开并显示完整场地。
+- `XR Camera` 当前世界位置会先通过 `VenueContentRoot.InverseTransformPoint` 转成场地本地坐标，再调用 `VenueMapDefinition.WorldToMapPixel` 得到用户地图像素坐标。
+- 景点 marker 使用 `AttractionDefinition.GetArrivalPixel()` 放置；如果景点有自定义 arrival pixel，则优先显示 arrival，否则显示 collectible spawn pixel。
+- 局部小地图只显示当前裁切范围内的景点 marker；完整大地图显示全部景点 marker。
+- 大地图景点 marker 点击后调用 `VenueNavigationRuntime.StartNavigationToAttraction(attractionId)`。
+- `CancelNavigation()` 调用 `VenueNavigationRuntime.StopNavigation()`，并清除当前选中 marker。
+- `VenueMapOpenButton` 可挂在小地图 `RawImage` 或按钮物体上，用于点击小地图时调用 `VenueMapUiController.OpenLargeMap()`。
 
 ## 小狗位置规则
 
@@ -419,6 +430,13 @@ Spatial Anchor 前置设置：
 - 地面路线应从当前 HMD 附近生成到目标景点，并保持在绿色可行走区域内。
 - 走动时 runtime 会按间隔重新规划路线；如果临时找不到新路线，会保留上一条有效路线。
 - 组件右键执行 `Stop Navigation` 可清除路线并停止小狗临时导航。
+
+Route Line 注意事项：
+
+- `VenueRouteLine` 本身只是承载 `LineRenderer` 的空物体；在没有路线点时，Scene / XR 中看到的方形通常只是物体选择框或 Rect-like gizmo，不代表真实路线。
+- 只有 `VenueNavigationRuntime.StartNavigationToAttraction(...)` 或 `VenueRouteLineController.Show Test Route` 成功生成 2 个以上路线点后，`LineRenderer` 才会显示真正的地面路线。
+- 当前 `VenueRouteLineController` 会自动把 `LineRenderer` 配置为 world space、较粗线宽、关闭阴影，并默认使用 runtime unlit 材质，避免 Quest 中因为 Lit 材质或地面 z-fighting 看不清。
+- 如果仍看不到线，优先确认：`VenueNavigationRuntime.Route Line Controller` 是否已拖入 `VenueRouteLine`；`StartNavigationToAttraction` 是否成功；`Line Height Offset` 是否高于地面；`LineRenderer.Position Count` 是否大于 1。
 
 注意：当前 `VenueNavigationRuntime` 只负责路线和推荐方向，不等于最终小狗行为。最终仍需要 `DogVenueFollower` 来负责小狗始终保持在用户前方、避障、自由行走和宝藏接近反馈。
 

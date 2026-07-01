@@ -54,6 +54,10 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `Assets/PuppyPath/Scripts/V2/VenuePathfinder.cs`：第一版手工导航图寻路工具，基于 waypoint graph 生成地图像素路线和 Unity 世界路线。
 - `Assets/PuppyPath/Scripts/V2/VenueRouteLineController.cs`：第一版路线 LineRenderer 绘制组件，可用测试起点和目标景点画路线。
 - `Assets/PuppyPath/Scripts/V2/VenueNavigationRuntime.cs`：第一版 V2 场地导航运行时，负责从 HMD 世界位置生成到景点的真实场地路线、刷新地面路线 line，并向小狗控制器提供推荐方向。
+- `Assets/PuppyPath/Scripts/V2/VenueMapUiController.cs`：第一版 V2 大地图 UI 控制器，负责把用户当前位置和景点位置映射到完整地图 UI marker，并把景点点击接入 `VenueNavigationRuntime`。
+- `Assets/PuppyPath/Scripts/V2/VenueMapMarker.cs`：地图 UI marker 组件，保存 attraction id、显示选中状态，并把点击事件回传给地图 UI 控制器。
+- `Assets/PuppyPath/Scripts/V2/VenueMapOpenButton.cs`：右上方地图按钮打开大地图的轻量入口，可挂在按钮物体上。
+- `Assets/PuppyPath/Scripts/V2/PuppyPathV2FlowController.cs`：第一版 storyboard flow 控制器，复用旧 Canvas panel，管理 `Boot`、`Intro`、`FreeRoam`、`BigMap`、`Navigation`、`RewardPopup` 等 UI 状态；3D 物品抓取不再占用独立 UI panel。
 - `Assets/PuppyPath/Scripts/V2/VenueAlignmentManager.cs`：第一版现场校准组件，将 `VenueContentRoot` 对齐到当前 HMD 所在的真实 `VenueOrigin`。
 - `Assets/PuppyPath/Scripts/V2/VenueSpatialAnchorBootstrap.cs`：第一版 Meta Spatial Anchor bootstrap，可在 `VenueOrigin` 创建 `OVRSpatialAnchor` 并把场地内容挂到 anchor 下。
 - `Assets/PuppyPath/Scripts/V2/VenueWalkableGridVisualizer.cs`：真机可视化工具，用黄色格子铺出当前可行走区域，方便在 Quest 中验证地图对齐。
@@ -105,22 +109,22 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 
 现有 `PathPreviewController` 的地面路线绘制方式可以作为参考，但 V2 不应继续依赖旧 path prefab id。
 
-### 新小地图层
+### 新地图按钮 / 大地图层
 
-用真实场地小地图替换旧网格地图：
+用右上方地图按钮和真实场地大地图替换旧网格地图：
 
-- 右下角小地图。
+- 视界右上方地图按钮。
 - 用户当前位置 marker。
 - 每个景点一个狗爪 marker。
-- 点击或触碰小地图后，打开居中的大地图。
+- 点击或触碰地图按钮后，打开居中的大地图。
 - 在大地图中点击狗爪 marker 开始导航。
 - 导航模式中必须提供退出 / 取消导航按钮，用户不想继续前往当前目标时可以随时回到自由行走。
 
 推荐新增脚本：
 
-- `VenueMinimapController`
-- `VenueMapMarker`
-- `VenueMapPanelController`
+- `VenueMapUiController`：统一管理完整 big map、用户位置 marker、景点 marker。
+- `VenueMapMarker`：单个景点 marker 的显示和点击入口。
+- `VenueMapOpenButton`：把右上方地图按钮点击转换成打开大地图的按钮/指针事件。
 
 旧的 `PuppyPathSelectionUI` 可以作为 pointer 点击和 marker 放置的参考，但 V2 应使用景点坐标，而不是固定网格行列。
 
@@ -342,17 +346,30 @@ V2 小狗行为新规则：
 
 ### 阶段 3：V2 UI 流程
 
-目标：用 boot、intro、小地图、大地图、顶部状态文字替换旧选择流程。
+目标：用 boot、intro、地图按钮、大地图、顶部状态文字替换旧选择流程。
+
+2026-07-01 更新：已取消局部 minimap，改为右上方地图按钮。新增 `VenueMapUiController` 和 `VenueMapMarker`，用于在大地图中显示景点 marker、持续更新用户当前位置 marker，并在用户选择景点后调用 `VenueNavigationRuntime.StartNavigationToAttraction(attractionId)`。第一版先解决“地图按钮不挡视线、完整大地图可选景点、能从地图进入导航”的主链路；后续再细化视觉样式、狗爪图标、开场介绍和完整 V2 状态机。
+
+2026-07-01 Storyboard flow 更新：
+
+```text
+Boot / Logo -> Intro -> FreeRoam -> Tap Map Button -> BigMap -> Tap Attraction
+-> Navigation -> Arrived -> 3D item grab to dog -> RewardPopup -> FreeRoam
+```
+
+新增 `PuppyPathV2FlowController` 作为旧 Canvas 上的轻量状态切换器。它不替换 `UIBootSequence`，而是通过 `UIBootSequence.onBootFinished` 进入 `Intro`，并通过 `VenueMapUiController` 的景点选择进入 `Navigation`。
+
+2026-07-01 更新：不再单独制作 `RewardPanel` 和 `ItemGrabPanel`。到达景点后的奖励过程由真实 3D 物品承担：用户把 3D 物品 grab 到小狗身上后，调用 `PuppyPathV2FlowController.ShowRewardPopup()`，显示 `RewardPopupPanel`，播放 shaking 动画，10 秒后自动关闭并回到 `FreeRoam`。
 
 步骤：
 
 1. 复用 `UIBootSequence` 播放 logo。
 2. 添加 V2 主 HUD：
    - 顶部状态文字。
-   - 右下角小地图。
+   - 视界右上方地图按钮。
    - 小狗对话气泡。
 3. 实现开场介绍的时间和流程。
-4. 实现小地图用户位置 marker。
+4. 实现大地图用户位置 marker。
 5. 实现各景点的狗爪 marker。
 6. 实现大地图打开 / 关闭。
 7. 实现景点 marker 选择。
@@ -569,8 +586,8 @@ V2 小狗行为新规则：
 
 以下模块在"推荐架构"里已经列出脚本名，但目前还没有分配给开发线 A 或 B，先记录在这里，避免遗漏：
 
-- `PuppyPathV2GameController`（顶层状态机：`Boot`/`Intro`/`FreeWalk`/`MapOpen`/`Navigating`/`AttractionReveal`/`ItemGrab`/`Reward`）：待分配。这个控制器需要在 A、B 两条线的基础模块都有一定进展后再牵头整合，暂不确定由谁负责，或后续拆出第三条开发线。
-- 小地图 / 大地图 UI（`VenueMinimapController`、`VenueMapMarker`、`VenueMapPanelController`）：待分配。逻辑上依赖开发线 A 的场地坐标数据，建议后续归入开发线 A，但当前尚未开始，也未正式认领。
+- `PuppyPathV2GameController` / `PuppyPathV2FlowController` 后续整合：当前已由 `PuppyPathV2FlowController` 承担第一版 UI flow（`Boot`/`Intro`/`FreeRoam`/`BigMap`/`Navigation`/`RewardPopup`）。后续若小狗行为、3D 物品抓取、奖励数据继续变复杂，再决定是否拆出更高层 game controller。
+- 地图按钮 / 大地图 UI：已改为 `VenueMapUiController` + `VenueMapMarker` + `VenueMapOpenButton`。当前脚本骨架已完成；下一步是把旧 Canvas 的 `IntroPanel`、`MapPanel`、`NavigationHudPanel` 等 panel 接入 `PuppyPathV2FlowController`，并按 storyboard 调整视觉样式。
 - `AttractionRegistry`：待分配。当前 `VenueMapDefinition` 内部的 `attractions` list 已经承担了类似的景点数据存取职责，是否需要再单独抽出这个类型，留给开发线 A 后续决定。
 - `DogVenueFollower`（小狗在可行走区域内跟随移动/避障）：待分配。需要用到开发线 A 的可行走区域数据，逻辑上和 `DogGuideController` 关系更近，倾向于开发线 B 后续承接，但要等 A 的可行走区域数据出来后才能真正对接，当前只做记录不安排具体时间。
 
