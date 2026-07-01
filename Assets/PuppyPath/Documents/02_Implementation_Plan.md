@@ -541,20 +541,36 @@ V2 小狗行为新规则：
 - 在小狗 prefab 上整理饰品 anchor：`Head`、`Face`、`Neck`、`Back` 等。
 - 新增 `DogAccessoryDefinition` 和 `DogAccessoryManager` 草稿，用测试键或 Inspector 按钮把饰品 prefab attach 到指定 anchor。
 - 在 `DogTestScene` 或复制出的 V2 测试场景里测试坐下、开心、惊讶、摇晃等动画状态。
-- 整理每个景点对应的临时饰品 slot，例如 Photo Wall -> glasses / camera frame，Drink Shop -> collar charm。
+- 整理每个景点对应的临时饰品 slot（当前具体饰品和奖励内容尚未定稿，先用占位数据跑通流程，不参考早期草案表格的具体物品描述）。
 - 新增简单 `RewardRevealController` 草稿，可以显示一张测试奖励面板或触发已有烟花 prefab。
+- 新增 `AttractionTrigger`、`FloatingCollectibleItem`、`CollectibleGrabHandler` 草稿（原"新景点和收集层"的剩余部分，2026-07-01 并入本开发线）：
+  - 景点虚拟物品按用户距离渐显透明度（3 m/6 m/10 m 三档 + 中间插值）。
+  - 手势 grab 抓取物品、拖动、检测是否放到小狗身上、放上后触发挂载和收集标记。
+  - 距离和位置先用测试场景里的固定坐标 / 半径模拟，不依赖 `VenueMapDefinition` 的真实场地坐标；等开发线 A 的场地坐标就绪后再对接真实景点位置。
+  - `CollectibleItemDefinition` 数据类型随这块一起实现。
 
 边界约束：
 
 - 不修改 `VenueMapDefinition`、`VenueCoordinateMapper`、`VenueCalibrationDebugView` 的坐标逻辑。
 - 不把奖励流程强接到地图导航；先做可独立测试的 API，例如 `ShowReward(string attractionId)`。
 - 如需改 `DogGuideController`，优先新增 wrapper 或小范围公开方法，避免重写现有导航行为。
+- 距离渐显和抓取放置逻辑先用测试坐标验证机制本身，不因为要接入真实坐标而阻塞本开发线的进度。
 
 交付物：
 
 - 小狗 prefab 上可用的饰品 anchor。
 - 能在测试场景中手动 attach / detach 饰品的管理器。
 - 奖励显示和小狗动画反应的独立 demo。
+- 景点物品渐显 + 手势抓取放置到小狗身上的独立可测试 demo（使用测试坐标，暂不依赖真实场地数据）。
+
+### 待分配模块
+
+以下模块在"推荐架构"里已经列出脚本名，但目前还没有分配给开发线 A 或 B，先记录在这里，避免遗漏：
+
+- `PuppyPathV2GameController`（顶层状态机：`Boot`/`Intro`/`FreeWalk`/`MapOpen`/`Navigating`/`AttractionReveal`/`ItemGrab`/`Reward`）：待分配。这个控制器需要在 A、B 两条线的基础模块都有一定进展后再牵头整合，暂不确定由谁负责，或后续拆出第三条开发线。
+- 小地图 / 大地图 UI（`VenueMinimapController`、`VenueMapMarker`、`VenueMapPanelController`）：待分配。逻辑上依赖开发线 A 的场地坐标数据，建议后续归入开发线 A，但当前尚未开始，也未正式认领。
+- `AttractionRegistry`：待分配。当前 `VenueMapDefinition` 内部的 `attractions` list 已经承担了类似的景点数据存取职责，是否需要再单独抽出这个类型，留给开发线 A 后续决定。
+- `DogVenueFollower`（小狗在可行走区域内跟随移动/避障）：待分配。需要用到开发线 A 的可行走区域数据，逻辑上和 `DogGuideController` 关系更近，倾向于开发线 B 后续承接，但要等 A 的可行走区域数据出来后才能真正对接，当前只做记录不安排具体时间。
 
 ## 风险
 
