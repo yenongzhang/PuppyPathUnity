@@ -64,6 +64,14 @@ metersPerPixel = 3.45 / 118 = 0.029237288 m/px
 6. 每次启动 app 时尝试加载已保存的 anchor；加载成功后把整个场地根节点对齐到 anchor。
 7. 启动后显示一个隐藏式或开发者可见的校准检查：例如在真实 3.45 m 红墙两端显示两个虚拟点，让工作人员确认是否贴合。
 
+当前第一版实现：
+
+- 使用 `VenueContentRoot` 作为所有场地固定内容的父物体。
+- 使用 `VenueAlignmentManager` 做临时现场校准：站在真实 `VenueOrigin`，也就是 Photo Wall 右上角原点，面朝地图北方 / Unity `+Z`，启动时自动把 `VenueContentRoot` 对齐到当前 HMD。
+- 使用 `VenueSpatialAnchorBootstrap` 在 `VenueOrigin` 创建 Meta `OVRSpatialAnchor`，并把 `VenueContentRoot` 挂到 anchor 下。正式保存 / 加载 anchor 前，必须在 `OVRManager` 中开启 `Anchor Support`。
+- 使用 `VenueWalkableGridVisualizer` 在 Quest 中显示黄色可行走格子，作为地图对齐、比例和方向的第一层可视化。
+- 当前 anchor bootstrap 已保存 UUID 到 PlayerPrefs，但后续仍需要补完整的“按 UUID 加载已保存 anchor 并自动恢复场地”的用户流程。
+
 关于二维码：
 
 - 二维码可以作为辅助工具，例如贴在主校准点附近，帮助工作人员确认“这是哪个校准点”。
@@ -178,6 +186,72 @@ WalkableArea
 - 景点应位于可行走区域内，或非常靠近可行走区域。
 - 如果某个点在黄色区域外，只有在不会穿墙的情况下，才能把它吸附到最近的合法点。
 
+当前第一版实现说明：
+
+- `VenueMapDefinition.walkableAreas` 保存一个或多个 `WalkableAreaDefinition`。
+- 每个 polygon 点使用原始地图像素坐标，约定仍是左上角 `(0, 0)`、`+X` 向右、`+Y` 向下。
+- polygon 点按顺时针或逆时针顺序填写，不需要在末尾重复第一个点。
+- 第一版寻路会沿路线段采样多个点，并检查采样点是否在任意可行走 polygon 内。
+- 如果 `walkableAreas` 为空，当前代码会临时把所有地图点当作可行走，方便早期调试；正式路线测试前必须填入 polygon。
+
+需要人工提供的坐标：
+
+- 是的，需要提供黄色可行走区域关键拐角的二维像素坐标。
+- 不必一开始就把每个微小凹凸都描出来；第一版可以用较粗的外轮廓覆盖主通道。
+- 对狭窄走廊、墙角、岔路口附近要更准确，因为这些地方最容易导致路线或小狗穿墙。
+
+## 手工导航图数据
+
+第一版不直接从 polygon 自动生成完整导航网格，而是使用手工 waypoint graph。
+
+推荐数据结构：
+
+```text
+VenueNavGraph
+- nodes
+
+VenueNavNode
+- id
+- mapPixel
+- neighborNodeIds
+```
+
+填写原则：
+
+- waypoint 放在黄色区域中心线附近，而不是贴墙。
+- 每个转弯处至少一个 waypoint。
+- 每个景点附近至少一个 arrival waypoint。
+- 只连接能直线走过去且不穿墙的相邻 waypoint。
+- 邻居关系建议双向填写，除非未来有单向动线要求。
+
+调试方式：
+
+- `VenueCalibrationDebugView` 中打开 `Draw Walkable Areas` 和 `Draw Nav Graph`。
+- 绿色线表示可行走 polygon。
+- 红色线表示 obstacle polygon。
+- 蓝色线表示导航 graph。
+- 红橙色 nav edge 表示该连接段当前不被认为可通行，通常是穿过 obstacle 或离开 walkable polygon。
+- `Edit Nav Graph In Scene` 开启后，Scene 左上角的 `Nav Graph Editing` 面板可手动修改蓝线。点击两个蓝点旁边的小青色选择点后，使用 `Connect` 添加双向邻居连接，使用 `Disconnect` 删除双向邻居连接。
+- 在 `Test Path` 中填写测试起点像素和目标景点 id，可显示橙色测试路线。
+
+Scene 手工校准方式：
+
+- 在 `VenueCalibrationDebugView` 右键菜单执行 `Create Map Reference Plane`，将地图图像铺在标定坐标系下方。
+- 可用 `Show Map Reference Plane` / `Hide Map Reference Plane` 显示或隐藏地图底图。
+- 启用 `Scene Editing` 中对应开关后，可在 Scene 视图直接拖动：
+  - 地图原点 `mapOriginPixel`。
+  - 3.45 m 比例尺两端 `scalePointAPixel` / `scalePointBPixel`。
+  - 景点 / collectible spawn point。
+  - 可行走 polygon 顶点。
+  - obstacle polygon 顶点。
+- nav graph waypoint。
+- 拖动后坐标会自动从 Unity world position 转回地图像素坐标并保存到 `VenueMapDefinition`。
+- `Populate Detected Nav Graph Draft` 生成的是较密集的中心线 waypoint 草稿，并只保留当前可行走检测认为合法的连接。
+- 拖动 `mapOriginPixel` 会保持其他已设置点和线的世界布局不动。
+- 拖动 `scalePointAPixel` / `scalePointBPixel` 会保持当前 meters-per-pixel 不变，避免地图和路线被重新缩放。
+- 手动连接或断开 nav graph 蓝线会直接写回 `VenueMapDefinition.navGraph.nodes[*].neighborNodeIds`，并支持 Unity Undo。
+- 如果需要真正重新计算比例尺，后续应使用单独的显式校准操作。
+
 ## 墙体和障碍物数据
 
 黑色墙体以及非黄色内部区域应转换成 blocked geometry 或 obstacle polygon。
@@ -223,6 +297,43 @@ Obstacle
 - 如果景点文字位置与黄色点位置不同，导航目的地和透明度计算应使用黄色点或该点附近的可行走目标点。
 - 如果黄色点距离墙体太近，应额外定义一个用户可到达点 `arrivalPoint`，但物品本身仍从黄色点出现。
 
+### 自动检测出的第一版 collectible spawn 坐标
+
+来源图片：`Assets/PuppyPath/Maps/map_with_spawn_points.jpg`，原图尺寸 `2468 x 2160`。
+
+检测方法：按橙色圆点颜色阈值提取 connected components，取每个圆点 component 的中心点。该部分置信度较高。
+
+| ID | 自动检测中心像素坐标 |
+| --- | --- |
+| `chess` | `(262, 470)` |
+| `couch` | `(198, 663)` |
+| `photo_wall` | `(624, 859)` |
+| `book_wall` | `(1710, 857)` |
+| `goodies` | `(623, 1388)` |
+| `piano` | `(2181, 1642)` |
+| `tap_water` | `(1400, 1752)` |
+| `ice_cream_shop` | `(1660, 1784)` |
+| `drink_shop` | `(1930, 1804)` |
+| `plants` | `(2339, 1956)` |
+
+注意：如果后续地图图片更新或圆点位置移动，必须重新检测或手动更新这些坐标。
+
+### 自动检测出的第一版可行走 / 导航草稿
+
+当前 `VenueMapDefinition` 提供 `Populate Detected Draft Map Data` 菜单，用于一键写入第一版草稿：
+
+- `main_walkable_auto_draft`：紫色可行走区域外轮廓的粗略 polygon。
+- `central_block_auto_draft`：中间大灰色障碍区域的粗略 obstacle polygon。
+- `navGraph`：14 个手工筛选后的中心线 waypoint。
+
+这部分置信度中等，需要人工在 Scene 视图中检查：
+
+- 绿色外轮廓是否大致贴住紫色区域边界。
+- 红色障碍轮廓是否覆盖中间不可穿越区域。
+- 蓝色 waypoint 是否都落在紫色可行走区域中心附近。
+- 蓝色连接线是否有穿墙；如果穿墙，删除该邻居连接或移动节点。
+- 橙色测试路线是否避开灰色不可走区域。
+
 ## 小地图数据
 
 小地图应该使用与场地世界坐标相同的数据来源。
@@ -261,6 +372,55 @@ worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredP
 - 小狗带路距离需要现场调试。
 - 小狗必须保持在可行走区域内。
 - 小狗不应该为了去下一个路线点而穿墙。
+
+## 运行时路线验证
+
+地图数据处理完成后，使用 `VenueNavigationRuntime` 做第一轮运行时验证。
+
+推荐场景接线：
+
+- 创建空物体 `VenueContentRoot`，把场地固定内容放到它下面。
+- `VenueCalibrationDebug`、`VenueRouteLine`、`VenueWalkableGrid`、后续景点物品都应作为 `VenueContentRoot` 的子物体。
+- 在场景中创建 `VenueNavigationRuntime` 空物体，挂载 `VenueNavigationRuntime`。
+- `Map Definition` 指向当前 `VenueMapDefinition`。
+- `XR Camera` 指向 `OVRCameraRig` 下的 CenterEye / HMD transform。
+- `Venue Content Root` 指向 `VenueContentRoot`。
+- `Route Line Controller` 指向带 `VenueRouteLineController + LineRenderer` 的路线物体。
+- 可选：`Dog Guide Controller` 指向现有小狗控制器，用于临时验证小狗是否能收到推荐方向。
+
+真机可视化接线：
+
+- 在 `VenueContentRoot` 下创建 `VenueWalkableGrid`。
+- 给 `VenueWalkableGrid` 添加 `MeshFilter`、`MeshRenderer`、`VenueWalkableGridVisualizer`。
+- `Map Definition` 指向当前 `VenueMapDefinition`。
+- `Cell Size Meters` 建议先用 `0.5`，`Cell Fill Ratio` 建议 `0.82`，颜色使用半透明黄色。
+
+现场临时校准方式：
+
+- 在场景中创建 `VenueAlignmentManager`。
+- `Map Definition` 指向当前 `VenueMapDefinition`。
+- `XR Camera` 指向 CenterEye / HMD transform。
+- `Venue Content Root` 指向 `VenueContentRoot`。
+- 勾选 `Align On Start` 和 `Align Yaw To Head Forward`。
+- 真机启动前，人站在真实 Photo Wall 右上角原点，面朝地图北方 / Unity `+Z`。
+- 启动后黄色格子应铺在真实可行走区域附近；如果整体旋转偏差，调整 `Additional Yaw Degrees` 后重新 build / Play。
+
+Spatial Anchor 前置设置：
+
+- 选中 `OVRCameraRig`。
+- 在 `OVRManager > Quest Features > General` 开启 `Anchor Support`。
+- 不需要多人共享时，不必开启 `Anchor Sharing Support`。
+- 在 `VenueContentRoot` 附近创建 `VenueSpatialAnchorBootstrap`，设置 `Map Definition` 和 `Venue Content Root`；需要测试时勾选 `Create Anchor On Start`。
+
+测试方式：
+
+- 在 `Test Destination Attraction Id` 中填写景点 id，例如 `photo_wall`、`drink_shop`、`plants`。
+- 组件右键执行 `Start Test Navigation`。
+- 地面路线应从当前 HMD 附近生成到目标景点，并保持在绿色可行走区域内。
+- 走动时 runtime 会按间隔重新规划路线；如果临时找不到新路线，会保留上一条有效路线。
+- 组件右键执行 `Stop Navigation` 可清除路线并停止小狗临时导航。
+
+注意：当前 `VenueNavigationRuntime` 只负责路线和推荐方向，不等于最终小狗行为。最终仍需要 `DogVenueFollower` 来负责小狗始终保持在用户前方、避障、自由行走和宝藏接近反馈。
 
 抓物品：
 

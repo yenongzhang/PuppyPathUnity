@@ -13,20 +13,21 @@ MonoBehaviour:
   m_Name: VenueMapDefinition
   m_EditorClassIdentifier: Assembly-CSharp::VenueMapDefinition
   mapTexture: {fileID: 2800000, guid: 8f3309e3ea7188b46bee6eb614df458f, type: 3}
-  mapPixelSize: {x: 2048, y: 2048}
-  mapOriginPixel: {x: 716, y: 820}
-  originWorldPosition: {x: 0, y: 0, z: 0}
+  mapPixelSize: {x: 2468, y: 2160}
+  syncMapPixelSizeFromImportedTexture: 0
+  mapOriginPixel: {x: 714.4372, y: 808.5267}
+  originWorldPosition: {x: -0.04569222, y: 0, z: 0.33544895}
   venueYawDegrees: 0
-  scalePointAPixel: {x: 1003, y: 715}
-  scalePointBPixel: {x: 1003, y: 833}
-  scaleSegmentMeters: 3.45
+  scalePointAPixel: {x: 1004.78754, y: 697.69293}
+  scalePointBPixel: {x: 1006.3634, y: 819.7328}
+  scaleSegmentMeters: 3.5684125
   attractions:
   - id: chess
     sourceMapLabel: Chess
     displayName: Checkmate Corner
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 262.00003, y: 449.03326}
+    arrivalPixel: {x: 262.00003, y: 449.03326}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -35,8 +36,8 @@ MonoBehaviour:
     sourceMapLabel: Couch
     displayName: Cozy Couch Cove
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 200.5617, y: 641.6524}
+    arrivalPixel: {x: 200.5617, y: 641.6524}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -45,8 +46,8 @@ MonoBehaviour:
     sourceMapLabel: Photo Wall
     displayName: Snapshot Studio
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 627.27563, y: 836.4146}
+    arrivalPixel: {x: 627.27563, y: 836.4146}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -55,8 +56,8 @@ MonoBehaviour:
     sourceMapLabel: Goodies
     displayName: Treat Trove
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 626.61035, y: 1365.4354}
+    arrivalPixel: {x: 626.61035, y: 1365.4354}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -65,8 +66,8 @@ MonoBehaviour:
     sourceMapLabel: Book Wall
     displayName: Storybook Wall
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 1709.9999, y: 834.27594}
+    arrivalPixel: {x: 1709.9999, y: 834.27594}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -75,8 +76,8 @@ MonoBehaviour:
     sourceMapLabel: Tap Water
     displayName: Splash Stop
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 1402.708, y: 1730.3379}
+    arrivalPixel: {x: 1402.708, y: 1730.3379}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -85,8 +86,8 @@ MonoBehaviour:
     sourceMapLabel: Ice Cream Shop
     displayName: Scoop Station
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 1663.8608, y: 1760.8359}
+    arrivalPixel: {x: 1663.8608, y: 1760.8359}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -95,8 +96,8 @@ MonoBehaviour:
     sourceMapLabel: Drink Shop
     displayName: Fizzy Fridge
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 1932.5739, y: 1782.1228}
+    arrivalPixel: {x: 1932.5739, y: 1782.1228}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -105,8 +106,8 @@ MonoBehaviour:
     sourceMapLabel: Piano
     displayName: Melody Corner
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 2182.287, y: 1621.4097}
+    arrivalPixel: {x: 2182.287, y: 1621.4097}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -115,9 +116,354 @@ MonoBehaviour:
     sourceMapLabel: Plants
     displayName: Garden Patch
     chineseDisplayName: 
-    collectibleSpawnPixel: {x: 0, y: 0}
-    arrivalPixel: {x: 0, y: 0}
+    collectibleSpawnPixel: {x: 2339.0002, y: 1935.4099}
+    arrivalPixel: {x: 2339.0002, y: 1935.4099}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
     hiddenDistanceMeters: 10
+  walkableAreas:
+  - id: main_walkable_auto_draft
+    displayName: Main Walkable Auto Draft
+    polygonPixels:
+    - {x: 83.45227, y: 121.21216}
+    - {x: 639.2875, y: 124.31848}
+    - {x: 643.23834, y: 489.2607}
+    - {x: 833.38806, y: 490.68027}
+    - {x: 835.1515, y: 615.5091}
+    - {x: 1481.1011, y: 617.13745}
+    - {x: 1624.499, y: 617.0539}
+    - {x: 1848.9487, y: 614.1814}
+    - {x: 1851.0315, y: 498.07864}
+    - {x: 1966.3989, y: 498.04523}
+    - {x: 1969.4619, y: 798.7902}
+    - {x: 2301.289, y: 799.525}
+    - {x: 2306.3105, y: 1055.8279}
+    - {x: 2084.431, y: 1053.5751}
+    - {x: 2086.4976, y: 1597.5814}
+    - {x: 2369.325, y: 1595.0596}
+    - {x: 2366.4114, y: 2069.107}
+    - {x: 1613.1476, y: 2067.6885}
+    - {x: 1610.6807, y: 1826.3467}
+    - {x: 1754.8245, y: 1819.8668}
+    - {x: 1639.79, y: 1800.4106}
+    - {x: 1639.7214, y: 1668.9753}
+    - {x: 1854.655, y: 1647.8003}
+    - {x: 1438.2336, y: 1642.3224}
+    - {x: 1439.1775, y: 1771.3516}
+    - {x: 1371.9246, y: 1772.22}
+    - {x: 1368.2744, y: 1643.6584}
+    - {x: 824.88605, y: 1647.1489}
+    - {x: 824.76105, y: 1792.1938}
+    - {x: 421.92517, y: 1781.3718}
+    - {x: 414.4887, y: 697.3304}
+    - {x: 84.533936, y: 693.8644}
+  obstacleAreas:
+  - id: central_block_auto_draft
+    displayName: Central Block Auto Draft
+    polygonPixels:
+    - {x: 1547.4706, y: 681.6186}
+    - {x: 1547.3477, y: 817.4782}
+    - {x: 1334.0483, y: 818.998}
+    - {x: 1335.3732, y: 686.21124}
+    - {x: 1005.65094, y: 685.55994}
+    - {x: 1007.5912, y: 819.55743}
+    - {x: 885.2848, y: 819.5407}
+    - {x: 884.8812, y: 685.40125}
+    - {x: 532.14496, y: 684.608}
+    - {x: 533.311, y: 806.3055}
+    - {x: 716.48004, y: 806.4307}
+    - {x: 717.8469, y: 884.3392}
+    - {x: 868.4355, y: 886.07605}
+    - {x: 871.04724, y: 1314.9567}
+    - {x: 698.46436, y: 1312.1343}
+    - {x: 699.7948, y: 1436.9045}
+    - {x: 549.8872, y: 1435.9526}
+    - {x: 531.27356, y: 1307.4246}
+    - {x: 529.02185, y: 1575.5032}
+    - {x: 1878.0447, y: 1575.0188}
+    - {x: 1877.9695, y: 1086.4084}
+    - {x: 1564.0178, y: 1089.498}
+    - {x: 1566.9111, y: 807.7918}
+    - {x: 1879.9065, y: 809.2782}
+    - {x: 1881.9377, y: 683.4556}
+  navGraph:
+    nodes:
+    - id: chess_arrival
+      mapPixel: {x: 262, y: 470}
+      neighborNodeIds:
+      - chess_lane
+      - couch_arrival
+      - left_top_mid
+      - left_top_lower
+    - id: chess_lane
+      mapPixel: {x: 380.36945, y: 537.0412}
+      neighborNodeIds:
+      - chess_arrival
+      - couch_arrival
+      - left_top_mid
+      - left_top_lower
+      - left_entry
+    - id: couch_arrival
+      mapPixel: {x: 198, y: 663}
+      neighborNodeIds:
+      - chess_arrival
+      - chess_lane
+      - left_top_mid
+      - left_top_lower
+    - id: left_top_mid
+      mapPixel: {x: 270, y: 560}
+      neighborNodeIds:
+      - chess_arrival
+      - chess_lane
+      - couch_arrival
+      - left_top_lower
+    - id: left_top_lower
+      mapPixel: {x: 451.06116, y: 658.94745}
+      neighborNodeIds:
+      - chess_arrival
+      - chess_lane
+      - couch_arrival
+      - left_top_mid
+      - left_entry
+      - photo_wall_lane
+      - top_01
+    - id: left_entry
+      mapPixel: {x: 486.32758, y: 797.50635}
+      neighborNodeIds:
+      - chess_lane
+      - left_top_lower
+      - photo_wall_arrival
+      - left_mid_01
+    - id: photo_wall_arrival
+      mapPixel: {x: 624, y: 859}
+      neighborNodeIds:
+      - left_entry
+      - left_mid_01
+      - left_mid_01b
+      - left_goodies_entry
+    - id: photo_wall_lane
+      mapPixel: {x: 546.3198, y: 544.5732}
+      neighborNodeIds:
+      - left_top_lower
+      - top_01
+      - top_01b
+    - id: left_mid_01
+      mapPixel: {x: 485.71866, y: 912.38995}
+      neighborNodeIds:
+      - left_entry
+      - photo_wall_arrival
+      - left_mid_01b
+      - left_mid_02
+    - id: left_mid_01b
+      mapPixel: {x: 693.02966, y: 1042.4817}
+      neighborNodeIds:
+      - left_mid_01
+      - left_mid_02
+      - photo_wall_arrival
+      - left_goodies_entry
+    - id: left_mid_02
+      mapPixel: {x: 487.00006, y: 1200.3527}
+      neighborNodeIds:
+      - left_mid_01
+      - left_mid_01b
+      - left_goodies_entry
+      - left_lower
+    - id: left_goodies_entry
+      mapPixel: {x: 593.26587, y: 1240.6659}
+      neighborNodeIds:
+      - left_mid_02
+      - goodies_arrival
+      - left_mid_01b
+      - photo_wall_arrival
+    - id: goodies_arrival
+      mapPixel: {x: 623, y: 1388}
+      neighborNodeIds:
+      - left_goodies_entry
+    - id: left_lower
+      mapPixel: {x: 480.23047, y: 1498.0686}
+      neighborNodeIds:
+      - left_mid_02
+      - bottom_left_entry
+    - id: bottom_left_entry
+      mapPixel: {x: 488.654, y: 1611.8229}
+      neighborNodeIds:
+      - bottom_left
+      - left_lower
+    - id: bottom_left
+      mapPixel: {x: 731.2713, y: 1597.3768}
+      neighborNodeIds:
+      - bottom_left_entry
+      - bottom_left_02
+    - id: bottom_left_02
+      mapPixel: {x: 900, y: 1595}
+      neighborNodeIds:
+      - bottom_left
+      - bottom_mid_01
+    - id: bottom_mid_01
+      mapPixel: {x: 1040, y: 1590}
+      neighborNodeIds:
+      - bottom_left_02
+      - bottom_mid_center
+      - bottom_mid_02
+    - id: bottom_mid_center
+      mapPixel: {x: 1170, y: 1595}
+      neighborNodeIds:
+      - bottom_mid_01
+      - bottom_mid_02
+    - id: bottom_mid_02
+      mapPixel: {x: 1400.9708, y: 1594.4313}
+      neighborNodeIds:
+      - bottom_mid_01
+      - bottom_mid_center
+      - tap_water_arrival
+      - tap_water_lane
+    - id: tap_water_arrival
+      mapPixel: {x: 1400, y: 1689.8796}
+      neighborNodeIds:
+      - bottom_mid_02
+    - id: tap_water_lane
+      mapPixel: {x: 1864.9089, y: 1596.7819}
+      neighborNodeIds:
+      - bottom_mid_02
+      - drink_shop_lane
+      - piano_lane
+      - right_mid_low
+    - id: ice_cream_arrival
+      mapPixel: {x: 1680.0728, y: 1757.2395}
+      neighborNodeIds:
+      - ice_cream_lane
+    - id: ice_cream_lane
+      mapPixel: {x: 1683.2358, y: 1691.5725}
+      neighborNodeIds:
+      - ice_cream_arrival
+      - drink_shop_arrival
+      - drink_shop_lane
+    - id: drink_shop_arrival
+      mapPixel: {x: 1930, y: 1753.8346}
+      neighborNodeIds:
+      - ice_cream_lane
+      - drink_shop_lane
+      - right_bottom_01
+    - id: drink_shop_lane
+      mapPixel: {x: 1940, y: 1676.471}
+      neighborNodeIds:
+      - ice_cream_lane
+      - drink_shop_arrival
+      - right_bottom_01
+      - piano_arrival
+      - tap_water_lane
+      - piano_lane
+    - id: right_bottom_01
+      mapPixel: {x: 2098.7932, y: 1773.2825}
+      neighborNodeIds:
+      - drink_shop_arrival
+      - drink_shop_lane
+      - right_bottom_02
+      - plants_arrival
+      - piano_arrival
+      - piano_lane
+    - id: right_bottom_02
+      mapPixel: {x: 2218.7932, y: 1781.0504}
+      neighborNodeIds:
+      - right_bottom_01
+      - plants_arrival
+      - piano_arrival
+    - id: plants_arrival
+      mapPixel: {x: 2318.4187, y: 1953.4135}
+      neighborNodeIds:
+      - right_bottom_01
+      - right_bottom_02
+    - id: piano_arrival
+      mapPixel: {x: 2181, y: 1642}
+      neighborNodeIds:
+      - drink_shop_lane
+      - right_bottom_01
+      - right_bottom_02
+    - id: piano_lane
+      mapPixel: {x: 2008.1897, y: 1571.1089}
+      neighborNodeIds:
+      - drink_shop_lane
+      - tap_water_lane
+      - right_bottom_01
+      - right_mid_low
+    - id: right_mid_low
+      mapPixel: {x: 2020, y: 1450}
+      neighborNodeIds:
+      - right_mid_02
+      - piano_lane
+      - tap_water_lane
+    - id: right_mid_02
+      mapPixel: {x: 1990, y: 1280}
+      neighborNodeIds:
+      - right_mid_low
+      - right_mid
+    - id: right_mid
+      mapPixel: {x: 1951.6733, y: 1076.0039}
+      neighborNodeIds:
+      - right_mid_02
+      - right_upper
+      - book_wall_lane
+    - id: right_upper
+      mapPixel: {x: 1909.041, y: 935.4431}
+      neighborNodeIds:
+      - right_mid
+      - book_wall_arrival
+      - top_04
+      - book_wall_lane
+    - id: book_wall_arrival
+      mapPixel: {x: 1710, y: 857}
+      neighborNodeIds:
+      - right_upper
+      - book_wall_lane
+    - id: book_wall_lane
+      mapPixel: {x: 1712.5344, y: 970.5896}
+      neighborNodeIds:
+      - book_wall_arrival
+      - right_upper
+      - right_mid
+    - id: top_01
+      mapPixel: {x: 722.5317, y: 638.7}
+      neighborNodeIds:
+      - left_top_lower
+      - photo_wall_lane
+      - top_01b
+    - id: top_01b
+      mapPixel: {x: 835.0615, y: 636.2158}
+      neighborNodeIds:
+      - top_02
+      - top_02b
+      - photo_wall_lane
+      - top_01
+    - id: top_02
+      mapPixel: {x: 957.01355, y: 656.22943}
+      neighborNodeIds:
+      - top_01b
+      - top_02b
+      - top_03
+    - id: top_02b
+      mapPixel: {x: 1136.1017, y: 643.4023}
+      neighborNodeIds:
+      - top_01b
+      - top_02
+      - top_03
+      - top_03b
+    - id: top_03
+      mapPixel: {x: 1259.4692, y: 657.90576}
+      neighborNodeIds:
+      - top_02
+      - top_02b
+      - top_03b
+      - top_04
+    - id: top_03b
+      mapPixel: {x: 1392.6256, y: 629.5105}
+      neighborNodeIds:
+      - top_02b
+      - top_03
+      - top_04
+    - id: top_04
+      mapPixel: {x: 1915.7969, y: 646.9063}
+      neighborNodeIds:
+      - top_03
+      - top_03b
+      - right_upper

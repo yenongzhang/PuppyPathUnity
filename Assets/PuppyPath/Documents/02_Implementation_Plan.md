@@ -51,6 +51,14 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `Assets/PuppyPath/Scripts/V2/VenueMapDefinition.cs`：`ScriptableObject` 场地地图定义，保存地图尺寸、原点像素坐标、3.45 m 比例尺端点、朝向和景点数据。
 - `Assets/PuppyPath/Scripts/V2/VenueCoordinateMapper.cs`：地图像素坐标和 Unity 世界坐标之间的转换工具。
 - `Assets/PuppyPath/Scripts/V2/VenueCalibrationDebugView.cs`：Scene 视图调试绘制工具，用于检查原点、地图边界、比例尺和景点 marker。
+- `Assets/PuppyPath/Scripts/V2/VenuePathfinder.cs`：第一版手工导航图寻路工具，基于 waypoint graph 生成地图像素路线和 Unity 世界路线。
+- `Assets/PuppyPath/Scripts/V2/VenueRouteLineController.cs`：第一版路线 LineRenderer 绘制组件，可用测试起点和目标景点画路线。
+- `Assets/PuppyPath/Scripts/V2/VenueNavigationRuntime.cs`：第一版 V2 场地导航运行时，负责从 HMD 世界位置生成到景点的真实场地路线、刷新地面路线 line，并向小狗控制器提供推荐方向。
+- `Assets/PuppyPath/Scripts/V2/VenueAlignmentManager.cs`：第一版现场校准组件，将 `VenueContentRoot` 对齐到当前 HMD 所在的真实 `VenueOrigin`。
+- `Assets/PuppyPath/Scripts/V2/VenueSpatialAnchorBootstrap.cs`：第一版 Meta Spatial Anchor bootstrap，可在 `VenueOrigin` 创建 `OVRSpatialAnchor` 并把场地内容挂到 anchor 下。
+- `Assets/PuppyPath/Scripts/V2/VenueWalkableGridVisualizer.cs`：真机可视化工具，用黄色格子铺出当前可行走区域，方便在 Quest 中验证地图对齐。
+- `Assets/PuppyPath/Scripts/V2/VenueMapReferencePlane.cs`：把地图图片按当前标定比例铺到 Scene 的 XZ 平面，方便人工校准。
+- `Assets/PuppyPath/Scripts/V2/Editor/VenueCalibrationDebugViewEditor.cs`：Scene 视图拖拽编辑工具，可直接移动景点点位、polygon 顶点和 nav graph 节点。
 
 已确认第一版坐标约定：
 
@@ -157,6 +165,33 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 2. 保留当前动画 state 名称和表情贴图切换逻辑。
 3. 只有当 `DogGuideController` 与旧路线逻辑耦合太深时，再进一步重构。
 
+旧导航 / 小狗脚本阅读结论：
+
+- `PathPreviewController` 负责根据旧 path id 实例化静态 path prefab，并用 `LineRenderer` 绘制路线。
+- `NavigationRuntimeController` 负责读取当前 path waypoints，判断用户离路线中心线的距离、沿路线进度、移动方向、等待状态、到达状态，并把 `NavState` 和推荐方向发给 `DogGuideController`。
+- `DogGuideController` 负责生成小狗、播放动画、切换表情、移动到用户前方目标点、响应等待 / 走远 / 迷路 / 到达等旧状态。
+- V2 可以复用小狗生成、动画、表情、移动和叫声代码思路，但不能继续依赖旧 path prefab 和旧“生气 / 等待 / 迷路”反馈逻辑。
+
+V2 小狗行为新规则：
+
+- 自由行走模式：小狗跟随 HMD 水平移动方向，保持在用户前方约 1-3 m。
+- 如果 HMD 移动速度足够明显，用移动方向决定小狗前方目标；如果用户基本静止，使用 HMD forward 作为 fallback。
+- 小狗移动速度应接近或略快于 HMD 水平速度，必要时从 walk 切到 trot / canter。
+- 用户没有停下时，小狗不应停下等待，也不应坐下。
+- 小狗不应跑到用户身后；如果落后，应优先追到用户前方可行走点。
+- 前方目标点必须通过 `VenueMapDefinition.IsMapPixelWalkable` 或后续等价 API 检查。
+- 如果正前方不可行走，应依次尝试左前方、右前方、更近的前方点、最近可行走 nav node。
+- 导航模式：路线来源改为 `VenuePathfinder` / `VenueRouteLineController` 生成的真实场地路线，但小狗运动和动画可以沿用 `DogGuideController` 的 locomotion 代码。
+- 快到宝藏时，小狗朝宝藏方向开心大叫；这属于正向发现反馈，不使用旧 `GettingFarther` / `Lost` 的负面反馈。
+- “随便逛逛”模式没有偏航概念，小狗不会因为用户离开某条路线而生气。
+
+建议实现方式：
+
+1. 新增 `DogVenueFollower`，作为 V2 wrapper，负责 HMD 速度检测、前方目标选择、可行走区域约束和宝藏接近反馈。
+2. 给现有 `DogGuideController` 增加少量公开方法或轻量 wrapper API，用于复用生成小狗、播放 walk / trot / canter / happy / bark 动画。
+3. 暂时不要重写旧 `NavigationRuntimeController`；先为 V2 写一个新的场地导航 runtime，输入为 `VenuePathfinder` 生成的路线点。
+4. 保留旧脚本供参考和回滚，但 V2 不再使用旧 path prefab 作为真实导航数据源。
+
 ## 开发阶段
 
 ### 阶段 1：场地标定原型
@@ -202,6 +237,90 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 
 目标：导航和小狗位置必须遵守真实可行走区域。
 
+当前状态：已新增 `WalkableAreaDefinition`、`VenueNavGraphDefinition`、`VenueNavNodeDefinition` 数据结构；`VenueCalibrationDebugView` 可以绘制绿色可行走 polygon、蓝色 waypoint graph、橙色测试路线。`VenuePathfinder` 当前使用手工 waypoint graph，并会检查直线段采样点是否处在可行走 polygon 内。
+
+2026-07-01 更新：地图负责人已在 Scene 中完成可行走区域和 nav graph 手工处理。下一步从数据编辑进入运行时验证：用 HMD / XR Camera 当前世界位置生成到目标景点的场地固定路线，并画出地面 LineRenderer。
+
+已新增 `VenueNavigationRuntime`：
+
+- 输入：`VenueMapDefinition`、`xrCamera`、`VenueRouteLineController`，可选 `DogGuideController`。
+- 对外 API：`StartNavigationToAttraction(string attractionId)` 和 `StopNavigation()`。
+- Inspector 右键菜单：`Start Test Navigation` / `Stop Navigation`，用于不接 UI 时先测试任意景点路线。
+- 行为：把 HMD 世界位置转成地图像素坐标，调用 `VenuePathfinder` 生成路线，再用 `VenueRouteLineController.ShowWorldRoute` 画线。
+- 运行中会按间隔重新规划路线；如果新路线规划失败，会保留上一条有效路线，避免现场测试时路线突然消失。
+- 如果用户当前位置或目标点略微落在 walkable polygon 外，可临时吸附到最近的可行走 nav node，降低现场标定微小误差造成的失败概率。
+- 当前小狗接入是过渡方案：复用 `DogGuideController.BeginGuiding` / `ApplyNavigationState`，只发送 `Neutral`、`GettingCloser`、`Arrived` 等非负面状态；后续仍应实现专门的 `DogVenueFollower`。
+
+2026-07-01 真机可视化 / 现场校准更新：
+
+- 新增 `VenueContentRoot` 作为所有场地固定内容的父物体。`VenueCalibrationDebug`、`VenueRouteLine`、`VenueWalkableGridVisualizer`、后续景点物品和小狗目标点都应放到这个 root 下。
+- 新增 `VenueAlignmentManager`：快速测试时，用户站在真实 Photo Wall 右上角原点，面朝地图北方 / Unity `+Z`，启动后自动把 `VenueContentRoot` 对齐到当前 HMD。
+- 新增 `VenueSpatialAnchorBootstrap`：在 `VenueOrigin` 创建 Meta `OVRSpatialAnchor`，并可把 `VenueContentRoot` 挂到 anchor 下，作为后续持久化场地对齐的基础。
+- 新增 `VenueWalkableGridVisualizer`：根据 `VenueMapDefinition.IsMapPixelWalkable` 生成黄色半透明格子，让 Quest 内能看见可行动区域。
+- Meta Quest Spatial Anchor 前置设置：在 `OVRCameraRig` 的 `OVRManager > Quest Features > General` 开启 `Anchor Support`；只有需要共享 anchor 时才开启 `Anchor Sharing Support`。
+
+2026-07-01 更新：已增加自动检测草稿入口。在 `VenueMapDefinition` 的右键 / 齿轮菜单执行 `Populate Detected Draft Map Data`，会从当前 `map_with_spawn_points.jpg` 自动检测结果中填入：
+
+- 10 个 `collectibleSpawnPixel`。
+- 1 个主可行走外轮廓 `main_walkable_auto_draft`。
+- 1 个中央障碍区域 `central_block_auto_draft`，用于防止路线穿过中间大灰块。
+- 14 个第一版 waypoint graph 节点。
+
+这些数据是草稿，不是最终现场标定结果。橙色圆点检测置信度较高；可行走轮廓和 waypoint 需要在 Scene 视图中人工检查。
+
+蓝色 waypoint graph 说明：
+
+- 蓝色点和蓝线不是墙体，也不是可行走边界。
+- 它们是寻路中心线：路线会从一个蓝点走到相邻蓝点。
+- 如果蓝线穿过红色障碍区或灰色不可行走区，该边在调试视图中会显示为红橙色，需要移动节点或删除邻居连接。
+- `Edit Nav Graph In Scene` 开启后，Scene 左上角会出现 `Nav Graph Editing` 面板。点击蓝点旁边的小青色选择点选中两个 waypoint 后，可用 `Connect` 手动连接，也可用 `Disconnect` 删除不能走的连接。
+
+推荐人工修正流程：
+
+1. 选中场景中的 `VenueCalibrationDebug`。
+2. 在组件右键菜单执行 `Create Map Reference Plane`，把当前地图图片铺到 Scene 下方。
+3. 打开 Scene 视图 `Gizmos`。
+4. 在 `Scene Editing` 中按需开启：
+   - `Edit Calibration Points In Scene`
+   - `Edit Attractions In Scene`
+   - `Edit Walkable Areas In Scene`
+   - `Edit Obstacle Areas In Scene`
+   - `Edit Nav Graph In Scene`
+5. 直接拖动 Scene 中的红色原点 / 比例尺端点、黄色点、绿色 polygon 顶点、红色 obstacle 顶点或蓝色 nav node。
+6. 如果需要手动改蓝线，在 Scene 左上角 `Nav Graph Editing` 面板中先点击两个蓝点旁边的小青色选择点，再点 `Connect` 或 `Disconnect`。
+7. 修改会写回 `VenueMapDefinition`，可用 Undo 撤销。
+8. 优先修正红橙色的 nav edge，因为它们代表当前 graph 中不可通行或穿墙的连接。
+
+2026-07-01 更新：`Populate Detected Nav Graph Draft` 已改为更密集的 waypoint 草稿。它会先放置更多走廊中心线节点，再用 `IsMapSegmentWalkable` 自动过滤穿过不可行区域的连接。目标是让小狗后续拥有更多自由移动选择，同时避免默认 graph 直接穿墙。
+
+2026-07-01 标定编辑规则更新：
+
+- Scene 中拖动 `mapOriginPixel` 时，保持已设置点位和线条的世界布局不漂移；代码会同步调整 `originWorldPosition`。
+- Scene 中拖动 `scalePointAPixel` / `scalePointBPixel` 时，保持当前 meters-per-pixel 不变，避免其他点和线被重新缩放。
+- 如果之后需要真正重新计算比例尺，应增加一个明确的“重新标定比例”操作，而不是在普通拖动时隐式改变比例。
+- `VenueCalibrationDebugView` 提供 `Show Map Reference Plane` / `Hide Map Reference Plane`，用于显示或隐藏 Scene 下方的地图底图。
+- `VenueCalibrationDebugViewEditor` 提供 nav graph 手动连线 / 断线工具，用于修补自动草稿中断开的合法通路，或删除人工确认不能走的边。
+
+需要地图负责人提供的数据：
+
+- 可行走区域 polygon：黄色区域外轮廓的关键拐角像素坐标。第一版不需要极度精细，但必须覆盖用户和小狗可走的主通道。
+- 如黄色区域分成多个不连续块，需要每个块单独一个 `WalkableAreaDefinition`。
+- 导航 waypoint：沿可行走区域中心线放置的关键转折点像素坐标。waypoint 数量可以少于 polygon 拐角，重点是每个走廊转弯、岔路口、景点附近都要有点。
+- waypoint 之间的连接关系：每个 `VenueNavNodeDefinition.neighborNodeIds` 填写可直接通行的相邻节点 id。
+
+最小可测试数据：
+
+1. 一个覆盖 Photo Wall 到红色比例线附近走廊的粗略 `WalkableAreaDefinition`。
+2. 3-5 个 waypoint，形成一条能从 Photo Wall 走到任意一个测试景点的路径。
+3. 至少一个景点填好 `collectibleSpawnPixel` 或 `arrivalPixel`。
+4. 在 `VenueCalibrationDebugView` 的 `Test Path` 中填写 `testStartPixel` 和 `testDestinationAttractionId`，Scene 视图应显示橙色路线。
+
+推荐命名：
+
+- 主走廊 waypoint 使用 `main_01`、`main_02`、`main_03`。
+- 分支点使用景点缩写，例如 `photo_wall_arrival`、`drink_shop_arrival`。
+- 邻居关系先双向填写，例如 `main_01` 连接 `main_02`，同时 `main_02` 也连接 `main_01`。
+
 步骤：
 
 1. 把黄色区域边界转换成 polygon 数据。
@@ -209,8 +328,9 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 3. 初期可以手工创建导航图，后续再考虑从 polygon 自动采样。
 4. 实现从用户位置到景点的路线生成。
 5. 在地面渲染路线 line。
-6. 把路线点和小狗目标点 clamp 到可行走区域内。
-7. 添加 debug 工具，显示最近合法点和被阻挡的路径边。
+6. 使用 `VenueNavigationRuntime` 从 HMD 位置测试到 10 个景点的路线。
+7. 把路线点和小狗目标点 clamp 到可行走区域内。
+8. 添加 debug 工具，显示最近合法点和被阻挡的路径边。
 
 验收标准：
 
@@ -402,6 +522,7 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 - 使用 `VenueCalibrationDebugView` 验证比例尺、原点、地图方向和景点相对位置。
 - 下一步建立黄色可行走区域的手工 polygon 或 waypoint 草稿。
 - 后续实现 `VenueNavGraph`、`VenuePathfinder`、`VenueRouteLineController`。
+- 当前代码已提供第一版 `VenuePathfinder` 和 `VenueRouteLineController`，下一步重点是填入 polygon 和 waypoint 数据，并用 Scene 视图测试路线。
 
 交付物：
 

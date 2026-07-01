@@ -43,4 +43,8 @@
 
 ## 当前实现状态
 
-目前还没有开始实现 V2 功能。本文件夹中的文档描述的是推荐开发方案和后续实施步骤。
+V2 已开始实现。当前已完成第一版场地坐标 / 地图数据层、Scene 标定调试工具、可行走区域 / nav graph 编辑工具、`VenuePathfinder`、`VenueRouteLineController`，并新增 `VenueNavigationRuntime` 用于从 HMD 当前世界位置生成到景点的真实场地路线。
+
+真机测试方面，已新增 `VenueAlignmentManager`、`VenueSpatialAnchorBootstrap` 和 `VenueWalkableGridVisualizer`。当前可以先在 Quest 中用黄色格子可视化可行走区域，并通过站在 Photo Wall 右上角原点、面朝地图北方的方式临时对齐场地。
+
+下一步重点是完善 Spatial Anchor 的保存 / 加载恢复流程，把 `VenueNavigationRuntime` 接入实际 UI 选择流程，并继续开发专门的 `DogVenueFollower`，让小狗在自由行走和导航模式下都保持在用户前方且不穿墙。

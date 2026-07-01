@@ -405,7 +405,15 @@ V2 用法：
 
 - `VenueMapDefinition.cs`：新增 `ScriptableObject` 数据资产类型，用于保存真实场地地图尺寸、Photo Wall 原点、3.45 m 比例线、地图到 Unity 的坐标转换参数以及景点 / collectible spawn point 数据。
 - `VenueCoordinateMapper.cs`：新增纯转换工具，统一地图像素坐标和 Unity 世界坐标之间的换算，当前约定为地图北方对应 Unity `+Z`。
-- `VenueCalibrationDebugView.cs`：新增 Scene 视图调试组件，用 Gizmos 绘制 VenueOrigin、地图边界、3.45 m 比例线和景点 marker。
+- `VenueCalibrationDebugView.cs`：新增 Scene 视图调试组件，用 Gizmos 绘制 VenueOrigin、地图边界、3.45 m 比例线、可行走区域、导航图、测试路线和景点 marker。
+- `VenuePathfinder.cs`：新增第一版手工 waypoint graph 寻路工具。
+- `VenueRouteLineController.cs`：新增第一版场地固定路线 LineRenderer 绘制组件；可接收地图像素起终点，也可接收已计算好的世界坐标路线。
+- `VenueNavigationRuntime.cs`：新增第一版 V2 场地导航运行时，用 HMD 世界位置生成到景点的真实场地路线，刷新 `VenueRouteLineController`，并可临时驱动 `DogGuideController`。
+- `VenueAlignmentManager.cs`：新增现场校准组件，可在用户站到真实 `VenueOrigin` 并面朝地图北方时，将 `VenueContentRoot` 对齐到当前 HMD。
+- `VenueSpatialAnchorBootstrap.cs`：新增 Meta Spatial Anchor bootstrap，可在 `VenueOrigin` 创建 `OVRSpatialAnchor`，并把 `VenueContentRoot` 挂到 anchor 下。
+- `VenueWalkableGridVisualizer.cs`：新增黄色可行走区域网格可视化，用于 Quest 真机内确认地图对齐、比例和方向。
+- `VenueMapReferencePlane.cs`：新增地图参考平面组件，可把当前地图图片按场地坐标铺到 XZ 平面。
+- `Editor/VenueCalibrationDebugViewEditor.cs`：新增 Scene 视图编辑工具，可拖拽修改 `VenueMapDefinition` 中的点位数据，并可在 Scene 左上角 `Nav Graph Editing` 面板中手动连接 / 断开 nav graph 蓝线。
 
 这些脚本不替换现有 `DogGuideController`、旧 UI 或旧路径系统，只是为 V2 的真实场地坐标层打基础。
 
@@ -414,7 +422,51 @@ V2 用法：
 - `Use PuppyPath Source Map Size`：将地图尺寸设为原图 `2468 x 2160`。
 - `Use Confirmed V2 Orientation`：将 `originWorldPosition` 设为 `(0, 0, 0)`，`venueYawDegrees` 设为 `0`。
 - `Populate Default Attractions`：生成 10 个默认景点数据条目。
+- `Populate Detected Attraction Spawn Pixels`：填入从 `map_with_spawn_points.jpg` 自动检测出的 10 个橙色圆点坐标。
+- `Populate Detected Walkable Draft`：填入自动检测出的第一版可行走外轮廓和中央障碍区域。
+- `Populate Detected Nav Graph Draft`：填入第一版 waypoint graph 草稿。
+- `Populate Detected Draft Map Data`：一次性执行以上地图草稿填充。
 - `Log Calibration Summary`：在 Console 打印当前比例尺、米/像素、世界比例线距离和景点数量。
+
+当前 `VenueCalibrationDebugView` 还提供：
+
+- `Create Map Reference Plane`：在当前 debug object 下创建或更新 `VenueMapReferencePlane` 子物体。
+- `Show Map Reference Plane` / `Hide Map Reference Plane`：显示或隐藏地图参考平面。
+- Scene Editing 开关：允许在 Scene 视图中直接拖动 calibration points、attraction、walkable polygon、obstacle polygon、nav graph；`Edit Nav Graph In Scene` 开启时还支持选中两个 waypoint 后手动 `Connect` / `Disconnect` 邻居连接。
+
+当前 `VenueNavigationRuntime` 提供：
+
+- `StartNavigationToAttraction(string attractionId)`：从当前 HMD / XR Camera 位置开始，生成到指定景点的路线。
+- `StopNavigation()`：清除路线并停止临时小狗导航。
+- `Start Test Navigation` / `Stop Navigation` 右键菜单：用于不接 UI 时在场景中直接测试。
+- 只向旧 `DogGuideController` 发送非负面导航状态，避免 V2 自由移动阶段触发旧的生气 / 迷路反馈。
+
+当前真机校准 / 可视化工具提供：
+
+- `VenueContentRoot` 结构约定：所有场地固定内容都应作为这个 root 的子物体，由校准组件统一移动和旋转。
+- `VenueAlignmentManager`：快速现场测试时使用 HMD 当前位置和朝向对齐场地。
+- `VenueSpatialAnchorBootstrap`：为后续持久化 Spatial Anchor 对齐打基础；使用前需要在 `OVRManager` 开启 `Anchor Support`。
+- `VenueWalkableGridVisualizer`：用半透明黄色格子显示当前 `walkableAreas - obstacleAreas` 结果，解决 Quest 内没有可视化内容的问题。
+
+## 2026-07-01 旧导航复用边界
+
+旧导航系统可复用的部分：
+
+- `DogGuideController` 中的小狗 prefab 实例化、动画 state 播放、表情贴图切换、叫声音效、基础移动插值。
+- `NavigationRuntimeController` 中的沿路线进度、距离路线中心线、到达距离、HMD 移动检测等思路。
+- `PathPreviewController` 中的 `LineRenderer` 路线绘制思路。
+
+旧导航系统不应直接沿用的部分：
+
+- 静态 path prefab 作为真实场地路线数据源。
+- `RouteRootSpawner` 相对用户生成 route root 的方式。
+- 旧的 `Waiting` / `GettingFarther` / `Lost` 负面反馈逻辑。
+- 任何会让小狗主动走到用户身后、原地坐等、因为用户自由移动而“生气”的行为。
+
+V2 应新增 wrapper / runtime：
+
+- `DogVenueFollower`：负责小狗在真实场地内保持前方、跟随 HMD 速度、避开不可行走区域、接近宝藏时开心反馈。
+- `VenueNavigationRuntime`：负责使用 `VenuePathfinder` 结果替代旧 path prefab，并向小狗提供推荐方向。
 
 ## 必须遵守的文档同步规则
 
