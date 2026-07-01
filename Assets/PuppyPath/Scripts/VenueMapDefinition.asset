@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1a7299c6f3a6134e844179657395824, type: 3}
+  m_Name: VenueMapDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::VenueMapDefinition
+  mapTexture: {fileID: 2800000, guid: 8f3309e3ea7188b46bee6eb614df458f, type: 3}
+  mapPixelSize: {x: 2048, y: 2048}
+  mapOriginPixel: {x: 716, y: 820}
+  originWorldPosition: {x: 0, y: 0, z: 0}
+  venueYawDegrees: 0
+  scalePointAPixel: {x: 1003, y: 715}
+  scalePointBPixel: {x: 1003, y: 833}
+  scaleSegmentMeters: 3.45
+  attractions:
+  - id: chess
+    sourceMapLabel: Chess
+    displayName: Checkmate Corner
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: couch
+    sourceMapLabel: Couch
+    displayName: Cozy Couch Cove
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: photo_wall
+    sourceMapLabel: Photo Wall
+    displayName: Snapshot Studio
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: goodies
+    sourceMapLabel: Goodies
+    displayName: Treat Trove
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: book_wall
+    sourceMapLabel: Book Wall
+    displayName: Storybook Wall
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: tap_water
+    sourceMapLabel: Tap Water
+    displayName: Splash Stop
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: ice_cream_shop
+    sourceMapLabel: Ice Cream Shop
+    displayName: Scoop Station
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: drink_shop
+    sourceMapLabel: Drink Shop
+    displayName: Fizzy Fridge
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: piano
+    sourceMapLabel: Piano
+    displayName: Melody Corner
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: plants
+    sourceMapLabel: Plants
+    displayName: Garden Patch
+    chineseDisplayName: 
+    collectibleSpawnPixel: {x: 0, y: 0}
+    arrivalPixel: {x: 0, y: 0}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10

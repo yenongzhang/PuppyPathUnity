@@ -1,6 +1,6 @@
 # PuppyPath 现有项目 V2 审计文档
 
-最后更新：2026-06-30
+最后更新：2026-07-01
 
 ## 阅读范围
 
@@ -398,6 +398,23 @@ V2 用法：
 - 可收集物显示 / 抓取 / 放置。
 - 小狗饰品 attach。
 - 奖励显示流程。
+
+## 2026-07-01 V2 新增脚本记录
+
+本次开始实现阶段 1：场地标定原型，新增脚本位于 `Assets/PuppyPath/Scripts/V2`：
+
+- `VenueMapDefinition.cs`：新增 `ScriptableObject` 数据资产类型，用于保存真实场地地图尺寸、Photo Wall 原点、3.45 m 比例线、地图到 Unity 的坐标转换参数以及景点 / collectible spawn point 数据。
+- `VenueCoordinateMapper.cs`：新增纯转换工具，统一地图像素坐标和 Unity 世界坐标之间的换算，当前约定为地图北方对应 Unity `+Z`。
+- `VenueCalibrationDebugView.cs`：新增 Scene 视图调试组件，用 Gizmos 绘制 VenueOrigin、地图边界、3.45 m 比例线和景点 marker。
+
+这些脚本不替换现有 `DogGuideController`、旧 UI 或旧路径系统，只是为 V2 的真实场地坐标层打基础。
+
+当前 `VenueMapDefinition` 还提供调试菜单：
+
+- `Use PuppyPath Source Map Size`：将地图尺寸设为原图 `2468 x 2160`。
+- `Use Confirmed V2 Orientation`：将 `originWorldPosition` 设为 `(0, 0, 0)`，`venueYawDegrees` 设为 `0`。
+- `Populate Default Attractions`：生成 10 个默认景点数据条目。
+- `Log Calibration Summary`：在 Console 打印当前比例尺、米/像素、世界比例线距离和景点数量。
 
 ## 必须遵守的文档同步规则
 

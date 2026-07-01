@@ -1,6 +1,6 @@
 # PuppyPath V2 实施步骤文档
 
-最后更新：2026-06-30
+最后更新：2026-07-01
 
 ## 当前技术阅读结论
 
@@ -45,6 +45,18 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `RewardDefinition`
 
 稳定内容数据优先使用 `ScriptableObject`。空间锚点、手工 waypoint、调试点可以使用场景对象。
+
+当前已开始实现：
+
+- `Assets/PuppyPath/Scripts/V2/VenueMapDefinition.cs`：`ScriptableObject` 场地地图定义，保存地图尺寸、原点像素坐标、3.45 m 比例尺端点、朝向和景点数据。
+- `Assets/PuppyPath/Scripts/V2/VenueCoordinateMapper.cs`：地图像素坐标和 Unity 世界坐标之间的转换工具。
+- `Assets/PuppyPath/Scripts/V2/VenueCalibrationDebugView.cs`：Scene 视图调试绘制工具，用于检查原点、地图边界、比例尺和景点 marker。
+
+已确认第一版坐标约定：
+
+- `VenueOrigin` 使用 Photo Wall 右上角红点。
+- Unity `+Z` 对应地图北方 / 图片向上方向。
+- 地图像素坐标以图片左上角为 `(0, 0)`，`+X` 向右，`+Y` 向下。
 
 ### 新游戏流程层
 
@@ -150,6 +162,24 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 ### 阶段 1：场地标定原型
 
 目标：创建一个与真实地图比例一致的 Unity 场地场景。
+
+当前状态：基础数据结构和调试可视化脚本已建立，下一步需要在 Unity 中创建 `VenueMapDefinition` 资产，并在 Inspector 中填写 Photo Wall 原点、3.45 m 比例线端点和各景点像素坐标。
+
+当前测试方法：
+
+1. 在 `VenueMapDefinition` 中确认 `Map Pixel Size = 2468 x 2160`，`Sync Map Pixel Size From Imported Texture` 不勾选。
+2. 填写 `Map Origin Pixel`、`Scale Point A Pixel`、`Scale Point B Pixel`。
+3. 在场景中创建或选择 `VenueCalibrationDebug` 空物体，挂载 `VenueCalibrationDebugView`，并引用当前 `VenueMapDefinition`。
+4. 打开 Scene 视图右上角 `Gizmos`。
+5. 在 Project 视图选中 `VenueMapDefinition`，通过组件右键菜单执行 `Log Calibration Summary`。
+6. Console 中 `Scale world distance` 应显示约 `3.45 m`。
+7. Scene 视图中应能看到 Photo Wall 原点、3.45 m 比例线、地图边界；填写景点坐标后还应看到 10 个景点 marker。
+
+当前已填写的第一批标定值：
+
+- `Map Origin Pixel = (716, 820)`。
+- `Scale Point A Pixel = (1003, 715)`。
+- `Scale Point B Pixel = (1003, 833)`。
 
 步骤：
 
@@ -357,6 +387,53 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 6. 添加可收集物的显示、抓取、放置。
 7. 添加饰品 attachment 和奖励显示。
 8. 优化小狗动画和表情。
+
+## 并行工作分配建议
+
+当前建议分成两条互不阻塞的开发线：
+
+### 开发线 A：地图 / 场地坐标 / 导航基础
+
+负责人：地图负责人。
+
+当前任务：
+
+- 完成 `VenueMapDefinition` 的 10 个景点 / collectible spawn point 像素坐标填写。
+- 使用 `VenueCalibrationDebugView` 验证比例尺、原点、地图方向和景点相对位置。
+- 下一步建立黄色可行走区域的手工 polygon 或 waypoint 草稿。
+- 后续实现 `VenueNavGraph`、`VenuePathfinder`、`VenueRouteLineController`。
+
+交付物：
+
+- 可被代码读取的场地坐标数据。
+- Scene 视图中可信的地图 marker 和比例尺。
+- 第一版可行走区域 / 导航图。
+
+### 开发线 B：小狗饰品 / 奖励 / 动画测试
+
+负责人：第二位程序员。
+
+这条线可以并行推进，因为它主要依赖小狗 prefab、动画和临时测试按钮，不依赖最终地图坐标。
+
+当前任务：
+
+- 在小狗 prefab 上整理饰品 anchor：`Head`、`Face`、`Neck`、`Back` 等。
+- 新增 `DogAccessoryDefinition` 和 `DogAccessoryManager` 草稿，用测试键或 Inspector 按钮把饰品 prefab attach 到指定 anchor。
+- 在 `DogTestScene` 或复制出的 V2 测试场景里测试坐下、开心、惊讶、摇晃等动画状态。
+- 整理每个景点对应的临时饰品 slot，例如 Photo Wall -> glasses / camera frame，Drink Shop -> collar charm。
+- 新增简单 `RewardRevealController` 草稿，可以显示一张测试奖励面板或触发已有烟花 prefab。
+
+边界约束：
+
+- 不修改 `VenueMapDefinition`、`VenueCoordinateMapper`、`VenueCalibrationDebugView` 的坐标逻辑。
+- 不把奖励流程强接到地图导航；先做可独立测试的 API，例如 `ShowReward(string attractionId)`。
+- 如需改 `DogGuideController`，优先新增 wrapper 或小范围公开方法，避免重写现有导航行为。
+
+交付物：
+
+- 小狗 prefab 上可用的饰品 anchor。
+- 能在测试场景中手动 attach / detach 饰品的管理器。
+- 奖励显示和小狗动画反应的独立 demo。
 
 ## 风险
 

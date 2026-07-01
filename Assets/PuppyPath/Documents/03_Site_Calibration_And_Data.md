@@ -1,6 +1,6 @@
 # 场地标定和数据规范
 
-最后更新：2026-06-30
+最后更新：2026-07-01
 
 ## 核心要求
 
@@ -13,6 +13,40 @@
 - 真实世界长度：3.45 m。
 
 地图中的黄色区域是人和小狗可以行走的区域。
+
+## 当前已确认的 V2 标定决定
+
+- `VenueOrigin`：Photo Wall 右上角的红点位置。
+- Unity `+Z`：地图北方，也就是地图向上方向。
+- 地图像素坐标约定：以图片左上角为 `(0, 0)`，`+X` 向右，`+Y` 向下。
+- Unity 世界坐标约定：`+X` 对应地图东方 / 右方，`+Z` 对应地图北方 / 上方。
+- 当前地图图片尺寸：`2468 x 2160` 像素。
+- 比例尺：红色竖向墙体线段真实长度为 `3.45 m`。
+- 当前实现入口：`Assets/PuppyPath/Scripts/V2/VenueMapDefinition.cs` 保存地图、原点、比例尺和景点数据；`VenueCalibrationDebugView.cs` 在 Scene 视图中绘制原点、比例尺、地图边界和景点调试点。
+
+仍需在 Unity Inspector 中精确填写：
+
+- `mapOriginPixel`：Photo Wall 右上角红点在原图中的像素坐标。
+- `scalePointAPixel` / `scalePointBPixel`：3.45 m 红色竖向比例线两端在原图中的像素坐标。
+- 每个景点 / collectible spawn point 的像素坐标。
+
+当前第一批已填写值：
+
+```text
+mapOriginPixel = (716, 820)
+scalePointAPixel = (1003, 715)
+scalePointBPixel = (1003, 833)
+scaleSegmentMeters = 3.45
+```
+
+由以上值计算：
+
+```text
+pixelDistanceOfRedWall = 118 px
+metersPerPixel = 3.45 / 118 = 0.029237288 m/px
+```
+
+这表示如果地图像素坐标相差 100 px，对应 Unity 世界距离约为 2.92 m。
 
 ## 标定流程
 
@@ -88,9 +122,9 @@ metersPerPixel = 3.45 / pixelDistanceOfRedWall
 选定后记录：
 
 ```text
-UnityOriginName = TBD
-MapOriginPoint = TBD
-RealWorldOriginDescription = TBD
+UnityOriginName = VenueOrigin_PhotoWallUpperRight
+MapOriginPoint = Photo Wall 右上角红点，像素坐标待 Inspector 精确填写
+RealWorldOriginDescription = Photo Wall 右上角对应的现场固定点
 ```
 
 ### 步骤 5：选择 Unity 前方方向
@@ -100,9 +134,9 @@ RealWorldOriginDescription = TBD
 选定后记录：
 
 ```text
-UnityForward = TBD
-MapDirectionForForward = TBD
-RotationDegrees = TBD
+UnityForward = +Z
+MapDirectionForForward = 地图北方 / 图片向上方向
+RotationDegrees = 0，除非现场 Spatial Anchor 对齐时需要整体 yaw offset
 ```
 
 ### 步骤 6：创建坐标转换
@@ -235,6 +269,14 @@ worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredP
 - 小狗位置必须方便用户把虚拟物品拖到它身上。
 
 ## 现场验证清单
+
+### Editor 标定验证清单
+
+- `VenueMapDefinition.Map Pixel Size` 应保持为 `2468 x 2160`。
+- `Sync Map Pixel Size From Imported Texture` 应保持关闭，避免 Unity 导入压缩尺寸覆盖原图坐标。
+- 在 `VenueMapDefinition` 右键菜单执行 `Log Calibration Summary`，Console 中 `Scale world distance` 应为 `3.45 m` 左右。
+- Scene 视图打开 `Gizmos` 后，应能看到红色 `VenueOrigin` 和红色比例线。
+- 如果比例线方向或地图边界看起来反了，优先检查是否把图片坐标当成了 Unity 坐标；当前约定是图片 `+Y` 向下，Unity `+Z` 向地图北方 / 图片向上。
 
 - 测量 Unity 中的红色参考墙：应为 3.45 m。
 - 站在每个黄色虚拟物品出现点附近，验证小地图 marker 是否对齐。
