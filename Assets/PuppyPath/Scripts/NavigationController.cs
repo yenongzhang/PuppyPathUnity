@@ -242,6 +242,15 @@ public class NavigationController : MonoBehaviour
         StopNavigationAndReturnToFreeRoam();
     }
 
+    public void StartDogAfterLogo()
+    {
+        if (venueNavigationRuntime == null)
+            venueNavigationRuntime = FindFirstObjectByType<VenueNavigationRuntime>();
+
+        if (venueNavigationRuntime != null)
+            venueNavigationRuntime.StartFreeRoamGuiding();
+    }
+
     public void OpenMapFromHud()
     {
         if (hudController != null)

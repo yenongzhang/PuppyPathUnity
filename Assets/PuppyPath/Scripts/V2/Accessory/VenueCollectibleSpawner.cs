@@ -47,7 +47,7 @@ public class VenueCollectibleSpawner : MonoBehaviour
     [SerializeField] private bool alwaysShowGiftVisual = true;
     [SerializeField] private float discoveryDistance = 1.0f;
     [SerializeField] private bool useFlatDiscoveryDistance = true;
-    [SerializeField] private float dogStopDistance = 0.18f;
+    [SerializeField] private float dogStopDistance = 0.35f;
     [SerializeField] private float hudMessageSeconds = 3.0f;
     [SerializeField] private float maxDogWalkSeconds = 10.0f;
     [SerializeField] private string dogTreasureArrivalState = "";

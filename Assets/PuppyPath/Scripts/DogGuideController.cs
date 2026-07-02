@@ -135,6 +135,16 @@ public class DogGuideController : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool logAnimationChanges = false;
 
+    [Header("Venue Walkability")]
+    [SerializeField] private VenueMapDefinition mapDefinition;
+    [SerializeField] private Transform venueContentRoot;
+    [SerializeField] private bool constrainMovementToWalkableMap = true;
+    [SerializeField] private int movementWalkabilitySamples = 12;
+    [SerializeField] private float interactionStandOffRadius = 0.55f;
+    [SerializeField] private float dogBodyRadius = 0.22f;
+    [SerializeField] private float dogBodyHeight = 0.35f;
+    [SerializeField] private LayerMask movementBlockerMask = ~0;
+
     private GameObject currentDog;
     private Transform xrCamera;
     private Animator dogAnimator;
@@ -149,6 +159,23 @@ public class DogGuideController : MonoBehaviour
     private bool currentBehaviorIsStateReaction;
     private bool positiveRandomBehaviorsSuppressed;
     private bool interactionHold;
+
+    private readonly List<Vector3> interactionRoute = new List<Vector3>();
+    private static readonly Collider[] MovementOverlapBuffer = new Collider[12];
+
+    private void Awake()
+    {
+        ResolveVenueWalkabilityReferences();
+    }
+
+    public void ConfigureVenueWalkability(VenueMapDefinition definition, Transform contentRoot)
+    {
+        if (definition != null)
+            mapDefinition = definition;
+
+        if (contentRoot != null)
+            venueContentRoot = contentRoot;
+    }
 
     private NavigationRuntimeController.NavState currentState = NavigationRuntimeController.NavState.Neutral;
     private NavigationRuntimeController.NavState previousState = NavigationRuntimeController.NavState.Neutral;
@@ -391,8 +418,16 @@ public class DogGuideController : MonoBehaviour
         if (isPerformingBehavior && !currentBehaviorIsStateReaction)
             StopCurrentBehavior();
 
-        targetPosition.y = currentDog.transform.position.y;
+        Vector3 lookTarget = targetPosition;
+        lookTarget.y = currentDog.transform.position.y;
+
         float safeStopDistance = Mathf.Max(0.05f, stopDistance);
+        Vector3 approachTarget = ComputeInteractionApproachPoint(lookTarget, safeStopDistance);
+        approachTarget.y = currentDog.transform.position.y;
+
+        BuildInteractionRoute(approachTarget);
+        int routeIndex = interactionRoute.Count > 1 ? 1 : 0;
+
         float closeEnoughDistance = safeStopDistance + minDistanceForWalkAnimation + locomotionStartExtraDistance;
         float elapsed = 0f;
         int stuckFrames = 0;
@@ -402,19 +437,32 @@ public class DogGuideController : MonoBehaviour
 
         while (currentDog != null)
         {
-            float distance = GetFlatDistance(currentDog.transform.position, targetPosition);
+            Vector3 segmentTarget = interactionRoute[routeIndex];
+            segmentTarget.y = currentDog.transform.position.y;
+
+            float distance = GetFlatDistance(currentDog.transform.position, segmentTarget);
 
             if (distance <= safeStopDistance)
-                break;
+            {
+                if (routeIndex < interactionRoute.Count - 1)
+                {
+                    routeIndex++;
+                    stuckFrames = 0;
+                    lastPosition = currentDog.transform.position;
+                    continue;
+                }
 
-            if (elapsed >= maxDuration || distance <= closeEnoughDistance)
+                break;
+            }
+
+            if (elapsed >= maxDuration || (routeIndex >= interactionRoute.Count - 1 && distance <= closeEnoughDistance))
                 break;
 
             string moveState = distance > 0.75f ? trotState : walkState;
             float moveSpeed = distance > 0.75f ? trotMoveSpeed : walkMoveSpeed;
             float animationGate = distance > 0.75f ? minDistanceForTrotAnimation : minDistanceForWalkAnimation;
 
-            TryPlayLocomotionAndMove(targetPosition, moveState, moveSpeed, animationGate);
+            TryPlayLocomotionAndMove(segmentTarget, moveState, moveSpeed, animationGate);
 
             float moved = GetFlatDistance(lastPosition, currentDog.transform.position);
             if (moved < stuckMoveThreshold)
@@ -423,7 +471,17 @@ public class DogGuideController : MonoBehaviour
                 stuckFrames = 0;
 
             if (stuckFrames >= stuckFrameLimit)
+            {
+                if (routeIndex < interactionRoute.Count - 1)
+                {
+                    routeIndex++;
+                    stuckFrames = 0;
+                    lastPosition = currentDog.transform.position;
+                    continue;
+                }
+
                 break;
+            }
 
             lastPosition = currentDog.transform.position;
             elapsed += Time.deltaTime;
@@ -432,7 +490,7 @@ public class DogGuideController : MonoBehaviour
 
         if (currentDog != null)
         {
-            Vector3 lookDirection = targetPosition - currentDog.transform.position;
+            Vector3 lookDirection = lookTarget - currentDog.transform.position;
             lookDirection.y = 0f;
 
             if (lookDirection.sqrMagnitude > 0.0001f)
@@ -1574,6 +1632,10 @@ public class DogGuideController : MonoBehaviour
             return;
 
         Vector3 currentPos = currentDog.transform.position;
+        Vector3 desiredPos = Vector3.MoveTowards(currentPos, targetPos, speed * Time.deltaTime);
+
+        if (!TryApplyConstrainedMove(currentPos, desiredPos, out Vector3 appliedPos))
+            appliedPos = currentPos;
 
         Vector3 moveDir = targetPos - currentPos;
         moveDir.y = 0f;
@@ -1589,11 +1651,7 @@ public class DogGuideController : MonoBehaviour
             );
         }
 
-        currentDog.transform.position = Vector3.MoveTowards(
-            currentPos,
-            targetPos,
-            speed * Time.deltaTime
-        );
+        currentDog.transform.position = appliedPos;
     }
 
     private bool IsDogBehindUser(Vector3 routeDirection)
@@ -1649,5 +1707,208 @@ public class DogGuideController : MonoBehaviour
         a.y = 0f;
         b.y = 0f;
         return Vector3.Distance(a, b);
+    }
+
+    private void ResolveVenueWalkabilityReferences()
+    {
+        if (venueContentRoot == null)
+        {
+            VenueAlignmentManager alignmentManager = FindFirstObjectByType<VenueAlignmentManager>();
+            if (alignmentManager != null)
+                venueContentRoot = alignmentManager.VenueContentRoot;
+        }
+
+        if (mapDefinition == null)
+        {
+            VenueNavigationRuntime navigationRuntime = FindFirstObjectByType<VenueNavigationRuntime>();
+            if (navigationRuntime != null)
+                mapDefinition = navigationRuntime.MapDefinition;
+        }
+    }
+
+    private Vector3 ComputeInteractionApproachPoint(Vector3 targetPosition, float stopDistance)
+    {
+        if (currentDog == null)
+            return targetPosition;
+
+        float standOff = Mathf.Max(stopDistance, interactionStandOffRadius);
+        Vector3 toDog = currentDog.transform.position - targetPosition;
+        toDog.y = 0f;
+
+        if (toDog.sqrMagnitude <= standOff * standOff)
+            return currentDog.transform.position;
+
+        return targetPosition + toDog.normalized * standOff;
+    }
+
+    private void BuildInteractionRoute(Vector3 targetWorld)
+    {
+        interactionRoute.Clear();
+
+        if (currentDog == null)
+        {
+            interactionRoute.Add(targetWorld);
+            return;
+        }
+
+        interactionRoute.Add(currentDog.transform.position);
+
+        if (!TryBuildMapPath(currentDog.transform.position, targetWorld, out List<Vector3> pathPoints) || pathPoints.Count < 2)
+        {
+            interactionRoute.Add(targetWorld);
+            return;
+        }
+
+        for (int i = 1; i < pathPoints.Count; i++)
+            interactionRoute.Add(pathPoints[i]);
+    }
+
+    private bool TryBuildMapPath(Vector3 startWorld, Vector3 endWorld, out List<Vector3> worldPath)
+    {
+        worldPath = new List<Vector3>();
+
+        if (mapDefinition == null || !mapDefinition.IsScaleReady())
+            return false;
+
+        Vector2 startPixel = mapDefinition.WorldToMapPixel(WorldToVenueLocal(startWorld));
+        Vector2 endPixel = mapDefinition.WorldToMapPixel(WorldToVenueLocal(endWorld));
+
+        List<Vector3> venueLocalPath = new List<Vector3>();
+        if (!VenuePathfinder.TryFindWorldPath(mapDefinition, startPixel, endPixel, venueLocalPath))
+            return false;
+
+        for (int i = 0; i < venueLocalPath.Count; i++)
+            worldPath.Add(VenueLocalToWorld(venueLocalPath[i]));
+
+        return worldPath.Count >= 2;
+    }
+
+    private bool TryApplyConstrainedMove(Vector3 from, Vector3 to, out Vector3 appliedPosition)
+    {
+        appliedPosition = to;
+
+        if (IsMovePositionAllowed(from, to))
+            return true;
+
+        Vector3 xSlide = new Vector3(to.x, from.y, from.z);
+        if (IsMovePositionAllowed(from, xSlide))
+        {
+            appliedPosition = xSlide;
+            return true;
+        }
+
+        Vector3 zSlide = new Vector3(from.x, from.y, to.z);
+        if (IsMovePositionAllowed(from, zSlide))
+        {
+            appliedPosition = zSlide;
+            return true;
+        }
+
+        Vector3 shortened = to;
+        for (int i = 0; i < 5; i++)
+        {
+            shortened = Vector3.Lerp(from, shortened, 0.5f);
+            if (IsMovePositionAllowed(from, shortened))
+            {
+                appliedPosition = shortened;
+                return true;
+            }
+        }
+
+        appliedPosition = from;
+        return false;
+    }
+
+    private bool IsMovePositionAllowed(Vector3 from, Vector3 to)
+    {
+        if (GetFlatDistance(from, to) <= 0.0001f)
+            return true;
+
+        if (WouldIntersectCollectible(to))
+            return false;
+
+        if (IsPhysicsMoveBlocked(from, to, out float allowedDistance))
+        {
+            Vector3 delta = to - from;
+            delta.y = 0f;
+            if (allowedDistance + 0.001f < delta.magnitude)
+                return false;
+        }
+
+        if (constrainMovementToWalkableMap && mapDefinition != null && mapDefinition.IsScaleReady())
+        {
+            Vector2 startPixel = mapDefinition.WorldToMapPixel(WorldToVenueLocal(from));
+            Vector2 endPixel = mapDefinition.WorldToMapPixel(WorldToVenueLocal(to));
+            if (!mapDefinition.IsMapSegmentWalkable(startPixel, endPixel, movementWalkabilitySamples))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool WouldIntersectCollectible(Vector3 worldPosition)
+    {
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            worldPosition + Vector3.up * dogBodyHeight * 0.5f,
+            dogBodyRadius,
+            MovementOverlapBuffer,
+            ~0,
+            QueryTriggerInteraction.Collide);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider hitCollider = MovementOverlapBuffer[i];
+            if (hitCollider == null)
+                continue;
+
+            if (currentDog != null && hitCollider.transform.IsChildOf(currentDog.transform))
+                continue;
+
+            if (hitCollider.GetComponentInParent<CollectibleGrabHandler>() != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsPhysicsMoveBlocked(Vector3 from, Vector3 to, out float allowedDistance)
+    {
+        allowedDistance = GetFlatDistance(from, to);
+
+        Vector3 delta = to - from;
+        delta.y = 0f;
+        float distance = delta.magnitude;
+        if (distance <= 0.0001f)
+            return false;
+
+        Vector3 origin = from + Vector3.up * dogBodyHeight * 0.5f;
+        if (Physics.SphereCast(
+                origin,
+                dogBodyRadius * 0.85f,
+                delta.normalized,
+                out RaycastHit hit,
+                distance,
+                movementBlockerMask,
+                QueryTriggerInteraction.Ignore))
+        {
+            allowedDistance = Mathf.Max(0f, hit.distance - dogBodyRadius * 0.25f);
+            return true;
+        }
+
+        return false;
+    }
+
+    private Vector3 WorldToVenueLocal(Vector3 worldPosition)
+    {
+        return venueContentRoot != null
+            ? venueContentRoot.InverseTransformPoint(worldPosition)
+            : worldPosition;
+    }
+
+    private Vector3 VenueLocalToWorld(Vector3 venueLocalPosition)
+    {
+        return venueContentRoot != null
+            ? venueContentRoot.TransformPoint(venueLocalPosition)
+            : venueLocalPosition;
     }
 }

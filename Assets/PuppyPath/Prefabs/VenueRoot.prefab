@@ -630,6 +630,10 @@ MonoBehaviour:
   mapContentBottom: 1
   mapContentTop: 1
   attractionMarkerPrefab: {fileID: 0}
+  showUserMarker: 1
+  userMarkerSprite: {fileID: -155982801, guid: 46d94cf8f31002d41a1b040d39af2cc0, type: 3}
+  userMarkerSize: {x: 56, y: 56}
+  userMarkerRotationOffset: -90
   attractionMarkerSize: {x: 34, y: 34}
   minimumAttractionMarkerSize: {x: 72, y: 72}
   attractionMarkerColor: {r: 1, g: 0.64, b: 0.08, a: 1}

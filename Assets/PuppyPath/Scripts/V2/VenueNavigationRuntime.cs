@@ -42,6 +42,8 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     public bool IsNavigating { get; private set; }
     public bool IsFreeRoaming { get; private set; }
+    public VenueMapDefinition MapDefinition => mapDefinition;
+    public Transform VenueContentRoot => venueContentRoot;
     public string CurrentDestinationAttractionId { get; private set; }
     public string CurrentDestinationDisplayName { get; private set; }
     public NavigationRuntimeController.NavState CurrentState { get; private set; } = NavigationRuntimeController.NavState.Neutral;
@@ -66,6 +68,9 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     private void Start()
     {
+        if (dogGuideController != null && mapDefinition != null)
+            dogGuideController.ConfigureVenueWalkability(mapDefinition, venueContentRoot);
+
         if (startTestNavigationOnPlay)
             StartNavigationToAttraction(testDestinationAttractionId);
     }

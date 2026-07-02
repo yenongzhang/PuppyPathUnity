@@ -45,6 +45,13 @@ public class VenueMapUiController : MonoBehaviour
     [Header("Marker Prefabs")]
     [SerializeField] private RectTransform attractionMarkerPrefab;
 
+    [Header("User Marker")]
+    [SerializeField] private bool showUserMarker = true;
+    [SerializeField] private Sprite userMarkerSprite;
+    [SerializeField] private Vector2 userMarkerSize = new Vector2(56f, 56f);
+    [Tooltip("Extra Z rotation applied to the footprint sprite. Adjust if the art does not point north by default.")]
+    [SerializeField] private float userMarkerRotationOffset = -90f;
+
     [Header("Marker Style")]
     [SerializeField] private Vector2 attractionMarkerSize = new Vector2(72f, 72f);
     [SerializeField] private Vector2 minimumAttractionMarkerSize = new Vector2(72f, 72f);
@@ -78,6 +85,9 @@ public class VenueMapUiController : MonoBehaviour
     private readonly HashSet<string> visitedAttractionIds = new HashSet<string>();
     private string selectedAttractionId;
     private Sprite runtimeMapSprite;
+    private RectTransform userMarkerRect;
+    private Image userMarkerImage;
+    private RectTransform userMarkerParent;
 
     private void OnValidate()
     {
@@ -97,10 +107,16 @@ public class VenueMapUiController : MonoBehaviour
             largeMapPanel.SetActive(false);
 
         PrepareMapImageForMarkerRaycasts();
+        EnsureUserMarker();
         RebuildRoadLines();
         RebuildMarkers();
         ApplySessionCollectedMarkers();
         UpdateStatusText();
+    }
+
+    private void LateUpdate()
+    {
+        UpdateUserMarker();
     }
 
     [ContextMenu("Rebuild Map Visuals")]
@@ -197,6 +213,9 @@ public class VenueMapUiController : MonoBehaviour
 
         if (mapButtonRoot != null)
             mapButtonRoot.SetActive(false);
+
+        EnsureUserMarker();
+        UpdateUserMarker();
     }
 
     public void CloseLargeMap()
@@ -307,6 +326,21 @@ public class VenueMapUiController : MonoBehaviour
     {
         foreach (string attractionId in CollectibleGrabHandler.GetCollectedVenueAttractionIds())
             MarkAttractionCollected(attractionId);
+    }
+
+    public bool TryGetUserMapPixel(out Vector2 mapPixel)
+    {
+        mapPixel = Vector2.zero;
+
+        if (mapDefinition == null || xrCamera == null)
+            return false;
+
+        Vector3 venueLocalPosition = venueContentRoot != null
+            ? venueContentRoot.InverseTransformPoint(xrCamera.position)
+            : xrCamera.position;
+
+        mapPixel = mapDefinition.WorldToMapPixel(venueLocalPosition);
+        return true;
     }
 
     private void ApplyMapTexture()
@@ -471,6 +505,85 @@ public class VenueMapUiController : MonoBehaviour
         return new Vector2(
             Mathf.Max(attractionMarkerSize.x, minimumAttractionMarkerSize.x),
             Mathf.Max(attractionMarkerSize.y, minimumAttractionMarkerSize.y));
+    }
+
+    private void EnsureUserMarker()
+    {
+        if (!showUserMarker || userMarkerRect != null)
+            return;
+
+        RectTransform mapRect = GetMapRect();
+        if (mapRect == null)
+            return;
+
+        userMarkerParent = GetOrCreateOverlayParent("UserMarker");
+        if (userMarkerParent == null)
+            return;
+
+        GameObject markerObject = new GameObject("UserFootprint", typeof(RectTransform), typeof(Image));
+        userMarkerRect = markerObject.GetComponent<RectTransform>();
+        userMarkerRect.SetParent(userMarkerParent, false);
+        userMarkerRect.anchorMin = new Vector2(0.5f, 0.5f);
+        userMarkerRect.anchorMax = new Vector2(0.5f, 0.5f);
+        userMarkerRect.pivot = new Vector2(0.5f, 0.5f);
+        userMarkerRect.sizeDelta = userMarkerSize;
+        userMarkerRect.localScale = Vector3.one;
+
+        userMarkerImage = markerObject.GetComponent<Image>();
+        userMarkerImage.sprite = userMarkerSprite;
+        userMarkerImage.color = Color.white;
+        userMarkerImage.raycastTarget = false;
+        userMarkerImage.preserveAspect = true;
+
+        userMarkerParent.SetAsLastSibling();
+    }
+
+    private void UpdateUserMarker()
+    {
+        if (!showUserMarker)
+        {
+            if (userMarkerRect != null)
+                userMarkerRect.gameObject.SetActive(false);
+
+            return;
+        }
+
+        EnsureUserMarker();
+
+        if (userMarkerRect == null)
+            return;
+
+        bool mapVisible = largeMapPanel == null || largeMapPanel.activeSelf;
+        userMarkerRect.gameObject.SetActive(mapVisible);
+
+        if (!mapVisible || mapDefinition == null || xrCamera == null)
+            return;
+
+        RectTransform mapRect = GetMapRect();
+        if (mapRect == null)
+            return;
+
+        if (!TryGetUserMapPixel(out Vector2 mapPixel))
+            return;
+
+        userMarkerRect.anchoredPosition = MapPixelToFullMapAnchoredPosition(mapPixel, mapRect);
+        userMarkerRect.localRotation = Quaternion.Euler(0f, 0f, GetUserMarkerRotationZ());
+    }
+
+    private float GetUserMarkerRotationZ()
+    {
+        Vector3 flatForward = xrCamera.forward;
+        flatForward.y = 0f;
+
+        if (venueContentRoot != null)
+            flatForward = venueContentRoot.InverseTransformDirection(flatForward);
+
+        if (flatForward.sqrMagnitude <= 0.0001f)
+            return userMarkerRotationOffset;
+
+        flatForward.Normalize();
+        float angleZ = Mathf.Atan2(flatForward.z, flatForward.x) * Mathf.Rad2Deg;
+        return angleZ + userMarkerRotationOffset;
     }
 
     private void ShowSelectedRouteToMapPixel(Vector2 destinationPixel)
@@ -659,7 +772,10 @@ public class VenueMapUiController : MonoBehaviour
             routeLineParent.SetSiblingIndex(roadLineParent != null ? roadLineParent.GetSiblingIndex() + 1 : 0);
 
         if (largeMapMarkerParent != null)
-            largeMapMarkerParent.SetAsLastSibling();
+            largeMapMarkerParent.SetSiblingIndex(routeLineParent != null ? routeLineParent.GetSiblingIndex() + 1 : 0);
+
+        if (userMarkerParent != null)
+            userMarkerParent.SetAsLastSibling();
     }
 
     private void UpdateSelectedMarkerVisuals()

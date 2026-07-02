@@ -39,6 +39,10 @@ public class UIBootSequence : MonoBehaviour
     [SerializeField] private UnityEvent onStartupCalibrationConfirmed;
     [SerializeField] private UnityEvent onBootFinished;
 
+    [Header("Post Logo")]
+    [SerializeField] private NavigationController navigationController;
+    [SerializeField] private bool startDogAfterLogo = true;
+
     private readonly List<GameObject> resolvedStartupCalibrationVisualRoots = new List<GameObject>();
     private bool startupCalibrationConfirmed;
 
@@ -83,6 +87,19 @@ public class UIBootSequence : MonoBehaviour
 
         ShowMainCanvasSafely();
         onBootFinished?.Invoke();
+        StartDogAfterLogo();
+    }
+
+    private void StartDogAfterLogo()
+    {
+        if (!startDogAfterLogo)
+            return;
+
+        if (navigationController == null)
+            navigationController = FindFirstObjectByType<NavigationController>();
+
+        if (navigationController != null)
+            navigationController.StartDogAfterLogo();
     }
 
     private IEnumerator WaitForStartupCalibration()
