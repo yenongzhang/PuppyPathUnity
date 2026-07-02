@@ -7,13 +7,13 @@ public class NavigationController : MonoBehaviour
     [Header("References")]
     [SerializeField] private PathPreviewController previewController;
     [SerializeField] private NavigationRuntimeController runtimeController;
+    [SerializeField] private VenueNavigationRuntime venueNavigationRuntime;
+    [SerializeField] private VenueMapUiController venueMapUiController;
     [SerializeField] private NavigationHUDController hudController;
     [SerializeField] private PuppyPathSelectionUI selectionUI;
 
     [Header("Intro Phases")]
     [SerializeField] private GameObject introPhase1;
-    [SerializeField] private GameObject introPhase2;
-    [SerializeField] private GameObject introPhase3;
 
     [Header("Preview UI")]
     [SerializeField] private GameObject showPathButton;
@@ -32,8 +32,8 @@ public class NavigationController : MonoBehaviour
     [SerializeField] private bool destroyFireworksAfterDelay = true;
     [SerializeField] private float fireworkDestroyDelay = 4f;
     [SerializeField] private bool debugFireworks = true;
-    [Header("Arrival Reset")]
-    [SerializeField] private float returnToMainMenuDelay = 10f;
+    [Header("Arrival")]
+    [SerializeField] private float arrivalFreeRoamDelay = 0f;
 
     [Header("Destination Beacon")]
     [SerializeField] private GameObject destinationBeaconPrefab;
@@ -47,11 +47,29 @@ public class NavigationController : MonoBehaviour
     private bool isInNavigationMode;
     private bool hasCompletedNavigation;
     private Coroutine fireworkRoutine;
-    private Coroutine returnToMenuRoutine;
+    private Coroutine arrivalFreeRoamRoutine;
 
     private void Start()
     {
-        ResetToMainMenu();
+        if (venueNavigationRuntime == null)
+            venueNavigationRuntime = FindFirstObjectByType<VenueNavigationRuntime>();
+
+        if (venueMapUiController == null)
+            venueMapUiController = FindFirstObjectByType<VenueMapUiController>();
+
+        ResetToIntro();
+    }
+
+    private void Update()
+    {
+        if (!isInNavigationMode || hasCompletedNavigation || venueNavigationRuntime == null)
+            return;
+
+        if (venueNavigationRuntime.IsNavigating &&
+            venueNavigationRuntime.CurrentState == NavigationRuntimeController.NavState.Arrived)
+        {
+            CompleteNavigation();
+        }
     }
 
     public void SetPendingPathId(string pathId)
@@ -79,7 +97,7 @@ public class NavigationController : MonoBehaviour
         if (isInNavigationMode)
             return;
 
-        SetPhaseMode(2);
+        SetIntroVisible(true);
 
         if (showPathButton != null)
             showPathButton.SetActive(!string.IsNullOrEmpty(pendingPathId));
@@ -170,6 +188,79 @@ public class NavigationController : MonoBehaviour
         runtimeController.StartRuntime();
     }
 
+    public bool StartVenueNavigationToAttraction(string attractionId, string targetName)
+    {
+        if (string.IsNullOrWhiteSpace(attractionId))
+            return false;
+
+        if (venueNavigationRuntime == null)
+        {
+            Debug.LogWarning("NavigationController: venueNavigationRuntime missing.");
+            return false;
+        }
+
+        if (isInNavigationMode)
+            StopNavigationAndReturnToFreeRoam();
+
+        bool started = venueNavigationRuntime.StartNavigationToAttraction(attractionId);
+        if (!started)
+            return false;
+
+        pendingPathId = attractionId;
+        pendingTargetName = string.IsNullOrWhiteSpace(targetName) ? attractionId : targetName;
+        isInNavigationMode = true;
+        hasCompletedNavigation = false;
+
+        HideDestinationBeacon();
+
+        if (previewController != null)
+            previewController.ClearAll();
+
+        if (showPathButton != null)
+            showPathButton.SetActive(false);
+
+        if (startButton != null)
+            startButton.SetActive(false);
+
+        if (backButton != null)
+            backButton.SetActive(false);
+
+        if (hudController != null)
+            hudController.EnterNavigationMode(pendingTargetName);
+
+        return true;
+    }
+
+    public void DismissIntroAndStartWalking()
+    {
+        StopNavigationAndReturnToFreeRoam();
+    }
+
+    public void OpenMapFromHud()
+    {
+        if (hudController != null)
+            hudController.SetMapVisible(true);
+
+        if (venueMapUiController != null)
+            venueMapUiController.OpenLargeMap();
+    }
+
+    public void CloseIntroAndMap()
+    {
+        if (isInNavigationMode)
+        {
+            if (hudController != null)
+                hudController.EnterNavigationMode(pendingTargetName);
+
+            if (venueMapUiController != null)
+                venueMapUiController.CloseLargeMap();
+
+            return;
+        }
+
+        DismissIntroAndStartWalking();
+    }
+
     public void CompleteNavigation()
     {
         if (hasCompletedNavigation)
@@ -183,35 +274,37 @@ public class NavigationController : MonoBehaviour
         HideDestinationBeacon();
         PlayDestinationFireworks();
 
-        if (hudController != null)
-            hudController.UpdateStateText("You made it!");
+        if (venueMapUiController != null)
+            venueMapUiController.MarkAttractionVisited(pendingPathId);
 
         isInNavigationMode = false;
 
-        if (returnToMenuRoutine != null)
-            StopCoroutine(returnToMenuRoutine);
+        if (arrivalFreeRoamRoutine != null)
+            StopCoroutine(arrivalFreeRoamRoutine);
 
-        returnToMenuRoutine = StartCoroutine(ReturnToMainMenuAfterDelay());
+        if (arrivalFreeRoamDelay <= 0f)
+            StopNavigationAndReturnToFreeRoam();
+        else
+            arrivalFreeRoamRoutine = StartCoroutine(ReturnToFreeRoamAfterArrival());
     }
 
     public void GiveUpNavigation()
     {
-        StopNavigationAndReturnToMenu();
+        StopNavigationAndReturnToFreeRoam();
     }
 
-    private IEnumerator ReturnToMainMenuAfterDelay()
+    private IEnumerator ReturnToFreeRoamAfterArrival()
     {
-        if (returnToMainMenuDelay > 0f)
-            yield return new WaitForSeconds(returnToMainMenuDelay);
+        yield return new WaitForSeconds(arrivalFreeRoamDelay);
 
-        returnToMenuRoutine = null;
+        arrivalFreeRoamRoutine = null;
 
-        StopNavigationAndReturnToMenu();
+        StopNavigationAndReturnToFreeRoam();
     }
 
-    private void ResetToMainMenu()
+    private void ResetToIntro()
     {
-        SetPhaseMode(1);
+        SetIntroVisible(true);
 
         pendingPathId = null;
         pendingTargetName = "Destination";
@@ -223,7 +316,7 @@ public class NavigationController : MonoBehaviour
             previewController.ClearAll();
 
         if (hudController != null)
-            hudController.ExitNavigationMode();
+            hudController.ShowIntroAndMap();
 
         if (selectionUI != null)
             selectionUI.ResetToDefaultState();
@@ -240,7 +333,7 @@ public class NavigationController : MonoBehaviour
 
     private void ShowPreviewPhase()
     {
-        SetPhaseMode(3);
+        SetIntroVisible(true);
 
         if (showPathButton != null)
             showPathButton.SetActive(false);
@@ -252,33 +345,56 @@ public class NavigationController : MonoBehaviour
             backButton.SetActive(true);
     }
 
-    private void SetPhaseMode(int phase)
+    private void SetIntroVisible(bool visible)
     {
         if (introPhase1 != null)
-            introPhase1.SetActive(phase == 1);
-
-        if (introPhase2 != null)
-            introPhase2.SetActive(phase == 2);
-
-        if (introPhase3 != null)
-            introPhase3.SetActive(phase == 3);
+            introPhase1.SetActive(visible);
     }
 
-    private void StopNavigationAndReturnToMenu()
+    private void StopNavigationAndReturnToFreeRoam()
     {
-        if (returnToMenuRoutine != null)
+        if (arrivalFreeRoamRoutine != null)
         {
-            StopCoroutine(returnToMenuRoutine);
-            returnToMenuRoutine = null;
+            StopCoroutine(arrivalFreeRoamRoutine);
+            arrivalFreeRoamRoutine = null;
         }
 
         if (runtimeController != null)
             runtimeController.StopRuntime();
 
+        if (venueNavigationRuntime != null)
+            venueNavigationRuntime.StopNavigation();
+
         if (previewController != null)
             previewController.ClearAll();
 
-        ResetToMainMenu();
+        HideDestinationBeacon();
+
+        pendingPathId = null;
+        pendingTargetName = "Destination";
+        isInNavigationMode = false;
+        hasCompletedNavigation = false;
+
+        if (selectionUI != null)
+            selectionUI.ResetToDefaultState();
+
+        if (showPathButton != null)
+            showPathButton.SetActive(false);
+
+        if (startButton != null)
+            startButton.SetActive(false);
+
+        if (backButton != null)
+            backButton.SetActive(false);
+
+        if (venueMapUiController != null)
+            venueMapUiController.CloseLargeMap();
+
+        if (venueNavigationRuntime != null)
+            venueNavigationRuntime.StartFreeRoamGuiding();
+
+        if (hudController != null)
+            hudController.EnterFreeRoamMode();
     }
 
     private void ClearOnlyPreviewLine()

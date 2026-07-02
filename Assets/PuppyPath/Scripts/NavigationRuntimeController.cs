@@ -27,7 +27,6 @@ public class NavigationRuntimeController : MonoBehaviour
     [SerializeField] private Transform xrCamera;
     [SerializeField] private PathPreviewController previewController;
     [SerializeField] private NavigationController navigationController;
-    [SerializeField] private NavigationHUDController hudController;
     [SerializeField] private DogGuideController dogGuideController;
 
     [Header("Runtime Settings")]
@@ -456,9 +455,6 @@ public class NavigationRuntimeController : MonoBehaviour
 
         Debug.Log("Nav State Changed: " + newState);
 
-        if (hudController != null)
-            hudController.UpdateStateText(GetStateDisplayText(newState));
-
         if (newState == NavState.Arrived)
         {
             arrivalTimer = 0f;
@@ -468,30 +464,4 @@ public class NavigationRuntimeController : MonoBehaviour
         OnNavStateChanged?.Invoke(newState);
     }
 
-    private string GetStateDisplayText(NavState state)
-    {
-        switch (state)
-        {
-            case NavState.Neutral:
-                return "Getting ready...";
-
-            case NavState.Waiting:
-                return "Take your time. I'm waiting for you.";
-
-            case NavState.GettingCloser:
-                return "Good job! You're on the right path.";
-
-            case NavState.GettingFarther:
-                return "Hmm... this way doesn't look right.";
-
-            case NavState.Lost:
-                return "Oops, you're off the path.";
-
-            case NavState.Arrived:
-                return "You made it!";
-
-            default:
-                return "";
-        }
-    }
 }

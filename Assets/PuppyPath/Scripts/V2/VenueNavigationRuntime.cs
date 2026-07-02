@@ -30,11 +30,20 @@ public class VenueNavigationRuntime : MonoBehaviour
     [SerializeField] private float userMoveEpsilon = 0.025f;
     [SerializeField] private bool allowNearestNavNodeFallback = true;
 
+    [Header("Free Roam Dog")]
+    [SerializeField] private bool keepDogInFreeRoam = true;
+    [SerializeField] private float freeRoamUpdateInterval = 0.2f;
+    [SerializeField] private float freeRoamLeadDistance = 1.8f;
+    [SerializeField] private float freeRoamFallbackDistance = 1.2f;
+    [SerializeField] private float freeRoamDirectionProbeDegrees = 45f;
+
     [Header("Debug")]
     [SerializeField] private bool logRouteEvents = true;
 
     public bool IsNavigating { get; private set; }
+    public bool IsFreeRoaming { get; private set; }
     public string CurrentDestinationAttractionId { get; private set; }
+    public string CurrentDestinationDisplayName { get; private set; }
     public NavigationRuntimeController.NavState CurrentState { get; private set; } = NavigationRuntimeController.NavState.Neutral;
     public float CurrentDistanceToGoal { get; private set; }
     public Vector3 CurrentRecommendedDirection { get; private set; } = Vector3.forward;
@@ -46,8 +55,10 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     private Transform dogWaypointRoot;
     private AttractionDefinition currentAttraction;
+    private Vector2 currentDestinationPixel;
     private float updateTimer;
     private float repathTimer;
+    private float freeRoamUpdateTimer;
     private float previousAlongRouteDistance;
     private Vector3 previousUserPosition;
     private Vector3 lastRepathUserPosition;
@@ -61,6 +72,12 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     private void Update()
     {
+        if (IsFreeRoaming && !IsNavigating)
+        {
+            UpdateFreeRoamDog();
+            return;
+        }
+
         if (!IsNavigating || xrCamera == null || routeWorldPoints.Count < 2)
             return;
 
@@ -99,11 +116,44 @@ public class VenueNavigationRuntime : MonoBehaviour
             return false;
         }
 
+        string displayName = !string.IsNullOrWhiteSpace(attraction.displayName) ? attraction.displayName : attractionId;
+
+        return StartNavigationToMapPixel(attractionId, displayName, attraction.GetArrivalPixel(), attraction);
+    }
+
+    public bool StartNavigationToMapPixel(string destinationId, string displayName, Vector2 destinationPixel)
+    {
+        return StartNavigationToMapPixel(destinationId, displayName, destinationPixel, null);
+    }
+
+    private bool StartNavigationToMapPixel(
+        string destinationId,
+        string displayName,
+        Vector2 destinationPixel,
+        AttractionDefinition attraction)
+    {
+        if (IsFreeRoaming)
+            StopFreeRoamGuiding();
+
+        if (IsNavigating)
+            StopNavigation();
+
+        if (mapDefinition == null || xrCamera == null)
+        {
+            Debug.LogWarning("VenueNavigationRuntime: missing map or XR camera.");
+            return false;
+        }
+
         currentAttraction = attraction;
-        CurrentDestinationAttractionId = attractionId;
+        currentDestinationPixel = destinationPixel;
+        CurrentDestinationAttractionId = attraction != null ? attraction.id : null;
+        CurrentDestinationDisplayName = string.IsNullOrWhiteSpace(displayName) ? destinationId : displayName;
 
         if (!RebuildRouteFromCurrentUserPosition(true))
+        {
+            StopNavigation();
             return false;
+        }
 
         IsNavigating = true;
         updateTimer = 0f;
@@ -114,10 +164,16 @@ public class VenueNavigationRuntime : MonoBehaviour
         SetState(NavigationRuntimeController.NavState.Neutral);
 
         StartDogGuidingIfNeeded();
+        if (dogGuideController != null)
+        {
+            dogGuideController.ClearGuidanceTargetOverride();
+            dogGuideController.SetPositiveRandomBehaviorsSuppressed(false);
+        }
+
         EvaluateNavigation();
 
         if (logRouteEvents)
-            Debug.Log("VenueNavigationRuntime: started navigation to " + attractionId);
+            Debug.Log("VenueNavigationRuntime: started navigation to " + CurrentDestinationDisplayName);
 
         return true;
     }
@@ -126,7 +182,9 @@ public class VenueNavigationRuntime : MonoBehaviour
     {
         IsNavigating = false;
         CurrentDestinationAttractionId = null;
+        CurrentDestinationDisplayName = null;
         currentAttraction = null;
+        currentDestinationPixel = Vector2.zero;
         routeWorldPoints.Clear();
         candidateRouteWorldPoints.Clear();
         cumulativeRouteDistances.Clear();
@@ -137,12 +195,35 @@ public class VenueNavigationRuntime : MonoBehaviour
         if (routeLineController != null)
             routeLineController.ClearRoute();
 
-        if (dogGuideController != null && dogGuidingStarted)
-            dogGuideController.StopGuiding();
-
-        dogGuidingStarted = false;
+        StopDogGuiding(false);
         ClearDogRuntimeWaypoints();
         SetState(NavigationRuntimeController.NavState.Neutral);
+    }
+
+    public void StartFreeRoamGuiding()
+    {
+        if (!keepDogInFreeRoam || IsNavigating)
+            return;
+
+        if (mapDefinition == null || xrCamera == null || dogGuideController == null)
+            return;
+
+        IsFreeRoaming = true;
+        CurrentState = NavigationRuntimeController.NavState.Neutral;
+        CurrentDistanceToGoal = freeRoamLeadDistance;
+        CurrentRecommendedDirection = FindFreeRoamDirection();
+        freeRoamUpdateTimer = freeRoamUpdateInterval;
+
+        StartDogGuidingIfNeeded(CurrentRecommendedDirection);
+        ApplyFreeRoamDogTarget();
+        NotifyDog();
+    }
+
+    public void StopFreeRoamGuiding()
+    {
+        IsFreeRoaming = false;
+        StopDogGuiding(false);
+        ClearDogRuntimeWaypoints();
     }
 
     [ContextMenu("Start Test Navigation")]
@@ -159,11 +240,11 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     private bool RebuildRouteFromCurrentUserPosition(bool warnOnFailure)
     {
-        if (currentAttraction == null || mapDefinition == null || xrCamera == null)
+        if (mapDefinition == null || xrCamera == null)
             return false;
 
         Vector2 startPixel = mapDefinition.WorldToMapPixel(WorldToVenueLocal(xrCamera.position));
-        Vector2 endPixel = currentAttraction.GetArrivalPixel();
+        Vector2 endPixel = currentDestinationPixel;
 
         if (allowNearestNavNodeFallback)
         {
@@ -177,7 +258,7 @@ public class VenueNavigationRuntime : MonoBehaviour
         if (!VenuePathfinder.TryFindWorldPath(mapDefinition, startPixel, endPixel, candidateRouteWorldPoints))
         {
             if (warnOnFailure)
-                Debug.LogWarning("VenueNavigationRuntime: no route found to " + currentAttraction.id);
+                Debug.LogWarning("VenueNavigationRuntime: no route found to " + CurrentDestinationDisplayName);
 
             return false;
         }
@@ -240,15 +321,116 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     private void StartDogGuidingIfNeeded()
     {
+        StartDogGuidingIfNeeded(CurrentRecommendedDirection);
+    }
+
+    private void StartDogGuidingIfNeeded(Vector3 initialDirection)
+    {
         if (dogGuideController == null || dogGuidingStarted || xrCamera == null)
             return;
 
-        RebuildDogRuntimeWaypoints();
+        if (IsFreeRoaming && !IsNavigating)
+            RebuildFreeRoamDogRuntimeWaypoints(initialDirection);
+        else
+            RebuildDogRuntimeWaypoints();
+
         if (dogRuntimeWaypoints.Count < 2)
             return;
 
         dogGuideController.BeginGuiding(dogRuntimeWaypoints, xrCamera);
         dogGuidingStarted = true;
+    }
+
+    private void StopDogGuiding(bool destroyDog)
+    {
+        if (dogGuideController != null && dogGuidingStarted)
+            dogGuideController.StopGuiding(destroyDog);
+
+        dogGuidingStarted = false;
+    }
+
+    private void UpdateFreeRoamDog()
+    {
+        if (!keepDogInFreeRoam || xrCamera == null)
+            return;
+
+        if (!dogGuidingStarted)
+            StartDogGuidingIfNeeded(CurrentRecommendedDirection);
+
+        freeRoamUpdateTimer += Time.deltaTime;
+        if (freeRoamUpdateTimer >= freeRoamUpdateInterval)
+        {
+            freeRoamUpdateTimer = 0f;
+            CurrentRecommendedDirection = FindFreeRoamDirection();
+        }
+
+        CurrentDistanceToGoal = freeRoamLeadDistance;
+        ApplyFreeRoamDogTarget();
+        SetState(NavigationRuntimeController.NavState.Neutral);
+    }
+
+    private void ApplyFreeRoamDogTarget()
+    {
+        if (dogGuideController == null || xrCamera == null)
+            return;
+
+        Vector3 direction = CurrentRecommendedDirection;
+        direction.y = 0f;
+        if (direction.sqrMagnitude < 0.0001f)
+            direction = GetFlatForward(xrCamera);
+        direction.Normalize();
+
+        Vector3 target = GetVenueGroundWorldPosition(xrCamera.position + direction * freeRoamLeadDistance);
+        dogGuideController.SetPositiveRandomBehaviorsSuppressed(true);
+        dogGuideController.TickFreeRoamFollow(target, direction);
+    }
+
+    private void RebuildFreeRoamDogRuntimeWaypoints(Vector3 direction)
+    {
+        ClearDogRuntimeWaypoints();
+
+        if (xrCamera == null)
+            return;
+
+        if (dogWaypointRoot == null)
+        {
+            GameObject rootObject = new GameObject("VenueNavigationRuntime_DogWaypoints");
+            rootObject.transform.SetParent(transform, false);
+            dogWaypointRoot = rootObject.transform;
+        }
+
+        Vector3 flatDirection = direction;
+        flatDirection.y = 0f;
+        if (flatDirection.sqrMagnitude < 0.0001f)
+            flatDirection = GetFlatForward(xrCamera);
+        flatDirection.Normalize();
+
+        Vector3 start = GetVenueGroundWorldPosition(xrCamera.position);
+        Vector3 end = GetVenueGroundWorldPosition(xrCamera.position + flatDirection * Mathf.Max(freeRoamFallbackDistance, freeRoamLeadDistance));
+
+        CreateDogRuntimeWaypoint("dog_free_roam_wp_0", start);
+        CreateDogRuntimeWaypoint("dog_free_roam_wp_1", end);
+    }
+
+    private void CreateDogRuntimeWaypoint(string waypointName, Vector3 position)
+    {
+        GameObject waypointObject = new GameObject(waypointName);
+        waypointObject.transform.SetParent(dogWaypointRoot, false);
+        waypointObject.transform.position = position;
+        dogRuntimeWaypoints.Add(waypointObject.transform);
+    }
+
+    private Vector3 GetVenueGroundWorldPosition(Vector3 worldPosition)
+    {
+        if (venueContentRoot != null)
+        {
+            Vector3 localPosition = venueContentRoot.InverseTransformPoint(worldPosition);
+            localPosition.y = 0f;
+            return venueContentRoot.TransformPoint(localPosition);
+        }
+
+        worldPosition.y = 0f;
+        return worldPosition;
     }
 
     private void RebuildDogRuntimeWaypoints()
@@ -267,11 +449,72 @@ public class VenueNavigationRuntime : MonoBehaviour
 
         for (int i = 0; i < routeWorldPoints.Count; i++)
         {
-            GameObject waypointObject = new GameObject("dog_route_wp_" + i);
-            waypointObject.transform.SetParent(dogWaypointRoot, false);
-            waypointObject.transform.position = routeWorldPoints[i];
-            dogRuntimeWaypoints.Add(waypointObject.transform);
+            CreateDogRuntimeWaypoint("dog_route_wp_" + i, routeWorldPoints[i]);
         }
+    }
+
+    private Vector3 FindFreeRoamDirection()
+    {
+        Vector3 forward = GetFlatForward(xrCamera);
+        float probe = Mathf.Max(5f, freeRoamDirectionProbeDegrees);
+        Vector3[] candidates =
+        {
+            forward,
+            Quaternion.AngleAxis(-probe, Vector3.up) * forward,
+            Quaternion.AngleAxis(probe, Vector3.up) * forward,
+            Quaternion.AngleAxis(-probe * 2f, Vector3.up) * forward,
+            Quaternion.AngleAxis(probe * 2f, Vector3.up) * forward
+        };
+
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            Vector3 direction = candidates[i];
+            if (IsFreeRoamDirectionWalkable(direction, freeRoamLeadDistance))
+                return direction.normalized;
+        }
+
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            Vector3 direction = candidates[i];
+            if (IsFreeRoamDirectionWalkable(direction, freeRoamFallbackDistance))
+                return direction.normalized;
+        }
+
+        return TryFindNearestWalkableDirection(out Vector3 fallbackDirection)
+            ? fallbackDirection
+            : forward;
+    }
+
+    private bool IsFreeRoamDirectionWalkable(Vector3 worldDirection, float distance)
+    {
+        if (mapDefinition == null || xrCamera == null)
+            return true;
+
+        Vector3 startLocal = WorldToVenueLocal(xrCamera.position);
+        Vector3 endLocal = WorldToVenueLocal(xrCamera.position + worldDirection.normalized * distance);
+        Vector2 startPixel = mapDefinition.WorldToMapPixel(startLocal);
+        Vector2 endPixel = mapDefinition.WorldToMapPixel(endLocal);
+
+        if (!mapDefinition.IsMapPixelWalkable(endPixel))
+            return false;
+
+        return mapDefinition.IsMapSegmentWalkable(startPixel, endPixel);
+    }
+
+    private bool TryFindNearestWalkableDirection(out Vector3 worldDirection)
+    {
+        worldDirection = GetFlatForward(xrCamera);
+
+        if (mapDefinition == null || mapDefinition.navGraph == null || mapDefinition.navGraph.nodes == null || xrCamera == null)
+            return false;
+
+        Vector2 userPixel = mapDefinition.WorldToMapPixel(WorldToVenueLocal(xrCamera.position));
+        if (!TryFindNearestWalkableNavNodePixel(userPixel, out Vector2 navNodePixel))
+            return false;
+
+        Vector3 targetWorld = VenueLocalToWorld(mapDefinition.MapPixelToWorld(navNodePixel));
+        worldDirection = GetDirectionTo(targetWorld, xrCamera.position);
+        return worldDirection.sqrMagnitude > 0.0001f;
     }
 
     private void ClearDogRuntimeWaypoints()

@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
+using UnityEngine.UI;
 
 public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
 {
@@ -117,6 +118,11 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
 
     [Header("Navigation")]
     [SerializeField] private NavigationController navigationController;
+    [SerializeField] private VenueMapUiController venueMapUiController;
+    [SerializeField] private bool friendButtonsAreIntroOnly = true;
+    [SerializeField] private bool useVenueNavigationForFriends = false;
+    [SerializeField] private bool disableArbitraryMapClicksWhenUsingVenueNavigation = true;
+    [SerializeField] private bool disableThisMapRaycastWhenUsingVenueNavigation = true;
 
     [Header("Friend Button Colors")]
     [SerializeField] private Color normalButtonColor = Color.white;
@@ -155,6 +161,10 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
         if (markerParent == null && mapRect != null)
             markerParent = mapRect;
 
+        if (venueMapUiController == null)
+            venueMapUiController = FindFirstObjectByType<VenueMapUiController>();
+
+        DisableLegacyMapRaycastIfNeeded();
         ResetToDefaultState();
     }
 
@@ -175,6 +185,9 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (disableArbitraryMapClicksWhenUsingVenueNavigation && venueMapUiController != null)
+            return;
+
         if (mapRect == null)
             return;
 
@@ -190,6 +203,16 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             return;
 
         SelectLocation(localPoint);
+    }
+
+    private void DisableLegacyMapRaycastIfNeeded()
+    {
+        if (!disableThisMapRaycastWhenUsingVenueNavigation || venueMapUiController == null || mapRect == null)
+            return;
+
+        Graphic[] graphics = mapRect.GetComponents<Graphic>();
+        for (int i = 0; i < graphics.Length; i++)
+            graphics[i].raycastTarget = false;
     }
 
     public void SelectFriend(FriendButtonUI friendUI)
@@ -225,9 +248,24 @@ public class PuppyPathSelectionUI : MonoBehaviour, IPointerClickHandler
             selectedTextColor
         );
 
-        PlaceFriendMarker(friendUI);
         UpdatePhase2ForFriend(friendUI.FriendName);
         ShowShowPathButton();
+
+        if (friendButtonsAreIntroOnly)
+        {
+            if (showPathButton != null)
+                showPathButton.SetActive(false);
+
+            return;
+        }
+
+        PlaceFriendMarker(friendUI);
+
+        if (useVenueNavigationForFriends && venueMapUiController != null)
+        {
+            Debug.Log("PuppyPathSelectionUI: friend venue navigation is disabled for the current flow.");
+            return;
+        }
 
         if (navigationController != null)
         {

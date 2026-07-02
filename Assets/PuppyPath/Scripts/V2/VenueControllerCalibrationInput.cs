@@ -6,6 +6,7 @@ public class VenueControllerCalibrationInput : MonoBehaviour
     [Header("References")]
     [SerializeField] private VenueAlignmentManager alignmentManager;
     [SerializeField] private VenueSpatialAnchorBootstrap spatialAnchorBootstrap;
+    [SerializeField] private UIBootSequence startupBootSequence;
 
     [Header("Input")]
     [Tooltip("Quest's system Meta/Oculus button may be reserved by the OS. Start is the left-controller menu button and is safer for app input.")]
@@ -20,6 +21,7 @@ public class VenueControllerCalibrationInput : MonoBehaviour
     [Header("Calibration Action")]
     [SerializeField] private bool resetPositionAndYaw = true;
     [SerializeField] private bool recreateSpatialAnchorAfterCalibration = true;
+    [SerializeField] private bool confirmStartupCalibrationAfterCalibration = true;
     [SerializeField] private bool logEvents = true;
     [SerializeField] private UnityEvent onCalibrationTriggered;
 
@@ -82,8 +84,23 @@ public class VenueControllerCalibrationInput : MonoBehaviour
 
         onCalibrationTriggered?.Invoke();
 
+        if (confirmStartupCalibrationAfterCalibration)
+        {
+            ResolveStartupBootSequence();
+            if (startupBootSequence != null)
+                startupBootSequence.ConfirmStartupCalibrationFromCalibration();
+        }
+
         if (logEvents)
             Debug.Log("VenueControllerCalibrationInput: recalibrated VenueOrigin from controller long press.");
+    }
+
+    private void ResolveStartupBootSequence()
+    {
+        if (startupBootSequence != null)
+            return;
+
+        startupBootSequence = FindObjectOfType<UIBootSequence>();
     }
 
     private void ResetHold()

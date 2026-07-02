@@ -58,6 +58,11 @@ MonoBehaviour:
   arriveDistanceMeters: 1.25
   userMoveEpsilon: 0.025
   allowNearestNavNodeFallback: 1
+  keepDogInFreeRoam: 1
+  freeRoamUpdateInterval: 0.2
+  freeRoamLeadDistance: 1.8
+  freeRoamFallbackDistance: 1.2
+  freeRoamDirectionProbeDegrees: 45
   logRouteEvents: 1
 --- !u!1 &563248100948611861
 GameObject:
@@ -481,6 +486,7 @@ Transform:
   - {fileID: 5765895174293805501}
   - {fileID: 2687127878027526425}
   - {fileID: 6378098858044081299}
+  - {fileID: 141956903127697976}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6908265336279637975
@@ -556,6 +562,81 @@ MonoBehaviour:
   editWalkableAreasInScene: 0
   editObstacleAreasInScene: 0
   editNavGraphInScene: 0
+--- !u!1 &8211280930263537584
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 141956903127697976}
+  - component: {fileID: 8808607287062895698}
+  m_Layer: 0
+  m_Name: VenueMapUiController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &141956903127697976
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8211280930263537584}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 9.5625, y: 0, z: -30.13023}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6968446607037757370}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8808607287062895698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8211280930263537584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7a49e1ecad049d0831ae9d69a243388, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VenueMapUiController
+  mapDefinition: {fileID: 11400000, guid: 0d99b874e0007844392c5f60e3a016bb, type: 2}
+  xrCamera: {fileID: 0}
+  venueContentRoot: {fileID: 3042521059465439757}
+  navigationRuntime: {fileID: 5152902620694554116}
+  navigationController: {fileID: 0}
+  mapButtonRoot: {fileID: 0}
+  largeMapPanel: {fileID: 0}
+  largeMapRect: {fileID: 0}
+  largeMapImage: {fileID: 0}
+  largeMapMarkerParent: {fileID: 0}
+  useMapDefinitionTextureForDisplay: 0
+  forceOverlayParentsUnderMapImage: 1
+  closeLargeMapAfterSelection: 1
+  attractionMarkerPrefab: {fileID: 0}
+  attractionMarkerSize: {x: 34, y: 34}
+  minimumAttractionMarkerSize: {x: 72, y: 72}
+  attractionMarkerColor: {r: 1, g: 0.64, b: 0.08, a: 1}
+  selectedAttractionMarkerColor: {r: 0.3, g: 0.85, b: 1, a: 1}
+  visitedAttractionMarkerColor: {r: 0.42, g: 0.9, b: 0.52, a: 1}
+  roadLineParent: {fileID: 0}
+  routeLineParent: {fileID: 0}
+  roadLineColor: {r: 1, g: 1, b: 1, a: 0.35}
+  selectedRouteColor: {r: 0.22, g: 0.78, b: 1, a: 0.95}
+  roadLineWidth: 3
+  selectedRouteLineWidth: 7
+  drawNavGraphRoads: 1
+  drawSelectedRouteOnMap: 0
+  statusText: {fileID: 0}
+  freeWalkText: Free roam
+  navigationTextTemplate: Go to {0}
+  hideLargeMapOnStart: 1
 --- !u!1 &8497366679570374752
 GameObject:
   m_ObjectHideFlags: 0
