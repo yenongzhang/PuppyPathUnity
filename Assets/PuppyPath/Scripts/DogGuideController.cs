@@ -189,6 +189,18 @@ public class DogGuideController : MonoBehaviour
         PlayAnimation(stateName, 1f, true);
     }
 
+    /// <summary>Test/preview helper: forces the same arrival celebration flow (turn toward user, HappyStart, then Happy) used when the dog actually reaches the destination, without requiring real navigation distance. Stays on Happy afterward since it leaves currentState as Arrived.</summary>
+    public void ForcePlayHappyPreview()
+    {
+        if (!isGuiding || currentDog == null)
+            return;
+
+        if (isPerformingBehavior)
+            StopCurrentBehavior();
+
+        StartBehavior(DogBehavior.Arrived, true);
+    }
+
     public void BeginGuiding(List<Transform> runtimePath, Transform userCamera)
     {
         xrCamera = userCamera;
