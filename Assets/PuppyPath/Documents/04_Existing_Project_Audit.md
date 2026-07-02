@@ -1,10 +1,10 @@
-# PuppyPath 现有项目 V2 审计文档
+# PuppyPath Existing Project V2 Audit
 
-最后更新：2026-07-01
+Last updated: 2026-07-01
 
-## 阅读范围
+## Scope of Review
 
-已阅读和整理 `Assets/PuppyPath` 下的内容，包括：
+Reviewed and organized content under `Assets/PuppyPath`, including:
 
 - `3dModel`
 - `Animations`
@@ -17,404 +17,420 @@
 - `Scripts`
 - `UI`
 
-二进制、模型、音频、图片、prefab、scene 资源主要通过文件结构和命名进行检查。C# 脚本已阅读其当前行为和公开接口。
+Binary assets, models, audio, images, prefabs, and scenes were inspected primarily through file structure and naming. C# scripts were read for their current behavior and public interfaces.
 
-## 资源清单
+## Asset Inventory
 
 ### 3dModel
 
-包含 beagle FBX 文件、动画 FBX 文件、小狗眼睛和嘴巴贴图、小狗材质文件、texture map。这是 V2 小狗角色的基础。
+Contains beagle FBX files, animation FBX files, puppy eye and mouth textures, puppy material files, and texture maps. This is the foundation for the V2 puppy character.
 
-V2 可复用：
+V2 reusable:
 
-- 小狗模型。
-- 现有移动、坐下、叫、开心、转身、嗅闻动画文件。
-- 用于表情变化的脸部贴图。
+- Puppy model.
+- Existing move, sit, bark, happy, turn, and sniff animation files.
+- Face textures used for expression changes.
 
-V2 需要补充：
+V2 needs:
 
-- 在小狗 prefab 上添加饰品 anchor transform。
-- 添加帽子、眼镜、衣服、项圈挂饰等饰品模型。
-- 针对物品出现、坐下等待、奖励时刻优化动画和表情。
+- Add accessory anchor transforms on the puppy prefab.
+- Add accessory models such as hats, glasses, clothing, and collar charms.
+- Refine animations and expressions for item reveal, sit-and-wait, and reward moments.
 
 ### Animations
 
-包含 `DogAnimationController.controller`。
+Contains `DogAnimationController.controller`.
 
-V2 可复用：
+V2 reusable:
 
-- 现有小狗动画控制器可以作为基础。
+- The existing puppy animation controller can serve as a base.
 
-V2 需要补充：
+V2 needs:
 
-- 确认动画 state 名称与 `DogGuideController` 中序列化字段匹配。
-- 如有需要，为 V2 状态新增或调整动画过渡。
+- Confirm animation state names match serialized fields in `DogGuideController`.
+- Add or adjust animation transitions for V2 states as needed.
 
 ### Audio
 
-包含狗叫音效和 `track1.mp3`。
+Contains dog bark sound effects and `track1.mp3`.
 
-V2 可复用：
+V2 reusable:
 
-- 狗叫音效可用于小狗反应和奖励时刻。
+- Dog bark sound effects can be used for puppy reactions and reward moments.
 
-V2 需要补充：
+V2 needs:
 
-- 决定开场介绍和奖励是否需要额外音效。
-- 根据活动现场环境调整音量。
+- Decide whether the intro and reward moments need additional sound effects.
+- Adjust volume for the live event environment.
 
 ### Images
 
-包含旧图标和旧地图资源，包括 `EuropaParkMap1-modified.png`。
+Contains legacy icons and map assets, including `EuropaParkMap1-modified.png`.
 
-V2 可复用：
+V2 reusable:
 
-- 现有地图 UI 代码思路和 marker / icon 资源。
+- Existing map UI approach and marker / icon assets.
 
-V2 需要补充：
+V2 needs:
 
-- 导入最新活动场地地图图片。
-- 如果没有现成资源，需要制作狗爪 marker 图标。
-- 用真实活动场地地图替换旧 Europa-Park 地图数据。
+- Import the latest event venue map image.
+- Create paw-print marker icons if no ready-made assets exist.
+- Replace legacy Europa-Park map data with the real event venue map.
 
 ### Logo
 
-包含 PuppyPath logo PDF 和 PNG 文件。
+Contains PuppyPath logo PDF and PNG files.
 
-V2 可复用：
+V2 reusable:
 
-- 现有 logo 资源应继续用于启动流程。
+- Existing logo assets should continue to be used in the boot flow.
 
 ### Material
 
-包含小狗眼睛 / 嘴巴材质、路径预览材质、shadow receiver 材质 / shader、烟花 additive 材质。
+Contains puppy eye / mouth materials, path preview material, shadow receiver material / shader, and firework additive material.
 
-V2 可复用：
+V2 reusable:
 
-- `M_PathPreview` 或类似材质可以用于地面路线 line。
-- 眼睛 / 嘴巴材质用于表情切换。
-- 烟花材质可用于奖励或惊喜特效。
+- `M_PathPreview` or similar materials can be used for ground route lines.
+- Eye / mouth materials for expression switching.
+- Firework material for reward or surprise effects.
 
 ### Prefabs
 
-包含：
+Contains:
 
-- 小狗 prefabs。
-- 地图 marker prefab。
-- OVRCameraRig variant。
-- RouteRoot prefab。
-- Firework prefab。
-- 旧路径 prefabs。
+- Puppy prefabs.
+- Map marker prefab.
+- OVRCameraRig variant.
+- RouteRoot prefab.
+- Firework prefab.
+- Legacy path prefabs.
 
-V2 可复用：
+V2 reusable:
 
-- 小狗 prefabs 是主角基础。
-- Firework prefab 可以作为惊喜特效参考，虽然用户当前优先要求 shaking 动画。
-- Map marker prefab 可能可以替换成狗爪 marker。
+- Puppy prefabs are the foundation for the main character.
+- Firework prefab can serve as a reference for surprise effects, although the user currently prioritizes shaking animation.
+- Map marker prefab may be replaceable with a paw-print marker.
 
-V2 需要补充：
+V2 needs:
 
-- 旧路径 prefabs 是旧地图的静态路线定义，基本不适合真实活动场地。
-- Route root 当前是相对用户生成的，应替换为场地固定路线生成。
+- Legacy path prefabs are static route definitions for the old map and are largely unsuitable for the real event venue.
+- Route root is currently spawned relative to the user and should be replaced with venue-fixed route generation.
 
 ### Scenes
 
-包含：
+Contains:
 
 - `DogTestScene.unity`
 - `UIScene.unity`
 
-V2 可复用：
+V2 reusable:
 
-- `DogTestScene` 可用于测试小狗动画和表情。
-- `UIScene` 很可能包含当前 app UI 流程。
+- `DogTestScene` can be used to test puppy animation and expressions.
+- `UIScene` likely contains the current app UI flow.
 
-V2 需要补充：
+V2 needs:
 
-- 实现开始后，建议新增或复制一个 V2 scene / prefab setup。
-- 在 V2 稳定前保留旧 scene。
+- Once implementation begins, add or duplicate a V2 scene / prefab setup.
+- Keep legacy scenes until V2 is stable.
 
 ### UI
 
-包含字体资源，以及气泡、按钮、地图、位置、朋友、箭头等 UI 图片。
+Contains font assets and UI images for bubbles, buttons, maps, locations, friends, arrows, and more.
 
-V2 可复用：
+V2 reusable:
 
-- 对话气泡资源可用于小狗自我介绍和物品提示。
-- 现有字体和按钮风格可保持视觉一致性。
+- Speech bubble assets can be used for puppy self-introduction and item hints.
+- Existing fonts and button styling can maintain visual consistency.
 
-V2 需要补充：
+V2 needs:
 
-- 新的小地图布局。
-- 居中的大地图。
-- 顶部状态文字。
-- 景点物品提示 UI。
-- 奖励 UI。
+- New minimap layout.
+- Centered big map.
+- Top status text.
+- Attraction item hint UI.
+- Reward UI.
 
-## 脚本审计
+## Script Audit
 
 ### `UIBootSequence`
 
-当前行为：
+Current behavior:
 
-- 显示 logo root。
-- 控制 logo canvas group 淡入、停留、淡出。
-- Logo 期间隐藏主 canvas。
-- 在 `CanvasFollowHead` snap 后安全显示主 canvas。
+- Shows logo root.
+- Controls logo canvas group fade-in, hold, and fade-out.
+- Hides main canvas during logo.
+- Safely shows main canvas after `CanvasFollowHead` snap.
 
-V2 用法：
+V2 usage:
 
-- 复用启动流程。
-- 增加完成事件或 callback，让 V2 controller 在 logo 结束后生成小狗并播放开场对话。
+- Reuse boot flow.
+- Add completion event or callback so the V2 controller can spawn the puppy and play the intro dialogue after the logo ends.
 
 ### `CanvasFollowHead`
 
-当前行为：
+Current behavior:
 
-- 把 canvas 放在用户头部前方。
-- 平滑跟随位置和旋转。
-- 当距离太远、在身后或太近时 snap。
+- Places canvas in front of the user's head.
+- Smoothly follows position and rotation.
+- Snaps when too far away, behind the user, or too close.
 
-V2 用法：
+V2 usage:
 
-- 可复用给跟随头部的 UI。
-- 小地图 / 顶部 HUD 是否使用它，取决于最终 XR UI 设置。
+- Can be reused for head-follow UI.
+- Whether minimap / top HUD uses it depends on the final XR UI setup.
 
 ### `PuppyPathSelectionUI`
 
-当前行为：
+Current behavior:
 
-- 处理旧地图点击。
-- 把地图点击转换成网格行 / 列。
-- 从 3x5 网格中选择 path id。
-- 支持 friend marker。
-- 更新旧流程阶段文字和按钮。
+- Handles legacy map clicks.
+- Converts map clicks to grid row / column.
+- Selects path id from a 3x5 grid.
+- Supports friend marker.
+- Updates legacy flow phase text and buttons.
 
-V2 用法：
+V2 usage:
 
-- 可作为 UI pointer 点击和 marker 放置逻辑参考。
+- Can serve as a reference for UI pointer click and marker placement logic.
 
-V2 替换方向：
+V2 replacement direction:
 
-- 用景点 marker 选择替代网格选择。
-- 除非后续需要恢复找朋友功能，否则移除旧 Europa-Park 地名和 friend-based 流程。
+- Replace grid selection with attraction marker selection.
+- Remove legacy Europa-Park place names and friend-based flow unless find-a-friend functionality is restored later.
 
 ### `NavigationController`
 
-当前行为：
+Current behavior:
 
-- 管理旧版 intro phases、preview、start、complete、fireworks、destination beacon、reset。
+- Manages legacy intro phases, preview, start, complete, fireworks, destination beacon, and reset.
 
-V2 用法：
+V2 usage:
 
-- 可复用流程组织思路。
-- 如有帮助，可复用到达 / 奖励特效思路。
+- Reuse flow organization ideas.
+- Reuse arrival / reward effect ideas if helpful.
 
-V2 替换方向：
+V2 replacement direction:
 
-- 新的高层 V2 game controller 应管理 `Boot`、`Intro`、`FreeWalk`、`MapOpen`、`Navigating`、`AttractionReveal`、`ItemGrab`、`Reward`。
+- A new high-level V2 game controller should manage `Boot`, `Intro`, `FreeWalk`, `MapOpen`, `Navigating`, `AttractionReveal`, `ItemGrab`, and `Reward`.
 
 ### `PathPreviewController`
 
-当前行为：
+Current behavior:
 
-- 把 path id 映射到 `PathDefinition` prefab。
-- 生成 route root。
-- 在 route root 下实例化 path prefab。
-- 使用 waypoint 通过 `LineRenderer` 绘制动画路线。
-- 对外提供当前路径和目的地。
+- Maps path id to `PathDefinition` prefab.
+- Spawns route root.
+- Instantiates path prefab under route root.
+- Draws animated route via waypoints using `LineRenderer`.
+- Exposes current path and destination externally.
 
-V2 用法：
+V2 usage:
 
-- 复用路线绘制思路。
+- Reuse route drawing approach.
 
-V2 替换方向：
+V2 replacement direction:
 
-- 路线应从场地 graph 数据生成，而不是从旧静态 path prefab 选择。
-- 路线应固定在真实场地坐标中，而不是相对用户生成。
+- Routes should be generated from venue graph data, not selected from legacy static path prefabs.
+- Routes should be fixed in real venue coordinates, not spawned relative to the user.
 
 ### `RouteRootSpawner`
 
-当前行为：
+Current behavior:
 
-- 在 XR camera 前方生成 route root。
-- 使用 eye-to-ground offset。
+- Spawns route root in front of the XR camera.
+- Uses eye-to-ground offset.
 
-V2 用法：
+V2 usage:
 
-- 只适用于旧原型。
+- Only suitable for the legacy prototype.
 
-V2 替换方向：
+V2 replacement direction:
 
-- 场地固定的 route parent 应存在于真实场地坐标系中。
+- A venue-fixed route parent should exist in the real venue coordinate system.
 
 ### `NavigationRuntimeController`
 
-当前行为：
+Current behavior:
 
-- 读取当前路径 waypoints。
-- 跟踪用户沿路径的进度。
-- 计算状态：`Neutral`、`Waiting`、`GettingCloser`、`GettingFarther`、`Lost`、`Arrived`。
-- 更新 HUD。
-- 通知 `DogGuideController`。
+- Reads current path waypoints.
+- Tracks user progress along the path.
+- Computes states: `Neutral`, `Waiting`, `GettingCloser`, `GettingFarther`, `Lost`, `Arrived`.
+- Updates HUD.
+- Notifies `DogGuideController`.
 
-V2 用法：
+V2 usage:
 
-- 可复用导航状态概念。
+- Reuse navigation state concepts.
 
-V2 修改方向：
+V2 modification direction:
 
-- 使用生成的场地路线，而不是旧 path prefab waypoints。
-- 到达后应在几秒后回到自由行走。
-- 景点物品显示应该优先于普通到达完成逻辑。
+- Use generated venue routes instead of legacy path prefab waypoints.
+- After arrival, return to free walk after a few seconds.
+- Attraction item reveal should take priority over ordinary arrival completion logic.
 
 ### `NavigationHUDController`
 
-当前行为：
+Current behavior:
 
-- 导航时隐藏旧 friend / map / intro panels。
-- 显示 navigation HUD 和状态文字。
+- Hides legacy friend / map / intro panels during navigation.
+- Shows navigation HUD and status text.
 
-V2 用法：
+V2 usage:
 
-- 可复用文字更新模式。
+- Reuse text update patterns.
 
-V2 替换方向：
+V2 replacement direction:
 
-- 用 V2 UI 组替代当前旧 panel 假设。
+- Replace current legacy panel assumptions with V2 UI groups.
 
 ### `DogGuideController`
 
-当前行为：
+Current behavior:
 
-- 实例化小狗 prefab。
-- 保存运行时路径。
-- 应用导航状态。
-- 播放 stand / walk / trot / canter / sniff / bark / happy / sit / turn 动画。
-- 播放狗叫音频。
-- 执行随机行为。
-- 切换眼睛 / 嘴巴表情贴图。
-- 根据路线方向和状态让小狗在用户附近移动。
+- Instantiates puppy prefab.
+- Stores runtime path.
+- Applies navigation state.
+- Plays stand / walk / trot / canter / sniff / bark / happy / sit / turn animations.
+- Plays dog bark audio.
+- Executes random behaviors.
+- Switches eye / mouth expression textures.
+- Moves puppy near the user based on route direction and state.
 
-V2 用法：
+V2 usage:
 
-- 是小狗动画、表情、音频和跟随行为的强复用候选。
+- Strong reuse candidate for puppy animation, expressions, audio, and follow behavior.
 
-V2 修改方向：
+V2 modification direction:
 
-- 小狗移动目标必须使用场地可行走区域约束。
-- 添加自由行走、带路、坐下等待、景点显示、奖励等明确命令。
-- 接入饰品管理器。
-- 避免旧行为中让小狗跑到用户身后的逻辑；V2 要求小狗不应在用户身后。
+- Puppy movement targets must be constrained to venue walkable areas.
+- Add explicit commands for free walk, guiding, sit-and-wait, attraction reveal, and reward.
+- Integrate accessory manager.
+- Avoid legacy behavior that lets the puppy run behind the user; V2 requires the puppy not to be behind the user.
 
 ### `DogStateTester`
 
-当前行为：
+Current behavior:
 
-- 用键盘测试小狗表情和动画 bool / trigger。
+- Tests puppy expressions and animation bools / triggers via keyboard.
 
-V2 用法：
+V2 usage:
 
-- 保留用于测试小狗动画和表情。
+- Keep for testing puppy animation and expressions.
 
 ### `DogNavStateTester`
 
-当前行为：
+Current behavior:
 
-- 创建假路径，用按键测试小狗导航状态。
+- Creates fake paths and tests puppy navigation states via key presses.
 
-V2 用法：
+V2 usage:
 
-- 保留或复制一个 V2 版本，用于测试小狗行为。
+- Keep or duplicate a V2 version for testing puppy behavior.
 
 ### `DogEyeFollowRay`
 
-当前行为：
+Current behavior:
 
-- 让 UI 眼睛 `RectTransform` 朝向鼠标、手柄或手部射线在 canvas 上的 hit point。
+- Makes UI eye `RectTransform` face the mouse, controller, or hand ray hit point on the canvas.
 
-V2 用法：
+V2 usage:
 
-- 如果小狗 UI 或开场脸部图形需要 pointer-aware 眼睛动作，可以复用。
+- Can be reused if puppy UI or intro face graphics need pointer-aware eye movement.
 
-### `FriendButtonUI`
+### `FriendButtonUI` *(deprecated — not part of V2)*
 
-当前行为：
+Current behavior:
 
-- 旧版 friend button 选择辅助。
+- Legacy friend button selection helper.
 
-V2 用法：
+V2 usage:
 
-- 除非后续重新加入找朋友功能，否则大概率不需要。
+- **Deprecated.** Not part of V2. Do not use unless find-a-friend functionality is explicitly reintroduced later.
 
 ### `PathDefinition`
 
-当前行为：
+Current behavior:
 
-- 保存 path id 和子物体 waypoints。
+- Stores path id and child waypoints.
 
-V2 用法：
+V2 usage:
 
-- 仍可用于手工测试路径，但不足以支持动态真实场地导航。
+- Still useful for hand-authored test paths, but insufficient for dynamic real-venue navigation.
 
 ### `FireworkAutoDestroy`
 
-当前行为：
+Current behavior:
 
-- 延迟销毁特效对象。
+- Destroys effect objects after a delay.
 
-V2 用法：
+V2 usage:
 
-- 可复用于临时奖励 / 惊喜 VFX。
+- Can be reused for temporary reward / surprise VFX.
 
-## V2 关键重构总结
+## V2 Key Refactor Summary
 
-保留：
+Keep:
 
-- Logo 启动流程。
-- 小狗模型、prefab、动画、表情资源。
-- 小狗动画和表情逻辑基础。
-- `LineRenderer` 路线可视化思路。
-- UI 视觉资源和字体。
-- 烟花 / 特效自动清理思路。
+- Logo boot flow.
+- Puppy model, prefab, animation, and expression assets.
+- Foundation of puppy animation and expression logic.
+- `LineRenderer` route visualization approach.
+- UI visual assets and fonts.
+- Firework / effect auto-cleanup approach.
 
-替换或大幅改造：
+Replace or heavily rework:
 
-- 旧网格地图。
-- 旧 friend / location 选择。
-- 旧 path prefab library。
-- 相对用户生成的 route root。
-- 旧 Europa-Park 地图内容。
-- 旧 NavigationController 阶段模型。
+- Legacy grid map.
+- Legacy friend / location selection.
+- Legacy path prefab library.
+- User-relative route root spawning.
+- Legacy Europa-Park map content.
+- Legacy `NavigationController` phase model.
 
-需要新增系统：
+New systems needed:
 
-- 场地坐标标定。
-- 可行走区域和障碍物数据。
-- 景点 registry。
-- 基于景点数据的小地图和大地图。
-- 动态路线生成。
-- 小狗可行走区域内的位置选择。
-- 可收集物显示 / 抓取 / 放置。
-- 小狗饰品 attach。
-- 奖励显示流程。
+- Venue coordinate calibration.
+- Walkable area and obstacle data.
+- Attraction registry.
+- Minimap and big map based on attraction data.
+- Dynamic route generation.
+- Puppy position selection within walkable areas.
+- Collectible reveal / grab / placement.
+- Puppy accessory attachment.
+- Reward display flow.
 
-## 2026-07-01 V2 新增脚本记录
+## 2026-07-01 V2 New Script Log
 
-本次开始实现阶段 1：场地标定原型，新增脚本位于 `Assets/PuppyPath/Scripts/V2`：
+Phase 1 implementation began with the venue calibration prototype. New scripts are located in `Assets/PuppyPath/Scripts/V2`:
 
-- `VenueMapDefinition.cs`：新增 `ScriptableObject` 数据资产类型，用于保存真实场地地图尺寸、Photo Wall 原点、3.45 m 比例线、地图到 Unity 的坐标转换参数以及景点 / collectible spawn point 数据。
-- `VenueCoordinateMapper.cs`：新增纯转换工具，统一地图像素坐标和 Unity 世界坐标之间的换算，当前约定为地图北方对应 Unity `+Z`。
-- `VenueCalibrationDebugView.cs`：新增 Scene 视图调试组件，用 Gizmos 绘制 VenueOrigin、地图边界、3.45 m 比例线和景点 marker。
+- `VenueMapDefinition.cs`: New `ScriptableObject` data asset type for storing real venue map dimensions, Photo Wall origin, 3.45 m scale line, map-to-Unity coordinate conversion parameters, and attraction / collectible spawn point data.
+- `VenueCoordinateMapper.cs`: New pure conversion utility that unifies map pixel coordinates and Unity world coordinates; current convention is map north corresponds to Unity `+Z`.
+- `VenueCalibrationDebugView.cs`: New Scene view debug component that draws VenueOrigin, map bounds, 3.45 m scale line, walkable areas, nav graph, test routes, and attraction markers via Gizmos.
+- `VenuePathfinder.cs`: New first-version hand-authored waypoint graph pathfinding utility.
+- `VenueRouteLineController.cs`: New first-version venue-fixed route `LineRenderer` drawing component; accepts map pixel start/end points or precomputed world-coordinate routes.
+- `VenueNavigationRuntime.cs`: New first-version V2 venue navigation runtime that generates real-venue routes from HMD world position to attractions, refreshes `VenueRouteLineController`, and can temporarily drive `DogGuideController`.
+- `VenueMapUiController.cs`: New first-version V2 minimap / big map UI controller that maps user and attraction real-venue coordinates to UI markers and connects big map attraction clicks to `VenueNavigationRuntime`.
+- `VenueMapMarker.cs`: New map marker component for storing attraction id, showing selected state, and handling clicks.
+- `VenueMapOpenButton.cs`: New lightweight click entry to open the big map from the minimap.
+- `PuppyPathV2FlowController.cs`: New storyboard flow controller that switches `Intro`, `FreeRoam`, `BigMap`, `Navigation`, `Reward`, `ItemGrab`, `RewardPopup`, and other UI panels while reusing the legacy Canvas.
+- `VenueAlignmentManager.cs`: New on-site calibration component that aligns `VenueContentRoot` to the current HMD when the user stands at the real `VenueOrigin` facing map north.
+- `VenueSpatialAnchorBootstrap.cs`: New Meta Spatial Anchor bootstrap that creates an `OVRSpatialAnchor` at `VenueOrigin` and parents `VenueContentRoot` under the anchor.
+- `VenueWalkableGridVisualizer.cs`: New yellow walkable-area grid visualizer for confirming map alignment, scale, and orientation on Quest hardware.
+- `VenueMapReferencePlane.cs`: New map reference plane component that lays the current map image onto the XZ plane using venue coordinates.
+- `Editor/VenueCalibrationDebugViewEditor.cs`: New Scene view editing tool for dragging and modifying point data in `VenueMapDefinition`, and manually connecting / disconnecting nav graph blue lines in the Scene top-left `Nav Graph Editing` panel.
 
-这些脚本不替换现有 `DogGuideController`、旧 UI 或旧路径系统，只是为 V2 的真实场地坐标层打基础。
+These scripts do not replace the existing `DogGuideController`, legacy UI, or legacy path system; they only lay the foundation for V2's real-venue coordinate layer.
 
-当前 `VenueMapDefinition` 还提供调试菜单：
+`VenueMapDefinition` currently also provides debug menu items:
 
-- `Use PuppyPath Source Map Size`：将地图尺寸设为原图 `2468 x 2160`。
-- `Use Confirmed V2 Orientation`：将 `originWorldPosition` 设为 `(0, 0, 0)`，`venueYawDegrees` 设为 `0`。
-- `Populate Default Attractions`：生成 10 个默认景点数据条目。
-- `Log Calibration Summary`：在 Console 打印当前比例尺、米/像素、世界比例线距离和景点数量。
+- `Use PuppyPath Source Map Size`: Sets map size to source image `2468 x 2160`.
+- `Use Confirmed V2 Orientation`: Sets `originWorldPosition` to `(0, 0, 0)` and `venueYawDegrees` to `0`.
+- `Populate Default Attractions`: Generates 10 default attraction data entries.
+- `Populate Detected Attraction Spawn Pixels`: Fills in 10 orange-dot coordinates auto-detected from `map_with_spawn_points.jpg`.
+- `Populate Detected Walkable Draft`: Fills in the first-version auto-detected walkable outer contour and central obstacle area.
+- `Populate Detected Nav Graph Draft`: Fills in the first-version waypoint graph draft.
+- `Populate Detected Draft Map Data`: Runs all of the above map draft population steps in one pass.
+- `Log Calibration Summary`: Prints current scale, meters/pixel, world scale-line distance, and attraction count to the Console.
 
 ## 2026-07-01 开发线 B 新增脚本记录
 
@@ -442,5 +458,56 @@ V2 用法：
 小狗 prefab 上的饰品锚点、占位测试数据资产、`DogAccessoryTestScene` 测试场景、收藏物 prefab 上的 Meta SDK 组件挂载，均为纯 Unity 编辑器操作，未随本次代码提交自动生成，需要在编辑器中手动完成。
 
 ## 必须遵守的文档同步规则
+`VenueCalibrationDebugView` currently also provides:
 
-当任何现有脚本被重新用途化、替换、删除或为 V2 大幅修改时，必须更新本文档，让后续开发者知道项目仍然依赖哪些旧内容。
+- `Create Map Reference Plane`: Creates or updates a `VenueMapReferencePlane` child under the current debug object.
+- `Show Map Reference Plane` / `Hide Map Reference Plane`: Shows or hides the map reference plane.
+- Scene Editing toggle: Allows dragging calibration points, attractions, walkable polygons, obstacle polygons, and nav graph directly in the Scene view; when `Edit Nav Graph In Scene` is enabled, also supports selecting two waypoints and manually `Connect` / `Disconnect` neighbor links.
+
+`VenueNavigationRuntime` currently provides:
+
+- `StartNavigationToAttraction(string attractionId)`: Starts route generation from the current HMD / XR Camera position to the specified attraction.
+- `StopNavigation()`: Clears the route and stops temporary puppy navigation.
+- `Start Test Navigation` / `Stop Navigation` context menu items: For direct in-scene testing without UI.
+- Sends only non-negative navigation states to the legacy `DogGuideController` to avoid triggering legacy angry / lost feedback during V2 free-movement phases.
+
+Current on-device calibration / visualization tools provide:
+
+- `VenueContentRoot` structure convention: All venue-fixed content should be a child of this root, moved and rotated uniformly by calibration components.
+- `VenueAlignmentManager`: Uses current HMD position and facing for quick on-site alignment testing.
+- `VenueSpatialAnchorBootstrap`: Lays groundwork for persistent Spatial Anchor alignment later; requires `Anchor Support` enabled on `OVRManager` before use.
+- `VenueWalkableGridVisualizer`: Displays current `walkableAreas - obstacleAreas` results as semi-transparent yellow grid cells to address the lack of visible content on Quest.
+
+## 2026-07-01 Storyboard / Canvas Reuse Conclusions
+
+The storyboard clarifies that `MiniMap` is a game-HUD-style local minimap, not a full venue thumbnail. The legacy `Canvas` should continue as the V2 main UI container:
+
+- Keep `UIBootSequence`, `CanvasFollowHead`, `OVROverlayCanvas`, `GraphicRaycaster`, `PointableCanvasModule`.
+- Keep legacy buttons, fonts, bubbles, and map image assets as visual assets.
+- Disable legacy `PuppyPathSelectionUI` grid selection logic, legacy `NavigationController` path prefab flow, and legacy `PathPreviewController` static path library.
+- Add or rework panels in the legacy Canvas: `IntroPanel`, `FreeRoamHud`, `BigMapPanel`, `NavigationHud`, `RewardPanel`, `ItemGrabPanel`, `RewardPopupPanel`.
+- Use `PuppyPathV2FlowController` to manage storyboard state flow and `VenueMapUiController` to manage the local minimap and full big map.
+
+## 2026-07-01 Legacy Navigation Reuse Boundaries
+
+Parts of the legacy navigation system that can be reused:
+
+- Puppy prefab instantiation, animation state playback, expression texture switching, bark audio, and basic movement interpolation in `DogGuideController`.
+- Ideas from `NavigationRuntimeController` for progress along route, distance from route centerline, arrival distance, and HMD movement detection.
+- `LineRenderer` route drawing approach from `PathPreviewController`.
+
+Parts of the legacy navigation system that should not be used directly:
+
+- Static path prefabs as the real-venue route data source.
+- `RouteRootSpawner` user-relative route root spawning.
+- Legacy `Waiting` / `GettingFarther` / `Lost` negative feedback logic.
+- Any behavior that actively moves the puppy behind the user, makes it sit and wait in place, or makes it "angry" because the user moves freely.
+
+V2 should add wrapper / runtime components:
+
+- `DogVenueFollower`: Keeps the puppy ahead of the user in the real venue, follows HMD velocity, avoids non-walkable areas, and provides happy feedback when approaching treasure.
+- `VenueNavigationRuntime`: Uses `VenuePathfinder` results instead of legacy path prefabs and provides recommended direction to the puppy.
+
+## Required Documentation Sync Rule
+
+Whenever any existing script is repurposed, replaced, deleted, or heavily modified for V2, this document must be updated so subsequent developers know which legacy content the project still depends on.

@@ -1,39 +1,43 @@
-# PuppyPath V2 实施步骤文档
+# PuppyPath V2 Implementation Plan
 
-最后更新：2026-07-01
+Last updated: 2026-07-01
 
-## 当前技术阅读结论
+## Current Technical Reading Summary
 
-现有项目里已经有不少可以复用的部分：
+The existing project already has many reusable parts:
 
-- `UIBootSequence` 已经负责 logo 淡入、停留、淡出，并在 logo 结束后安全显示主 UI。
-- `CanvasFollowHead` 可以让一个 canvas 保持在用户头部前方。
-- `PuppyPathSelectionUI` 支持地图点击和 marker 放置，但它现在是基于网格的旧 Europa-Park 地图方案。
-- `PathPreviewController` 可以实例化路径 prefab，并用 `LineRenderer` 画路线。
-- `RouteRootSpawner` 会把路线内容生成在用户前方，这对旧原型有用，但 V2 需要真实场地固定坐标，因此必须改变。
-- `NavigationRuntimeController` 已经能判断路径进度、到达、偏离路线、等待、小狗导航状态。
-- `NavigationHUDController` 能在主 UI 和导航 HUD 文字之间切换。
-- `NavigationController` 负责旧版选择、预览、开始导航、到达烟花、返回菜单等流程。
-- `DogGuideController` 会生成小狗、播放动画状态、切换脸部贴图、播放叫声、根据路线方向移动、响应导航状态、执行随机行为。
-- 狗模型、动画 FBX、脸部贴图、音频、UI 图片、logo、地图图片、路线 prefab、烟花 prefab 都已经存在。
+- `UIBootSequence` already handles logo fade-in, hold, fade-out, and safely shows the main UI after the logo finishes.
+- `CanvasFollowHead` can keep a canvas positioned in front of the user's head.
+- `PuppyPathSelectionUI` supports map clicks and marker placement, but it is currently based on the old grid-based Europa-Park map approach.
+- `PathPreviewController` can instantiate path prefabs and draw routes with `LineRenderer`.
+- `RouteRootSpawner` spawns route content in front of the user, which was useful for the old prototype, but V2 needs real-venue fixed coordinates, so this must change.
+- `NavigationRuntimeController` already handles path progress, arrival, off-route detection, waiting, and dog navigation state.
+- `NavigationHUDController` can switch between the main UI and navigation HUD text.
+- `NavigationController` handles the old flow: selection, preview, start navigation, arrival fireworks, return to menu, and related steps.
+- `DogGuideController` spawns the dog, plays animation states, switches face textures, plays barks, moves along route direction, responds to navigation state, and performs random behaviors.
+- Dog models, animation FBX files, face textures, audio, UI images, logo, map images, route prefabs, and fireworks prefabs already exist.
 
-V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改成“真实场地固定坐标 + 景点系统”。
+V2 should reuse these solid animation and UI foundations, but the core scene model must change to "real-venue fixed coordinates + attraction system."
 
-## 推荐架构
+## Deprecated: Friend List / Find-a-Friend
 
-### 新数据层
+The Friend List / Find-a-Friend feature is deprecated and out of scope for V2. Do not implement or extend it unless explicitly revived in a future milestone.
 
-需要创建数据资产或可序列化场景数据，用于描述：
+## Recommended Architecture
 
-- 场地地图比例尺和坐标变换。
-- 从黄色区域提取出的一个或多个可行走 polygon。
-- 从不可行走区域提取出的障碍物 / 墙体 polygon。
-- 景点定义。
-- 景点虚拟物品。
-- 小狗饰品插槽。
-- 奖励内容。
+### New Data Layer
 
-推荐新增脚本：
+Create data assets or serializable scene data to describe:
+
+- Venue map scale and coordinate transforms.
+- One or more walkable polygons extracted from the yellow area.
+- Obstacle / wall polygons extracted from non-walkable areas.
+- Attraction definitions.
+- Attraction virtual items.
+- Dog accessory slots.
+- Reward content.
+
+Recommended new scripts:
 
 - `VenueMapDefinition`
 - `VenueCoordinateMapper`
@@ -44,27 +48,40 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `DogAccessoryDefinition`
 - `RewardDefinition`
 
-稳定内容数据优先使用 `ScriptableObject`。空间锚点、手工 waypoint、调试点可以使用场景对象。
+Prefer `ScriptableObject` for stable content data. Use scene objects for spatial anchors, hand-placed waypoints, and debug points.
 
-当前已开始实现：
+Currently in progress:
 
-- `Assets/PuppyPath/Scripts/V2/VenueMapDefinition.cs`：`ScriptableObject` 场地地图定义，保存地图尺寸、原点像素坐标、3.45 m 比例尺端点、朝向和景点数据。
-- `Assets/PuppyPath/Scripts/V2/VenueCoordinateMapper.cs`：地图像素坐标和 Unity 世界坐标之间的转换工具。
-- `Assets/PuppyPath/Scripts/V2/VenueCalibrationDebugView.cs`：Scene 视图调试绘制工具，用于检查原点、地图边界、比例尺和景点 marker。
+- `Assets/PuppyPath/Scripts/V2/VenueMapDefinition.cs`: `ScriptableObject` venue map definition storing map dimensions, origin pixel coordinates, 3.45 m scale endpoints, orientation, and attraction data.
+- `Assets/PuppyPath/Scripts/V2/VenueCoordinateMapper.cs`: Utility for converting between map pixel coordinates and Unity world coordinates.
+- `Assets/PuppyPath/Scripts/V2/VenueCalibrationDebugView.cs`: Scene view debug drawing tool for inspecting origin, map bounds, scale, and attraction markers.
+- `Assets/PuppyPath/Scripts/V2/VenuePathfinder.cs`: First-version hand-built nav graph pathfinding tool that generates map pixel routes and Unity world routes from a waypoint graph.
+- `Assets/PuppyPath/Scripts/V2/VenueRouteLineController.cs`: First-version route `LineRenderer` drawing component that can draw routes from a test start point to a target attraction.
+- `Assets/PuppyPath/Scripts/V2/VenueNavigationRuntime.cs`: First-version V2 venue navigation runtime that builds real-venue routes from the HMD world position to attractions, refreshes the ground route line, and provides recommended direction to the dog controller.
+- `Assets/PuppyPath/Scripts/V2/VenueMapUiController.cs`: First-version V2 big-map UI controller that maps the user's current position and attraction positions to full-map UI markers and wires attraction clicks into `VenueNavigationRuntime`.
+- `Assets/PuppyPath/Scripts/V2/VenueMapMarker.cs`: Map UI marker component that stores attraction id, shows selected state, and passes click events back to the map UI controller.
+- `Assets/PuppyPath/Scripts/V2/VenueMapOpenButton.cs`: Lightweight top-right map button entry that opens the big map; can be attached to a button object.
+- `Assets/PuppyPath/Scripts/V2/PuppyPathV2FlowController.cs`: First-version storyboard flow controller that reuses the old Canvas panels and manages UI states such as `Boot`, `Intro`, `FreeRoam`, `BigMap`, `Navigation`, and `RewardPopup`; 3D item grabbing no longer uses a dedicated UI panel.
+- `Assets/PuppyPath/Scripts/V2/VenueAlignmentManager.cs`: First-version on-site calibration component that aligns `VenueContentRoot` to the real `VenueOrigin` at the current HMD position.
+- `Assets/PuppyPath/Scripts/V2/VenueSpatialAnchorBootstrap.cs`: First-version Meta Spatial Anchor bootstrap that can create an `OVRSpatialAnchor` at `VenueOrigin` and parent venue content under the anchor.
+- `Assets/PuppyPath/Scripts/V2/VenueWalkableGridVisualizer.cs`: On-device visualization tool that tiles the current walkable area with yellow cells for validating map alignment on Quest.
+- `Assets/PuppyPath/Scripts/V2/VenueControllerCalibrationInput.cs`: Quest on-device long-press calibration input component that resets `VenueContentRoot` position and orientation when the user stands at `VenueOrigin` facing map north via a controller button, and can recreate the runtime Spatial Anchor.
+- `Assets/PuppyPath/Scripts/V2/VenueMapReferencePlane.cs`: Lays the map image onto the Scene XZ plane at the current calibration scale for manual alignment.
+- `Assets/PuppyPath/Scripts/V2/Editor/VenueCalibrationDebugViewEditor.cs`: Scene view drag-edit tool that can directly move attraction points, polygon vertices, and nav graph nodes.
 
-已确认第一版坐标约定：
+Confirmed first-version coordinate conventions:
 
-- `VenueOrigin` 使用 Photo Wall 右上角红点。
-- Unity `+Z` 对应地图北方 / 图片向上方向。
-- 地图像素坐标以图片左上角为 `(0, 0)`，`+X` 向右，`+Y` 向下。
+- `VenueOrigin` uses the red dot at the top-right corner of Photo Wall.
+- Unity `+Z` corresponds to map north / image up direction.
+- Map pixel coordinates use the image top-left as `(0, 0)`, with `+X` to the right and `+Y` downward.
 
-### 新游戏流程层
+### New Game Flow Layer
 
-创建一个高层状态控制器：
+Create a high-level state controller:
 
 - `PuppyPathV2GameController`
 
-建议状态：
+Suggested states:
 
 - `Boot`
 - `Intro`
@@ -75,63 +92,63 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `ItemGrab`
 - `Reward`
 
-这个控制器负责协调 UI、小狗行为、景点显示、收集状态和导航模式。
+This controller coordinates UI, dog behavior, attraction display, collection state, and navigation mode.
 
-### 新场地导航层
+### New Venue Navigation Layer
 
-旧版导航使用的是相对用户生成的路径 prefab。V2 需要真实场地中的世界固定路径：
+The old navigation used user-relative generated path prefabs. V2 needs world-fixed paths in the real venue:
 
-- 使用 3.45 m 红色墙体作为比例尺，把地图点转换成 Unity 世界坐标。
-- 在黄色区域上创建可行走图结构。
-- 用图搜索 / pathfinding 从用户当前位置生成到目标景点的路线。
-- 把小狗目标位置限制在可行走区域内。
-- 防止小狗和地面路线穿过墙体或不可行走区域。
+- Use the 3.45 m red wall as the scale reference to convert map points into Unity world coordinates.
+- Build a walkable graph structure on the yellow area.
+- Use graph search / pathfinding to generate routes from the user's current position to the target attraction.
+- Clamp the dog target position to the walkable area.
+- Prevent the dog and ground route from passing through walls or non-walkable areas.
 
-推荐新增脚本：
+Recommended new scripts:
 
 - `VenueNavGraph`
 - `VenuePathfinder`
 - `VenueRouteLineController`
 - `DogVenueFollower`
 
-现有 `PathPreviewController` 的地面路线绘制方式可以作为参考，但 V2 不应继续依赖旧 path prefab id。
+The ground route drawing approach in the existing `PathPreviewController` can be used as reference, but V2 should not continue depending on old path prefab ids.
 
-### 新小地图层
+### New Map Button / Big Map Layer
 
-用真实场地小地图替换旧网格地图：
+Replace the old grid map with a top-right map button and real-venue big map:
 
-- 右下角小地图。
-- 用户当前位置 marker。
-- 每个景点一个狗爪 marker。
-- 点击或触碰小地图后，打开居中的大地图。
-- 在大地图中点击狗爪 marker 开始导航。
-- 导航模式中必须提供退出 / 取消导航按钮，用户不想继续前往当前目标时可以随时回到自由行走。
+- Top-right map button in the view.
+- User current-position marker.
+- One paw marker per attraction.
+- Tap or touch the map button to open the centered big map.
+- Tap a paw marker on the big map to start navigation.
+- Navigation mode must provide an exit / cancel navigation button so the user can return to free roaming at any time if they no longer want to go to the current target.
 
-推荐新增脚本：
+Recommended new scripts:
 
-- `VenueMinimapController`
-- `VenueMapMarker`
-- `VenueMapPanelController`
+- `VenueMapUiController`: Unified management of the full big map, user position marker, and attraction markers.
+- `VenueMapMarker`: Display and click entry for a single attraction marker.
+- `VenueMapOpenButton`: Converts top-right map button clicks into open-big-map button/pointer events.
 
-旧的 `PuppyPathSelectionUI` 可以作为 pointer 点击和 marker 放置的参考，但 V2 应使用景点坐标，而不是固定网格行列。
+The old `PuppyPathSelectionUI` can be used as reference for pointer clicks and marker placement, but V2 should use attraction coordinates rather than fixed grid rows and columns.
 
-### 新景点和收集层
+### New Attraction and Collection Layer
 
-每个景点需要包含：
+Each attraction needs:
 
-- 名称。
-- 世界坐标位置。
-- 虚拟物品出现点位置。当前新版地图中以黄色圆点为准，景点文字 label 只作为命名参考。
-- 透明度距离曲线，而不是单一显示半径。
-- 建议第一版透明度规则：3 m 内 alpha = 1，6 m alpha = 0.5，10 m 以上 alpha = 0，中间平滑插值。
-- 悬浮物品 prefab。
-- 物品距离显隐逻辑。
-- 提示 UI。
-- 是否已收集。
-- 对应小狗饰品位置。
-- 奖励内容。
+- Name.
+- World coordinate position.
+- Virtual item spawn position. On the current new map, the yellow dots are authoritative; attraction text labels are naming reference only.
+- Transparency distance curve instead of a single display radius.
+- Suggested first-version transparency rule: alpha = 1 within 3 m, alpha = 0.5 at 6 m, alpha = 0 beyond 10 m, with smooth interpolation in between.
+- Floating item prefab.
+- Item distance show/hide logic.
+- Hint UI.
+- Whether it has been collected.
+- Corresponding dog accessory slot.
+- Reward content.
 
-推荐新增脚本：
+Recommended new scripts:
 
 - `AttractionTrigger`
 - `FloatingCollectibleItem`
@@ -139,178 +156,290 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `DogAccessoryManager`
 - `RewardRevealController`
 
-Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。已确认当前版本只使用手势追踪，不使用手柄。旧版 PuppyPath 已使用 pointing pinch，V2 需要在此基础上增加 grab 手势，用于抓取并拖动物品到小狗身上。
+Meta Quest / XR interaction should be built on the XR setup already used in the project. The current version uses hand tracking only, not controllers. The old PuppyPath already uses pointing pinch; V2 needs to add grab gestures on top of that for grabbing and dragging items onto the dog.
 
-### 小狗行为层
+### Dog Behavior Layer
 
-`DogGuideController` 是第一优先复用对象，但建议给 V2 包一层或逐步拆分：
+`DogGuideController` is the first-priority reuse target, but V2 should wrap it or gradually split it:
 
-- 自由行走：小狗保持在用户前方 1-3 m，并在黄色可行走区域内。
-- 导航：小狗沿生成路线走在用户前方。
-- 抓物品：小狗坐下等待。
-- 奖励：小狗开心反应。
-- 饰品：小狗显示已经收集到的穿戴物。
+- Free roaming: dog stays 1–3 m in front of the user within the yellow walkable area.
+- Navigation: dog walks ahead of the user along the generated route.
+- Item grab: dog sits and waits.
+- Reward: dog happy reaction.
+- Accessories: dog shows collected wearables.
 
-推荐做法：
+Recommended approach:
 
-1. 增加一个 V2 wrapper，向现有小狗控制器发送高层命令。
-2. 保留当前动画 state 名称和表情贴图切换逻辑。
-3. 只有当 `DogGuideController` 与旧路线逻辑耦合太深时，再进一步重构。
+1. Add a V2 wrapper that sends high-level commands to the existing dog controller.
+2. Keep current animation state names and face texture switching logic.
+3. Only refactor further if `DogGuideController` is too tightly coupled to old route logic.
 
-## 开发阶段
+Old navigation / dog script reading summary:
 
-### 阶段 1：场地标定原型
+- `PathPreviewController` instantiates static path prefabs from old path ids and draws routes with `LineRenderer`.
+- `NavigationRuntimeController` reads current path waypoints, judges distance from the route centerline, progress along the route, movement direction, waiting state, and arrival state, and sends `NavState` and recommended direction to `DogGuideController`.
+- `DogGuideController` spawns the dog, plays animations, switches expressions, moves to a target point ahead of the user, and responds to old states such as waiting / getting farther / lost / arrived.
+- V2 can reuse dog spawning, animation, expression, movement, and bark code ideas, but must not continue depending on old path prefabs and old "angry / waiting / lost" feedback logic.
 
-目标：创建一个与真实地图比例一致的 Unity 场地场景。
+V2 dog behavior rules:
 
-当前状态：基础数据结构和调试可视化脚本已建立，下一步需要在 Unity 中创建 `VenueMapDefinition` 资产，并在 Inspector 中填写 Photo Wall 原点、3.45 m 比例线端点和各景点像素坐标。
+- Free roam mode: dog follows HMD horizontal movement direction and stays about 1–3 m in front of the user.
+- If HMD movement speed is clearly noticeable, use movement direction to choose the dog's forward target; if the user is mostly stationary, fall back to HMD forward.
+- Dog movement speed should be close to or slightly faster than HMD horizontal speed; switch from walk to trot / canter when needed.
+- While the user is not stopping, the dog should not stop to wait or sit.
+- The dog should not run behind the user; if it falls behind, it should prioritize catching up to a walkable point ahead of the user.
+- Forward target points must pass `VenueMapDefinition.IsMapPixelWalkable` or an equivalent later API.
+- If straight ahead is not walkable, try left-front, right-front, a closer forward point, then the nearest walkable nav node in order.
+- Navigation mode: route source changes to the real-venue route generated by `VenuePathfinder` / `VenueRouteLineController`, but dog movement and animation can reuse `DogGuideController` locomotion code.
+- Near treasure, the dog barks happily toward the treasure direction; this is positive discovery feedback and does not use the negative feedback from old `GettingFarther` / `Lost`.
+- "Just wandering" mode has no off-route concept; the dog does not get angry because the user leaves a route.
 
-当前测试方法：
+Suggested implementation:
 
-1. 在 `VenueMapDefinition` 中确认 `Map Pixel Size = 2468 x 2160`，`Sync Map Pixel Size From Imported Texture` 不勾选。
-2. 填写 `Map Origin Pixel`、`Scale Point A Pixel`、`Scale Point B Pixel`。
-3. 在场景中创建或选择 `VenueCalibrationDebug` 空物体，挂载 `VenueCalibrationDebugView`，并引用当前 `VenueMapDefinition`。
-4. 打开 Scene 视图右上角 `Gizmos`。
-5. 在 Project 视图选中 `VenueMapDefinition`，通过组件右键菜单执行 `Log Calibration Summary`。
-6. Console 中 `Scale world distance` 应显示约 `3.45 m`。
-7. Scene 视图中应能看到 Photo Wall 原点、3.45 m 比例线、地图边界；填写景点坐标后还应看到 10 个景点 marker。
+1. Add `DogVenueFollower` as a V2 wrapper responsible for HMD speed detection, forward target selection, walkable-area constraints, and treasure-proximity feedback.
+2. Add a small set of public methods or a lightweight wrapper API to the existing `DogGuideController` to reuse dog spawning and walk / trot / canter / happy / bark animations.
+3. Do not rewrite old `NavigationRuntimeController` for now; first write a new venue navigation runtime for V2 whose input is route points generated by `VenuePathfinder`.
+4. Keep old scripts for reference and rollback, but V2 no longer uses old path prefabs as the real navigation data source.
 
-当前已填写的第一批标定值：
+## Development Phases
 
-- `Map Origin Pixel = (716, 820)`。
-- `Scale Point A Pixel = (1003, 715)`。
-- `Scale Point B Pixel = (1003, 833)`。
+### Phase 1: Venue Calibration Prototype
 
-步骤：
+Goal: Create a Unity venue scene consistent with the real map scale.
 
-1. 导入或放置最新活动场地地图图片，作为参考平面或 UI overlay。
-2. 在地图坐标中标记红色墙体的参考线段。
-3. 根据 3.45 m 墙体计算地图到米的比例。
-4. 选择 Unity 原点和场地朝向。
-5. 根据黄色区域创建简单地面 / 可行走区域可视化。
-6. 给所有当前已标记景点和黄色虚拟物品出现点添加 debug marker。
-7. 用测量工具验证 Unity 中的距离。
-8. 把所有选定的原点、朝向、比例写入 `03_Site_Calibration_And_Data.md`。
+Current status: Basic data structures and debug visualization scripts are in place. Next step is to create a `VenueMapDefinition` asset in Unity and fill in Photo Wall origin, 3.45 m scale line endpoints, and attraction pixel coordinates in the Inspector.
 
-验收标准：
+Current test method:
 
-- Unity 中测量红色墙体，应为 3.45 Unity unit，也就是 3.45 m。
-- 所有已知景点和黄色虚拟物品出现点都出现在合理的相对位置。
-- 黄色可行走区域已经变成场地固定区域。
+1. In `VenueMapDefinition`, confirm `Map Pixel Size = 2468 x 2160` and leave `Sync Map Pixel Size From Imported Texture` unchecked.
+2. Fill in `Map Origin Pixel`, `Scale Point A Pixel`, and `Scale Point B Pixel`.
+3. Create or select a `VenueCalibrationDebug` empty object in the scene, attach `VenueCalibrationDebugView`, and reference the current `VenueMapDefinition`.
+4. Open Scene view `Gizmos` in the top-right.
+5. Select `VenueMapDefinition` in the Project view and run `Log Calibration Summary` from the component context menu.
+6. In the Console, `Scale world distance` should show about `3.45 m`.
+7. In Scene view you should see Photo Wall origin, 3.45 m scale line, and map bounds; after filling attraction coordinates you should also see 10 attraction markers.
 
-### 阶段 2：可行走区域和寻路
+Current first batch of calibration values filled in:
 
-目标：导航和小狗位置必须遵守真实可行走区域。
+- `Map Origin Pixel = (716, 820)`.
+- `Scale Point A Pixel = (1003, 715)`.
+- `Scale Point B Pixel = (1003, 833)`.
 
-步骤：
+Steps:
 
-1. 把黄色区域边界转换成 polygon 数据。
-2. 从不可行走区域添加障碍物 / 墙体 polygon。
-3. 初期可以手工创建导航图，后续再考虑从 polygon 自动采样。
-4. 实现从用户位置到景点的路线生成。
-5. 在地面渲染路线 line。
-6. 把路线点和小狗目标点 clamp 到可行走区域内。
-7. 添加 debug 工具，显示最近合法点和被阻挡的路径边。
+1. Import or place the latest event venue map image as a reference plane or UI overlay.
+2. Mark the reference line segment of the red wall in map coordinates.
+3. Compute map-to-meters scale from the 3.45 m wall.
+4. Choose Unity origin and venue orientation.
+5. Create a simple ground / walkable-area visualization from the yellow area.
+6. Add debug markers for all currently marked attractions and yellow virtual item spawn points.
+7. Verify distances in Unity with measurement tools.
+8. Write all chosen origin, orientation, and scale values into `03_Site_Calibration_And_Data.md`.
 
-验收标准：
+Acceptance criteria:
 
-- 生成的路线保持在黄色区域内。
-- 小狗目标点不会出现在墙后或穿墙位置。
-- 从多个测试位置都能生成到每个景点的路线。
+- Measuring the red wall in Unity should yield 3.45 Unity units, i.e. 3.45 m.
+- All known attractions and yellow virtual item spawn points appear in reasonable relative positions.
+- The yellow walkable area has become a venue-fixed region.
 
-### 阶段 3：V2 UI 流程
+### Phase 2: Walkable Area and Pathfinding
 
-目标：用 boot、intro、小地图、大地图、顶部状态文字替换旧选择流程。
+Goal: Navigation and dog position must respect the real walkable area.
 
-步骤：
+Current status: `WalkableAreaDefinition`, `VenueNavGraphDefinition`, and `VenueNavNodeDefinition` data structures have been added; `VenueCalibrationDebugView` can draw green walkable polygons, blue waypoint graphs, and orange test routes. `VenuePathfinder` currently uses a hand-built waypoint graph and checks whether straight-segment sample points lie inside walkable polygons.
 
-1. 复用 `UIBootSequence` 播放 logo。
-2. 添加 V2 主 HUD：
-   - 顶部状态文字。
-   - 右下角小地图。
-   - 小狗对话气泡。
-3. 实现开场介绍的时间和流程。
-4. 实现小地图用户位置 marker。
-5. 实现各景点的狗爪 marker。
-6. 实现大地图打开 / 关闭。
-7. 实现景点 marker 选择。
-8. 把 marker 选择连接到导航模式。
-9. 实现导航模式退出按钮：清除当前路线、取消目标、隐藏导航 UI，并回到自由行走状态。
+2026-07-01 update: The map owner has finished hand-editing walkable areas and the nav graph in Scene. Next step moves from data editing to runtime validation: generate venue-fixed routes from the HMD / XR Camera current world position to target attractions and draw ground `LineRenderer` routes.
 
-验收标准：
+`VenueNavigationRuntime` has been added:
 
-- Logo 最先出现。
-- Logo 后小狗和小地图出现。
-- 开场对话可以播放。
-- 小地图可以展开为大地图。
-- 点击狗爪 marker 后进入导航状态。
-- 导航状态下可以点击退出 / 取消导航，并立即回到自由行走状态。
+- Inputs: `VenueMapDefinition`, `xrCamera`, `VenueRouteLineController`, optional `DogGuideController`.
+- Public API: `StartNavigationToAttraction(string attractionId)` and `StopNavigation()`.
+- Inspector context menu: `Start Test Navigation` / `Stop Navigation` for testing any attraction route without UI hooked up.
+- Behavior: converts HMD world position to map pixel coordinates, calls `VenuePathfinder` to generate a route, then draws the line with `VenueRouteLineController.ShowWorldRoute`.
+- Re-plans the route at intervals during play; if new planning fails, keeps the last valid route to avoid routes disappearing suddenly during on-site testing.
+- If the user's current position or target point is slightly outside the walkable polygon, temporarily snaps to the nearest walkable nav node to reduce failures from small on-site calibration errors.
+- Current dog integration is transitional: reuses `DogGuideController.BeginGuiding` / `ApplyNavigationState` and only sends non-negative states such as `Neutral`, `GettingCloser`, and `Arrived`; a dedicated `DogVenueFollower` should still be implemented later.
 
-### 阶段 4：小狗自由行走和导航行为
+2026-07-01 on-device visualization / on-site calibration update:
 
-目标：让小狗在真实场地中既可靠又有存在感。
+- Added `VenueContentRoot` as the parent for all venue-fixed content. `VenueCalibrationDebug`, `VenueRouteLine`, `VenueWalkableGridVisualizer`, future attraction items, and dog target points should all live under this root.
+- Added `VenueAlignmentManager`: for quick testing, when the user stands at the real Photo Wall top-right origin facing map north / Unity `+Z`, startup automatically aligns `VenueContentRoot` to the current HMD.
+- Added `VenueSpatialAnchorBootstrap`: creates a Meta `OVRSpatialAnchor` at `VenueOrigin` and can parent `VenueContentRoot` under the anchor as the basis for persistent venue alignment later.
+- Added `VenueWalkableGridVisualizer`: generates yellow semi-transparent cells from `VenueMapDefinition.IsMapPixelWalkable` so walkable areas are visible on Quest.
+- Added `VenueControllerCalibrationInput`: during on-device runtime, when the user stands at the real `VenueOrigin` facing map north, long-pressing a controller button re-runs position + orientation calibration; if `VenueSpatialAnchorBootstrap` is connected, it can also replace the runtime Spatial Anchor. Defaults to `OVRInput.RawButton.Start` because the system Meta / Oculus button may be reserved by Quest OS and not reliably captured by the app.
+- Meta Quest Spatial Anchor prerequisite: on `OVRCameraRig` under `OVRManager > Quest Features > General`, enable `Anchor Support`; enable `Anchor Sharing Support` only when shared anchors are needed.
 
-步骤：
+2026-07-01 update: An auto-detect draft entry has been added. Running `Populate Detected Draft Map Data` from the `VenueMapDefinition` context / gear menu fills from current `map_with_spawn_points.jpg` auto-detection results:
 
-1. 开场介绍开始后生成小狗。
-2. 自由行走目标选择：
-   - 优先选择用户前方 1.5-2 m。
-   - 允许距离范围为 1-3 m。
-   - 如果前方被阻挡，测试左前方和右前方。
-   - 拒绝用户身后的目标点。
-   - 把目标点限制在可行走区域内。
-3. 导航目标选择：
-   - 小狗放在生成路线前方。
-   - 与用户保持易观察距离。
-   - 使用现有 walk / trot 动画。
-4. 物品交互行为：
-   - 小狗停止移动。
-   - 小狗坐下。
-   - 小狗看向用户或物品。
-5. 到达行为：
-   - 小狗短暂庆祝。
-   - 几秒后系统回到自由行走。
+- 10 `collectibleSpawnPixel` values.
+- 1 main walkable outer contour `main_walkable_auto_draft`.
+- 1 central obstacle region `central_block_auto_draft` to prevent routes through the large central gray block.
+- 14 first-version waypoint graph nodes.
 
-验收标准：
+This data is draft, not final on-site calibration. Orange dot detection has higher confidence; walkable contours and waypoints need manual review in Scene view.
 
-- 正常行走时小狗保持可见。
-- 小狗不会穿墙。
-- 小狗不会站到黄色区域外。
-- 用户操作收集物时，小狗坐着等待。
+Blue waypoint graph notes:
 
-### 阶段 5：景点显示和可收集物品
+- Blue points and blue lines are not walls and not walkable boundaries.
+- They are pathfinding centerlines: routes go from one blue point to adjacent blue points.
+- If a blue line crosses a red obstacle or gray non-walkable area, that edge shows red-orange in the debug view and the node or neighbor connection must be moved or removed.
+- With `Edit Nav Graph In Scene` enabled, a `Nav Graph Editing` panel appears in the top-left of Scene view. Click the small cyan selection points beside blue points to select two waypoints, then use `Connect` to link manually or `Disconnect` to remove impassable connections.
 
-目标：用户靠近景点时显示悬浮虚拟物品。
+Recommended manual correction workflow:
 
-步骤：
+1. Select `VenueCalibrationDebug` in the scene.
+2. Run `Create Map Reference Plane` from the component context menu to lay the current map image under Scene.
+3. Open Scene view `Gizmos`.
+4. In `Scene Editing`, enable as needed:
+   - `Edit Calibration Points In Scene`
+   - `Edit Attractions In Scene`
+   - `Edit Walkable Areas In Scene`
+   - `Edit Obstacle Areas In Scene`
+   - `Edit Nav Graph In Scene`
+5. Drag red origin / scale endpoints, yellow points, green polygon vertices, red obstacle vertices, or blue nav nodes directly in Scene.
+6. To manually change blue lines, click the small cyan selection points beside two blue points in the top-left `Nav Graph Editing` panel, then click `Connect` or `Disconnect`.
+7. Changes write back to `VenueMapDefinition` and can be undone with Undo.
+8. Prioritize fixing red-orange nav edges because they represent impassable or wall-crossing connections in the current graph.
 
-1. 实现每个景点物品的距离透明度控制，而不是单一触发开关。
-2. 第一版透明度曲线：
-   - 3 m 内 100% 显示。
-   - 6 m 左右 50% 显示。
-   - 10 m 以上 0% 显示。
-   - 3-10 m 之间平滑插值。
-3. 在黄色圆点对应的物品出现点生成或激活悬浮物品。
-4. 根据透明度同步控制物品材质、提示 UI 或可交互状态。
-5. 在物品附近显示提示 UI。
-6. 支持用户通过手势 grab 抓取和拖动，不使用手柄。
-7. 检测物品是否被放到小狗目标 collider / 区域上。
-8. 收集成功后隐藏提示。
-9. 标记该景点已收集。
+2026-07-01 update: `Populate Detected Nav Graph Draft` now produces a denser waypoint draft. It first places more corridor centerline nodes, then auto-filters connections that cross non-walkable areas with `IsMapSegmentWalkable`. The goal is to give the dog more free-movement choices later while avoiding a default graph that goes straight through walls.
 
-验收标准：
+2026-07-01 calibration editing rule update:
 
-- 物品只在对应景点附近出现。
-- 物品透明度随用户距离连续变化：近处清楚，远处逐渐消失。
-- 提示清晰可读，不干扰整个场景。
-- 用户可以用手势 grab 抓住物品并拖到小狗身上。
-- 除非主动 reset，否则同一景点不能重复收集。
+- When dragging `mapOriginPixel` in Scene, keep the world layout of already-set points and lines from drifting; code synchronously adjusts `originWorldPosition`.
+- When dragging `scalePointAPixel` / `scalePointBPixel` in Scene, keep current meters-per-pixel unchanged so other points and lines are not rescale implicitly.
+- If scale really needs to be recalculated later, add an explicit "recalibrate scale" operation rather than implicitly changing scale during ordinary drags.
+- `VenueCalibrationDebugView` provides `Show Map Reference Plane` / `Hide Map Reference Plane` to show or hide the map underlay in Scene.
+- `VenueCalibrationDebugViewEditor` provides nav graph manual connect / disconnect tools to repair valid paths broken in auto drafts or remove edges confirmed impassable by hand.
 
-### 阶段 6：小狗饰品和奖励
+Data needed from the map owner:
 
-目标：每个收集物都能改变小狗外观，并显示对应奖励。
+- Walkable area polygon: key corner pixel coordinates of the yellow area outer contour. First version does not need extreme precision, but must cover main passages the user and dog can walk.
+- If the yellow area splits into multiple disconnected blocks, each block needs its own `WalkableAreaDefinition`.
+- Navigation waypoints: key turning-point pixel coordinates along walkable-area centerlines. Waypoint count can be fewer than polygon corners; the important part is having points at each corridor turn, junction, and near attractions.
+- Waypoint neighbor relationships: each `VenueNavNodeDefinition.neighborNodeIds` lists directly passable adjacent node ids.
 
-步骤：
+Minimum testable data:
+
+1. A rough `WalkableAreaDefinition` covering the corridor from Photo Wall to near the red scale line.
+2. 3–5 waypoints forming a path from Photo Wall to any one test attraction.
+3. At least one attraction with `collectibleSpawnPixel` or `arrivalPixel` filled in.
+4. In `VenueCalibrationDebugView` `Test Path`, fill `testStartPixel` and `testDestinationAttractionId`; Scene view should show an orange route.
+
+Recommended naming:
+
+- Main corridor waypoints use `main_01`, `main_02`, `main_03`.
+- Branch points use attraction abbreviations, e.g. `photo_wall_arrival`, `drink_shop_arrival`.
+- Fill neighbor relationships bidirectionally first, e.g. `main_01` connects to `main_02`, and `main_02` also connects to `main_01`.
+
+Steps:
+
+1. Convert yellow area boundaries into polygon data.
+2. Add obstacle / wall polygons from non-walkable areas.
+3. Hand-build the navigation graph initially; consider automatic sampling from polygons later.
+4. Implement route generation from user position to attractions.
+5. Render ground route lines.
+6. Use `VenueNavigationRuntime` to test routes from HMD position to all 10 attractions.
+7. Clamp route points and dog target points to the walkable area.
+8. Add debug tools showing nearest valid points and blocked path edges.
+
+Acceptance criteria:
+
+- Generated routes stay inside the yellow area.
+- Dog target points do not appear behind walls or through walls.
+- Routes can be generated to each attraction from multiple test positions.
+
+### Phase 3: V2 UI Flow
+
+Goal: Replace the old selection flow with boot, intro, map button, big map, and top status text.
+
+2026-07-01 update: Local minimap has been removed in favor of a top-right map button. Added `VenueMapUiController` and `VenueMapMarker` to show attraction markers on the big map, continuously update the user current-position marker, and call `VenueNavigationRuntime.StartNavigationToAttraction(attractionId)` after the user selects an attraction. First version focuses on the main chain: "map button does not block view, full big map can select attractions, map can enter navigation"; refine visuals, paw icons, intro, and the full V2 state machine later.
+
+2026-07-01 Storyboard flow update:
+
+```text
+Boot / Logo -> Intro -> FreeRoam -> Tap Map Button -> BigMap -> Tap Attraction
+-> Navigation -> Arrived -> 3D item grab to dog -> RewardPopup -> FreeRoam
+```
+
+Added `PuppyPathV2FlowController` as a lightweight state switcher on the old Canvas. It does not replace `UIBootSequence`; it enters `Intro` via `UIBootSequence.onBootFinished` and enters `Navigation` through attraction selection on `VenueMapUiController`.
+
+2026-07-01 update: `RewardPanel` and `ItemGrabPanel` are no longer built as separate panels. After arriving at an attraction, the reward flow is handled by the real 3D item: after the user grabs the 3D item onto the dog, call `PuppyPathV2FlowController.ShowRewardPopup()`, show `RewardPopupPanel`, play the shaking animation, auto-close after 10 seconds, and return to `FreeRoam`.
+
+Steps:
+
+1. Reuse `UIBootSequence` for logo playback.
+2. Add V2 main HUD:
+   - Top status text.
+   - Top-right map button in the view.
+   - Dog speech bubble.
+3. Implement intro timing and flow.
+4. Implement big-map user position marker.
+5. Implement paw markers for each attraction.
+6. Implement big map open / close.
+7. Implement attraction marker selection.
+8. Connect marker selection to navigation mode.
+9. Implement navigation exit button: clear current route, cancel target, hide navigation UI, and return to free roaming.
+
+Acceptance criteria:
+
+- Logo appears first.
+- Dog and minimap appear after logo.
+- Intro dialogue can play.
+- Minimap can expand to big map.
+- Tapping a paw marker enters navigation state.
+- In navigation state, user can tap exit / cancel navigation and immediately return to free roaming.
+
+### Phase 4: Dog Free Roam and Navigation Behavior
+
+Goal: Make the dog reliable and present in the real venue.
+
+Steps:
+
+1. Spawn the dog after intro starts.
+2. Free roam target selection:
+   - Prefer 1.5–2 m ahead of the user.
+   - Allow distance range 1–3 m.
+   - If blocked ahead, test left-front and right-front.
+   - Reject target points behind the user.
+   - Clamp target points to the walkable area.
+3. Navigation target selection:
+   - Place the dog ahead on the generated route.
+   - Keep an easy-to-watch distance from the user.
+   - Use existing walk / trot animations.
+4. Item interaction behavior:
+   - Dog stops moving.
+   - Dog sits.
+   - Dog looks at the user or the item.
+5. Arrival behavior:
+   - Dog briefly celebrates.
+   - System returns to free roaming after a few seconds.
+
+Acceptance criteria:
+
+- Dog stays visible during normal walking.
+- Dog does not pass through walls.
+- Dog does not stand outside the yellow area.
+- Dog sits and waits while the user handles collectibles.
+
+### Phase 5: Attraction Display and Collectible Items
+
+Goal: Show floating virtual items when the user approaches attractions.
+
+Steps:
+
+1. Implement per-attraction item distance transparency control instead of a single on/off trigger.
+2. First-version transparency curve:
+   - 100% visible within 3 m.
+   - About 50% visible at 6 m.
+   - 0% visible beyond 10 m.
+   - Smooth interpolation between 3–10 m.
+3. Spawn or activate floating items at spawn points corresponding to yellow dots.
+4. Synchronize item material, hint UI, or interactable state with transparency.
+5. Show hint UI near items.
+6. Support hand-grab gesture to grab and drag; no controllers.
+7. Detect whether the item is placed on the dog target collider / zone.
+8. Hide hints after successful collection.
+9. Mark the attraction as collected.
 
 1. 在小狗 prefab 根节点添加统一的饰品挂载点（2026-07-02 根据设计师意见调整：饰品挂在小狗整体根节点上，跟随小狗整体位置/朝向移动，不挂在某根具体骨骼上、不跟随骨骼自身的动画细节，例如头部动画的点头、尾巴摇动）。
    - `DogAccessorySlot`（Head/Face/Neck/Back/Tail）保留作为资产上的描述性标签，方便区分"这件饰品大致是头部风格还是脖子风格"，但不再对应到具体骨骼查找。
@@ -332,98 +461,134 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 
 目标：让小狗更有表情和情绪。
 
-步骤：
+- Items appear only near their corresponding attraction.
+- Item transparency changes continuously with user distance: clear up close, fading away at distance.
+- Hints are readable and do not clutter the whole scene.
+- User can hand-grab an item and drag it onto the dog.
+- Same attraction cannot be collected twice unless explicitly reset.
 
-1. 检查现有 animation controller 的状态。
-2. 把 V2 状态映射到动画 clip：
-   - Idle / curious。
-   - Walk ahead。
-   - Guide。
-   - Sit wait。
-   - Happy reward。
-   - Curious reveal。
-3. 检查脸部贴图分组。
-4. 为景点显示和奖励时刻添加表情过渡。
-5. 需要时添加叫声或轻量音效。
+### Phase 6: Dog Accessories and Rewards
 
-验收标准：
+Goal: Each collectible changes the dog's appearance and shows the corresponding reward.
 
-- 小狗状态变化清楚可读。
-- 动画不频繁闪烁。
-- 抓物品时的小狗坐下等待显得自然、有意图。
+Steps:
 
-### 阶段 8：现场测试和迭代
+1. Add accessory anchors on the dog prefab:
+   - Head.
+   - Eyes / face.
+   - Neck.
+   - Body / back.
+   - Tail or side if needed.
+2. Define an accessory slot for each collectible.
+3. Attach collected accessory prefabs to the corresponding slot.
+4. Save collection state for the current session; no persistence across app restart for now.
+5. Play 1–2 second shaking / surprise animation.
+6. Show attraction reward UI.
+7. Return to free roaming after the user closes the reward or configured time ends.
 
-目标：验证真实活动场地和 Unity 场景完全匹配。
+Acceptance criteria:
 
-步骤：
+- Each collected item continues to show on the dog.
+- Multiple accessories can coexist.
+- Reward display is clearly tied to the attraction collection action.
 
-1. 在场地角落或参考点放置已知测试 marker。
-2. 用 3.45 m 墙体测试地图比例。
-3. 在各景点之间行走，对比真实距离和 Unity 距离。
-4. 调整景点触发半径。
-5. 调整小狗带路距离和障碍物 fallback 逻辑。
-6. 用真实移动测试小地图方向。
-7. 和现场工作人员一起测试所有奖励流程。
-8. 每次场地地图或奖励变化后，更新所有相关文档。
+### Phase 7: Dog Animation and Expression Polish
 
-验收标准：
+Goal: Make the dog more expressive and emotional.
 
-- 小地图中的用户位置感觉正确。
-- 景点在预期真实位置触发。
-- 小狗在狭窄通道中仍然可信。
-- 现场工作人员不需要额外技术解释也能理解奖励流程。
+Steps:
 
-## 建议优先实现顺序
+1. Review existing animation controller states.
+2. Map V2 states to animation clips:
+   - Idle / curious.
+   - Walk ahead.
+   - Guide.
+   - Sit wait.
+   - Happy reward.
+   - Curious reveal.
+3. Review face texture groups.
+4. Add expression transitions for attraction reveal and reward moments.
+5. Add barks or light sound effects when needed.
 
-1. 锁定场地坐标系和比例尺。
-2. 建立可行走区域和景点 marker。
-3. 用景点数据生成小地图 / 大地图。
-4. 实现路线生成和地面路线 line。
-5. 改造小狗自由行走和导航位置逻辑。
-6. 添加可收集物的显示、抓取、放置。
-7. 添加饰品 attachment 和奖励显示。
-8. 优化小狗动画和表情。
+Acceptance criteria:
 
-## 并行工作分配建议
+- Dog state changes are clear and readable.
+- Animations do not flicker frequently.
+- Sitting and waiting during item grab feels natural and intentional.
 
-当前建议分成两条互不阻塞的开发线：
+### Phase 8: On-Site Testing and Iteration
 
-### 开发线 A：地图 / 场地坐标 / 导航基础
+Goal: Verify the real event venue matches the Unity scene.
 
-负责人：地图负责人。
+Steps:
 
-当前任务：
+1. Place known test markers at venue corners or reference points.
+2. Test map scale with the 3.45 m wall.
+3. Walk between attractions and compare real distances to Unity distances.
+4. Tune attraction trigger radii.
+5. Tune dog leading distance and obstacle fallback logic.
+6. Test minimap direction with real movement.
+7. Test all reward flows with on-site staff.
+8. Update all related documents whenever the venue map or rewards change.
 
-- 完成 `VenueMapDefinition` 的 10 个景点 / collectible spawn point 像素坐标填写。
-- 使用 `VenueCalibrationDebugView` 验证比例尺、原点、地图方向和景点相对位置。
-- 下一步建立黄色可行走区域的手工 polygon 或 waypoint 草稿。
-- 后续实现 `VenueNavGraph`、`VenuePathfinder`、`VenueRouteLineController`。
+Acceptance criteria:
 
-交付物：
+- User position on the minimap feels correct.
+- Attractions trigger at expected real-world positions.
+- Dog remains believable in narrow passages.
+- On-site staff can understand the reward flow without extra technical explanation.
 
-- 可被代码读取的场地坐标数据。
-- Scene 视图中可信的地图 marker 和比例尺。
-- 第一版可行走区域 / 导航图。
+## Recommended Implementation Order
 
-### 开发线 B：小狗饰品 / 奖励 / 动画测试
+1. Lock venue coordinate system and scale.
+2. Establish walkable area and attraction markers.
+3. Generate minimap / big map from attraction data.
+4. Implement route generation and ground route line.
+5. Rework dog free roam and navigation position logic.
+6. Add collectible display, grab, and placement.
+7. Add accessory attachment and reward display.
+8. Polish dog animation and expressions.
 
-负责人：第二位程序员。
+## Parallel Workstream Recommendations
 
-这条线可以并行推进，因为它主要依赖小狗 prefab、动画和临时测试按钮，不依赖最终地图坐标。
+Current recommendation splits into two non-blocking development lines:
 
-当前任务：
+### Workstream A: Map / Venue Coordinates / Navigation Foundation
 
-- 在小狗 prefab 上整理饰品 anchor：`Head`、`Face`、`Neck`、`Back` 等。
-- 新增 `DogAccessoryDefinition` 和 `DogAccessoryManager` 草稿，用测试键或 Inspector 按钮把饰品 prefab attach 到指定 anchor。
-- 在 `DogTestScene` 或复制出的 V2 测试场景里测试坐下、开心、惊讶、摇晃等动画状态。
-- 整理每个景点对应的临时饰品 slot（当前具体饰品和奖励内容尚未定稿，先用占位数据跑通流程，不参考早期草案表格的具体物品描述）。
-- 新增简单 `RewardRevealController` 草稿，可以显示一张测试奖励面板或触发已有烟花 prefab。
-- 新增 `AttractionTrigger`、`FloatingCollectibleItem`、`CollectibleGrabHandler` 草稿（原"新景点和收集层"的剩余部分，2026-07-01 并入本开发线）：
-  - 景点虚拟物品按用户距离渐显透明度（3 m/6 m/10 m 三档 + 中间插值）。
-  - 手势 grab 抓取物品、拖动、检测是否放到小狗身上、放上后触发挂载和收集标记。
-  - 距离和位置先用测试场景里的固定坐标 / 半径模拟，不依赖 `VenueMapDefinition` 的真实场地坐标；等开发线 A 的场地坐标就绪后再对接真实景点位置。
-  - `CollectibleItemDefinition` 数据类型随这块一起实现。
+Owner: Map owner.
+
+Current tasks:
+
+- Finish filling pixel coordinates for all 10 attractions / collectible spawn points in `VenueMapDefinition`.
+- Use `VenueCalibrationDebugView` to verify scale, origin, map orientation, and relative attraction positions.
+- Next: build hand-drawn polygon or waypoint drafts for the yellow walkable area.
+- Later: implement `VenueNavGraph`, `VenuePathfinder`, `VenueRouteLineController`.
+- Code already provides first-version `VenuePathfinder` and `VenueRouteLineController`; next focus is filling polygon and waypoint data and testing routes in Scene view.
+
+Deliverables:
+
+- Venue coordinate data readable by code.
+- Trustworthy map markers and scale in Scene view.
+- First-version walkable area / navigation graph.
+
+### Workstream B: Dog Accessories / Rewards / Animation Testing
+
+Owner: Second programmer.
+
+This line can proceed in parallel because it mainly depends on the dog prefab, animations, and temporary test buttons, not final map coordinates.
+
+Current tasks:
+
+- Organize accessory anchors on the dog prefab: `Head`, `Face`, `Neck`, `Back`, etc.
+- Add draft `DogAccessoryDefinition` and `DogAccessoryManager`; use test keys or Inspector buttons to attach accessory prefabs to specified anchors.
+- Test sit, happy, surprise, shake, and related animation states in `DogTestScene` or a copied V2 test scene.
+- Organize temporary accessory slots per attraction (specific accessories and reward content are not finalized; use placeholder data to run the flow through, without referencing specific item descriptions from early draft tables).
+- Add a simple `RewardRevealController` draft that can show a test reward panel or trigger the existing fireworks prefab.
+- Add draft `AttractionTrigger`, `FloatingCollectibleItem`, and `CollectibleGrabHandler` (remaining parts of "New Attraction and Collection Layer", merged into this workstream on 2026-07-01):
+  - Attraction virtual items fade in by user distance (3 m / 6 m / 10 m tiers + interpolation in between).
+  - Hand-grab to grab items, drag, detect placement on the dog, then trigger attach and collection marking.
+  - Use fixed coordinates / radii in the test scene for distance and position first; connect to real attraction positions from `VenueMapDefinition` after Workstream A venue coordinates are ready.
+  - Implement `CollectibleItemDefinition` data type together with this block.
 
 2026-07-01 已交付（脚本层，Unity 编辑器内的手动接线步骤见下方"仍需在 Unity 编辑器中完成"）：
 
@@ -451,36 +616,37 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 - 在收藏品 prefab 上挂 Meta XR Interaction SDK 的 `Grabbable` + `HandGrabInteractable`（或 `DistanceHandGrabInteractable`），并接到 `CollectibleGrabHandler`/`FloatingCollectibleItem` 的对应字段。
 
 边界约束：
+Boundary constraints:
 
-- 不修改 `VenueMapDefinition`、`VenueCoordinateMapper`、`VenueCalibrationDebugView` 的坐标逻辑。
-- 不把奖励流程强接到地图导航；先做可独立测试的 API，例如 `ShowReward(string attractionId)`。
-- 如需改 `DogGuideController`，优先新增 wrapper 或小范围公开方法，避免重写现有导航行为。
-- 距离渐显和抓取放置逻辑先用测试坐标验证机制本身，不因为要接入真实坐标而阻塞本开发线的进度。
+- Do not modify coordinate logic in `VenueMapDefinition`, `VenueCoordinateMapper`, or `VenueCalibrationDebugView`.
+- Do not hard-wire reward flow to map navigation yet; build independently testable APIs first, e.g. `ShowReward(string attractionId)`.
+- If `DogGuideController` must change, prefer adding a wrapper or small public methods rather than rewriting existing navigation behavior.
+- Validate distance fade and grab-placement mechanics with test coordinates first; do not block this workstream waiting for real coordinate integration.
 
-交付物：
+Deliverables:
 
-- 小狗 prefab 上可用的饰品 anchor。
-- 能在测试场景中手动 attach / detach 饰品的管理器。
-- 奖励显示和小狗动画反应的独立 demo。
-- 景点物品渐显 + 手势抓取放置到小狗身上的独立可测试 demo（使用测试坐标，暂不依赖真实场地数据）。
+- Usable accessory anchors on the dog prefab.
+- Manager that can manually attach / detach accessories in a test scene.
+- Standalone demo of reward display and dog animation reactions.
+- Standalone testable demo of attraction item fade-in + hand-grab placement onto the dog (test coordinates, not yet depending on real venue data).
 
-### 待分配模块
+### Modules To Be Assigned
 
-以下模块在"推荐架构"里已经列出脚本名，但目前还没有分配给开发线 A 或 B，先记录在这里，避免遗漏：
+The following modules are listed by script name in "Recommended Architecture" but are not yet assigned to Workstream A or B. Record them here to avoid omission:
 
-- `PuppyPathV2GameController`（顶层状态机：`Boot`/`Intro`/`FreeWalk`/`MapOpen`/`Navigating`/`AttractionReveal`/`ItemGrab`/`Reward`）：待分配。这个控制器需要在 A、B 两条线的基础模块都有一定进展后再牵头整合，暂不确定由谁负责，或后续拆出第三条开发线。
-- 小地图 / 大地图 UI（`VenueMinimapController`、`VenueMapMarker`、`VenueMapPanelController`）：待分配。逻辑上依赖开发线 A 的场地坐标数据，建议后续归入开发线 A，但当前尚未开始，也未正式认领。
-- `AttractionRegistry`：待分配。当前 `VenueMapDefinition` 内部的 `attractions` list 已经承担了类似的景点数据存取职责，是否需要再单独抽出这个类型，留给开发线 A 后续决定。
-- `DogVenueFollower`（小狗在可行走区域内跟随移动/避障）：待分配。需要用到开发线 A 的可行走区域数据，逻辑上和 `DogGuideController` 关系更近，倾向于开发线 B 后续承接，但要等 A 的可行走区域数据出来后才能真正对接，当前只做记录不安排具体时间。
+- `PuppyPathV2GameController` / `PuppyPathV2FlowController` follow-up integration: `PuppyPathV2FlowController` already handles first-version UI flow (`Boot` / `Intro` / `FreeRoam` / `BigMap` / `Navigation` / `RewardPopup`). If dog behavior, 3D item grabbing, and reward data grow more complex later, decide whether to split out a higher-level game controller.
+- Map button / big map UI: now `VenueMapUiController` + `VenueMapMarker` + `VenueMapOpenButton`. Script skeleton is done; next step is wiring old Canvas `IntroPanel`, `MapPanel`, `NavigationHudPanel`, and other panels into `PuppyPathV2FlowController` and adjusting visuals per storyboard.
+- `AttractionRegistry`: to be assigned. The `attractions` list inside `VenueMapDefinition` already serves a similar data access role; whether to extract a separate type is left for Workstream A to decide later.
+- `DogVenueFollower` (dog follow / obstacle avoidance within walkable area): to be assigned. Needs Workstream A walkable-area data; logically closer to `DogGuideController`, so likely Workstream B takes it later, but real integration waits until A's walkable data exists—record only for now, no schedule yet.
 
-## 风险
+## Risks
 
-- 当前地图只是草图，后续会修改；空间数据必须设计成容易更新。
-- 如果真实 XR tracking origin 没有和地图对齐，所有景点触发都会错位。
-- 旧路线系统是相对用户生成的，无法直接满足真实场地导航。
-- 小狗可见性和避障必须现场走测，仅靠 Editor 模拟不够。
-- 抓取交互只使用手势追踪，需要重点验证 pointing pinch 与 grab 的识别稳定性。
+- The current map is only a draft and will change; spatial data must be easy to update.
+- If the real XR tracking origin is not aligned with the map, all attraction triggers will be misaligned.
+- The old route system is user-relative generated and cannot directly satisfy real-venue navigation.
+- Dog visibility and obstacle avoidance must be validated on-site; Editor simulation alone is not enough.
+- Grab interaction uses hand tracking only; pointing pinch vs grab recognition stability needs focused validation.
 
-## 必须遵守的文档同步规则
+## Required Documentation Sync Rules
 
-当实现过程中改变任何架构、阶段、任务、验收标准或风险判断时，必须在同一次代码 / 场景修改中同步更新本文档。
+When implementation changes any architecture, phase, task, acceptance criteria, or risk assessment, this document must be updated in the same change set as the code / scene modification.

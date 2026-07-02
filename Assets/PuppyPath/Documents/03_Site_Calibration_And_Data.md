@@ -1,36 +1,36 @@
-# 场地标定和数据规范
+# Site Calibration and Data Specification
 
-最后更新：2026-07-01
+Last updated: 2026-07-01
 
-## 核心要求
+## Core Requirements
 
-真实活动场地和 Unity 活动场景必须一比一匹配。Unity 距离使用常规约定：
+The real-world event venue and the Unity event scene must match one-to-one. Unity distance uses the standard convention:
 
-- 1 Unity unit = 1 m 真实世界距离。
+- 1 Unity unit = 1 m real-world distance.
 
-用户地图中红色标记的墙体是当前比例尺：
+The red-marked wall on the user map is the current scale reference:
 
-- 真实世界长度：3.45 m。
+- Real-world length: 3.45 m.
 
-地图中的黄色区域是人和小狗可以行走的区域。
+The yellow areas on the map are where people and the puppy can walk.
 
-## 当前已确认的 V2 标定决定
+## Current Confirmed V2 Calibration Decisions
 
-- `VenueOrigin`：Photo Wall 右上角的红点位置。
-- Unity `+Z`：地图北方，也就是地图向上方向。
-- 地图像素坐标约定：以图片左上角为 `(0, 0)`，`+X` 向右，`+Y` 向下。
-- Unity 世界坐标约定：`+X` 对应地图东方 / 右方，`+Z` 对应地图北方 / 上方。
-- 当前地图图片尺寸：`2468 x 2160` 像素。
-- 比例尺：红色竖向墙体线段真实长度为 `3.45 m`。
-- 当前实现入口：`Assets/PuppyPath/Scripts/V2/VenueMapDefinition.cs` 保存地图、原点、比例尺和景点数据；`VenueCalibrationDebugView.cs` 在 Scene 视图中绘制原点、比例尺、地图边界和景点调试点。
+- `VenueOrigin`: the red dot at the upper-right corner of the Photo Wall.
+- Unity `+Z`: map north, i.e. the upward direction on the map.
+- Map pixel coordinate convention: image top-left is `(0, 0)`, `+X` to the right, `+Y` downward.
+- Unity world coordinate convention: `+X` corresponds to map east / right, `+Z` corresponds to map north / up.
+- Current map image size: `2468 x 2160` pixels.
+- Scale reference: the real length of the red vertical wall segment is `3.45 m`.
+- Current implementation entry points: `Assets/PuppyPath/Scripts/V2/VenueMapDefinition.cs` stores the map, origin, scale, and attraction data; `VenueCalibrationDebugView.cs` draws the origin, scale reference, map bounds, and attraction debug points in the Scene view.
 
-仍需在 Unity Inspector 中精确填写：
+Still required to be filled precisely in the Unity Inspector:
 
-- `mapOriginPixel`：Photo Wall 右上角红点在原图中的像素坐标。
-- `scalePointAPixel` / `scalePointBPixel`：3.45 m 红色竖向比例线两端在原图中的像素坐标。
-- 每个景点 / collectible spawn point 的像素坐标。
+- `mapOriginPixel`: pixel coordinates of the Photo Wall upper-right red dot in the source image.
+- `scalePointAPixel` / `scalePointBPixel`: pixel coordinates of the two endpoints of the 3.45 m red vertical scale line in the source image.
+- Pixel coordinates for each attraction / collectible spawn point.
 
-当前第一批已填写值：
+Current first-batch filled values:
 
 ```text
 mapOriginPixel = (716, 820)
@@ -39,109 +39,117 @@ scalePointBPixel = (1003, 833)
 scaleSegmentMeters = 3.45
 ```
 
-由以上值计算：
+Computed from the above:
 
 ```text
 pixelDistanceOfRedWall = 118 px
 metersPerPixel = 3.45 / 118 = 0.029237288 m/px
 ```
 
-这表示如果地图像素坐标相差 100 px，对应 Unity 世界距离约为 2.92 m。
+This means if map pixel coordinates differ by 100 px, the corresponding Unity world distance is about 2.92 m.
 
-## 标定流程
+## Calibration Workflow
 
-## Meta Quest 场地对齐建议
+## Meta Quest Venue Alignment Recommendations
 
-为了让 Meta Quest 中的 Unity 场景与真实世界的朝向、方位和位置尽量一致，推荐使用“固定实体校准点 + Spatial Anchor + 启动校准检查”的方案。
+To keep the Unity scene on Meta Quest as aligned as possible with real-world orientation, bearing, and position, use a "fixed physical calibration point + Spatial Anchor + startup calibration check" approach.
 
-推荐方案：
+Recommended approach:
 
-1. 在真实场地中选择一个固定、不会移动、容易重新找到的位置作为主校准点，例如墙角、固定柱子、固定家具边角或入口附近的稳定结构。
-2. 在 Unity 地图中把这个点定义为 `UnityOrigin` 或 `VenueOrigin`。
-3. 再选择第二个固定点来确定朝向，例如沿某面长墙的另一个点，用来定义 Unity `+Z` 或场地 forward。
-4. 第一次现场部署时，让开发者/工作人员站在主校准点，按校准按钮创建或保存 Meta Quest Spatial Anchor。
-5. 使用主锚点决定世界原点，使用第二参考点或已知墙体方向决定旋转朝向。
-6. 每次启动 app 时尝试加载已保存的 anchor；加载成功后把整个场地根节点对齐到 anchor。
-7. 启动后显示一个隐藏式或开发者可见的校准检查：例如在真实 3.45 m 红墙两端显示两个虚拟点，让工作人员确认是否贴合。
+1. Choose a fixed, immovable, easy-to-relocate position in the real venue as the primary calibration point—for example a wall corner, fixed pillar, fixed furniture corner, or stable structure near the entrance.
+2. Define that point in the Unity map as `UnityOrigin` or `VenueOrigin`.
+3. Choose a second fixed point to determine orientation—for example another point along a long wall, used to define Unity `+Z` or venue forward.
+4. On first on-site deployment, have a developer/staff member stand at the primary calibration point and press a calibration button to create or save a Meta Quest Spatial Anchor.
+5. Use the primary anchor to set the world origin; use the second reference point or a known wall direction to set rotation.
+6. On each app launch, attempt to load the saved anchor; after a successful load, align the entire venue root to the anchor.
+7. After startup, show a hidden or developer-visible calibration check—for example display two virtual points at the real 3.45 m red wall endpoints so staff can confirm alignment.
 
-关于二维码：
+Current first-version implementation:
 
-- 二维码可以作为辅助工具，例如贴在主校准点附近，帮助工作人员确认“这是哪个校准点”。
-- 如果后续接入图像识别，二维码也可以用于快速选择对应场地配置。
-- 不建议只依赖二维码作为唯一空间定位依据，因为识别角度、光照、遮挡、打印位置误差都会影响稳定性。
-- 更可靠的方式是使用 Quest 的空间锚点 / 场地锚点能力，把二维码当作辅助标识，而不是唯一坐标系统。
+- Use `VenueContentRoot` as the parent for all fixed venue content.
+- Use `VenueAlignmentManager` for temporary on-site calibration: stand at the real `VenueOrigin` (Photo Wall upper-right origin), face map north / Unity `+Z`, and on startup automatically align `VenueContentRoot` to the current HMD.
+- Use `VenueSpatialAnchorBootstrap` to create a Meta `OVRSpatialAnchor` at `VenueOrigin` and parent `VenueContentRoot` under the anchor. Before formally saving/loading anchors, enable `Anchor Support` in `OVRManager`.
+- Use `VenueWalkableGridVisualizer` on Quest to display yellow walkable grid cells as the first layer of visualization for map alignment, scale, and direction.
+- The current anchor bootstrap saves a UUID to PlayerPrefs, but a complete user flow for "load saved anchor by UUID and automatically restore the venue" still needs to be added.
 
-现场对齐最低要求：
+Regarding QR codes:
 
-- 至少 1 个主校准点决定位置。
-- 至少 1 个方向参考决定朝向。
-- 3.45 m 红墙用于比例尺验证。
-- 每次地图更新后必须重新验证原点、朝向、比例尺和景点位置。
+- QR codes can serve as a helper—for example placed near the primary calibration point so staff can confirm "which calibration point this is."
+- If image recognition is added later, QR codes can also be used to quickly select the corresponding venue configuration.
+- Do not rely on QR codes alone as the sole spatial positioning basis; recognition angle, lighting, occlusion, and print placement error all affect stability.
+- A more reliable approach is to use Quest spatial anchor / venue anchor capabilities and treat QR codes as auxiliary identifiers, not the sole coordinate system.
 
-### 步骤 1：选择地图参考点
+Minimum on-site alignment requirements:
 
-在红色墙体上选择两个点：
+- At least 1 primary calibration point to determine position.
+- At least 1 direction reference to determine orientation.
+- The 3.45 m red wall for scale verification.
+- After every map update, re-verify origin, orientation, scale, and attraction positions.
+
+### Step 1: Choose Map Reference Points
+
+On the red wall, choose two points:
 
 - `ScalePointA`
 - `ScalePointB`
 
-这两个点必须代表真实 3.45 m 墙体线段的两个端点。
+These two points must represent the two endpoints of the real 3.45 m wall segment.
 
-### 步骤 2：在地图空间中测量同一线段
+### Step 2: Measure the Same Segment in Map Space
 
-在导入后的地图坐标系统中，测量 `ScalePointA` 与 `ScalePointB` 的距离。
+In the imported map coordinate system, measure the distance between `ScalePointA` and `ScalePointB`.
 
-可能使用的地图空间：
+Possible map spaces:
 
-- 如果使用原始地图图片，则使用像素坐标。
-- 如果地图作为 `RectTransform` 使用，则使用 UI local 坐标。
-- 如果地图作为 Unity 平面放置，则使用 plane local 坐标。
+- If using the raw map image, use pixel coordinates.
+- If the map is used as a `RectTransform`, use UI local coordinates.
+- If the map is placed as a Unity plane, use plane local coordinates.
 
-### 步骤 3：计算比例
+### Step 3: Compute Scale
 
-公式：
+Formula:
 
 ```text
 metersPerMapUnit = 3.45 / distance(ScalePointA, ScalePointB)
 ```
 
-如果使用像素：
+If using pixels:
 
 ```text
 metersPerPixel = 3.45 / pixelDistanceOfRedWall
 ```
 
-### 步骤 4：选择 Unity 原点
+### Step 4: Choose Unity Origin
 
-选择一个在真实场地和地图中都能稳定找到的位置。候选点：
+Choose a position that can be reliably found in both the real venue and the map. Candidate points:
 
-- 靠近主入口的角点。
-- 永久墙体角点。
-- 靠近场地中心的固定建筑特征。
+- A corner near the main entrance.
+- A permanent wall corner.
+- A fixed architectural feature near the venue center.
 
-选定后记录：
+After selection, record:
 
 ```text
 UnityOriginName = VenueOrigin_PhotoWallUpperRight
-MapOriginPoint = Photo Wall 右上角红点，像素坐标待 Inspector 精确填写
-RealWorldOriginDescription = Photo Wall 右上角对应的现场固定点
+MapOriginPoint = Photo Wall upper-right red dot; pixel coordinates to be filled precisely in Inspector
+RealWorldOriginDescription = Fixed on-site point corresponding to Photo Wall upper-right corner
 ```
 
-### 步骤 5：选择 Unity 前方方向
+### Step 5: Choose Unity Forward Direction
 
-选择地图上的哪个方向对应 Unity `+Z`。
+Choose which direction on the map corresponds to Unity `+Z`.
 
-选定后记录：
+After selection, record:
 
 ```text
 UnityForward = +Z
-MapDirectionForForward = 地图北方 / 图片向上方向
-RotationDegrees = 0，除非现场 Spatial Anchor 对齐时需要整体 yaw offset
+MapDirectionForForward = map north / image upward direction
+RotationDegrees = 0, unless a global yaw offset is needed during on-site Spatial Anchor alignment
 ```
 
-### 步骤 6：创建坐标转换
+### Step 6: Create Coordinate Conversion
 
-每个地图点都应转换成 Unity 世界坐标：
+Every map point should be converted to Unity world coordinates:
 
 ```text
 mapDelta = mapPoint - mapOriginPoint
@@ -149,19 +157,19 @@ scaledDeltaMeters = mapDelta * metersPerMapUnit
 unityPosition = rotation * scaledDeltaMeters + unityOriginWorldPosition
 ```
 
-Y 通常使用地面高度：
+Y usually uses ground height:
 
 ```text
 unityPosition.y = 0
 ```
 
-只有悬浮物品、UI 提示、小狗饰品 anchor、奖励特效需要调整 Y。
+Only floating items, UI hints, puppy accessory anchors, and reward effects need Y adjusted.
 
-## 可行走区域数据
+## Walkable Area Data
 
-黄色区域应被转换成一个或多个 polygon。
+Yellow areas should be converted into one or more polygons.
 
-推荐数据结构：
+Recommended data structure:
 
 ```text
 WalkableArea
@@ -171,18 +179,84 @@ WalkableArea
 - polygonPointsInWorldSpace
 ```
 
-规则：
+Rules:
 
-- 用户和小狗的目标点必须在可行走 polygon 内。
-- 路线 line 必须保持在可行走 polygon 内。
-- 景点应位于可行走区域内，或非常靠近可行走区域。
-- 如果某个点在黄色区域外，只有在不会穿墙的情况下，才能把它吸附到最近的合法点。
+- User and puppy target points must be inside walkable polygons.
+- Route lines must stay inside walkable polygons.
+- Attractions should be inside walkable areas, or very close to them.
+- If a point is outside the yellow area, snap it to the nearest valid point only when that does not cause wall penetration.
 
-## 墙体和障碍物数据
+Current first-version implementation notes:
 
-黑色墙体以及非黄色内部区域应转换成 blocked geometry 或 obstacle polygon。
+- `VenueMapDefinition.walkableAreas` stores one or more `WalkableAreaDefinition`.
+- Each polygon point uses raw map pixel coordinates; convention remains top-left `(0, 0)`, `+X` right, `+Y` down.
+- Polygon points are listed in clockwise or counterclockwise order; do not repeat the first point at the end.
+- First-version pathfinding samples multiple points along route segments and checks whether sample points fall inside any walkable polygon.
+- If `walkableAreas` is empty, current code temporarily treats all map points as walkable for early debugging; polygons must be filled before formal route testing.
 
-推荐数据结构：
+Coordinates that must be provided manually:
+
+- Yes—2D pixel coordinates for key corners of the yellow walkable area are required.
+- You do not need to trace every small bump at first; the first version can use a coarse outer contour covering main passages.
+- Narrow corridors, wall corners, and junctions need higher accuracy because routes or the puppy are most likely to clip through walls there.
+
+## Hand-Crafted Navigation Graph Data
+
+The first version does not auto-generate a full navigation mesh from polygons; it uses a hand-crafted waypoint graph.
+
+Recommended data structure:
+
+```text
+VenueNavGraph
+- nodes
+
+VenueNavNode
+- id
+- mapPixel
+- neighborNodeIds
+```
+
+Filling principles:
+
+- Place waypoints near the centerline of yellow areas, not against walls.
+- At least one waypoint at each turn.
+- At least one arrival waypoint near each attraction.
+- Only connect adjacent waypoints that can be reached in a straight line without wall penetration.
+- Neighbor relationships should be bidirectional unless one-way flow is required later.
+
+Debugging:
+
+- In `VenueCalibrationDebugView`, enable `Draw Walkable Areas` and `Draw Nav Graph`.
+- Green lines represent walkable polygons.
+- Red lines represent obstacle polygons.
+- Blue lines represent the navigation graph.
+- Red-orange nav edges indicate connections currently considered non-walkable—usually crossing an obstacle or leaving the walkable polygon.
+- With `Edit Nav Graph In Scene` enabled, the `Nav Graph Editing` panel in the top-left of the Scene view allows manual editing of blue lines. Click the small cyan selection points beside two blue nodes, then use `Connect` to add bidirectional neighbor links and `Disconnect` to remove bidirectional neighbor links.
+- In `Test Path`, fill in a test start pixel and target attraction id to display an orange test route.
+
+Scene hand calibration:
+
+- In `VenueCalibrationDebugView`, run `Create Map Reference Plane` from the context menu to lay the map image under the calibration coordinate system.
+- Use `Show Map Reference Plane` / `Hide Map Reference Plane` to show or hide the map underlay.
+- With the corresponding `Scene Editing` toggles enabled, drag directly in the Scene view:
+  - Map origin `mapOriginPixel`.
+  - 3.45 m scale endpoints `scalePointAPixel` / `scalePointBPixel`.
+  - Attraction / collectible spawn points.
+  - Walkable polygon vertices.
+  - Obstacle polygon vertices.
+- Nav graph waypoints.
+- After dragging, coordinates are automatically converted from Unity world position back to map pixel coordinates and saved to `VenueMapDefinition`.
+- `Populate Detected Nav Graph Draft` generates a denser centerline waypoint draft and keeps only connections considered valid by current walkability checks.
+- Dragging `mapOriginPixel` keeps the world layout of other set points and lines unchanged.
+- Dragging `scalePointAPixel` / `scalePointBPixel` keeps the current meters-per-pixel unchanged to avoid rescaling the map and routes.
+- Manually connecting or disconnecting nav graph blue lines writes directly to `VenueMapDefinition.navGraph.nodes[*].neighborNodeIds` and supports Unity Undo.
+- If the scale truly needs recalculation, use a separate explicit calibration operation later.
+
+## Wall and Obstacle Data
+
+Black walls and non-yellow interior areas should be converted into blocked geometry or obstacle polygons.
+
+Recommended data structure:
 
 ```text
 Obstacle
@@ -192,100 +266,219 @@ Obstacle
 - polygonPointsInWorldSpace
 ```
 
-规则：
+Rules:
 
-- 小狗不能穿过这些区域。
-- 路径段不能穿过这些区域。
-- 如果用户正前方的小狗目标点会穿过障碍物，则选择左前方或右前方 fallback。
+- The puppy cannot pass through these areas.
+- Path segments cannot pass through these areas.
+- If the puppy target point directly ahead of the user would cross an obstacle, choose a left-forward or right-forward fallback.
 
-## 景点和虚拟物品出现点数据
+## Attraction and Virtual Item Spawn Point Data
 
-当前新版地图中，黄色圆点表示虚拟物品出现位置。景点文字 label 只用于命名和语义说明；真正的 collectible spawn point 应以后续标定出的黄色圆点坐标为准。
+On the current new map, yellow dots indicate virtual item spawn positions. Attraction text labels are for naming and semantics only; actual collectible spawn points should follow the yellow dot coordinates determined by subsequent calibration.
 
-当前已记录 10 个虚拟物品出现点：
+Currently recorded 10 virtual item spawn points:
 
-| ID | 地图原标记 | 推荐英文显示名 | 中文说明名 | 地图位置 | 世界位置 | 透明度规则 | 物品 | 饰品 | 奖励 |
+| ID | Map Original Label | Recommended English Display Name | Chinese Reference Name | Map Location | World Position | Transparency Rule | Item | Accessory | Reward |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `chess` | Chess | Checkmate Corner | 棋遇小屋 | 左上活动区，Chess 标记附近的上方黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 棋子 / TBD | TBD | TBD |
-| `couch` | Couch | Cozy Couch Cove | 软乎乎沙发湾 | 左上活动区，Couch 标记附近的下方黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 抱枕 / TBD | TBD | TBD |
-| `photo_wall` | Photo Wall | Snapshot Studio | 咔嚓照相馆 | 左中区域，Photo Wall 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 相机或相框 / TBD | TBD | TBD |
-| `goodies` | Goodies | Treat Trove | 甜甜补给站 | 左下内凹区域，Goodies 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 零食袋 / TBD | TBD | TBD |
-| `book_wall` | Book Wall | Storybook Wall | 故事书墙 | 右上中部走廊，Book Wall 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 书签、贴纸或徽章 / TBD | TBD | TBD |
-| `tap_water` | Tap Water | Splash Stop | 汪汪补水站 | 底部中间偏右，Tap Water 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 水滴、杯子或小水壶 / TBD | TBD | TBD |
-| `ice_cream_shop` | Ice Cream Shop | Scoop Station | 冰淇淋小站 | Tap Water 与 Drink Shop 之间、灰色横条右侧附近的黄色点；准备作为冰淇淋店 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 冰淇淋球或甜筒 / TBD | TBD | TBD |
-| `drink_shop` | Drink Shop | Fizzy Fridge | 气泡饮料铺 | 右下区域，右侧 Fridge / 饮料店标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 可乐罐或饮料杯 | TBD | 免费可乐 / TBD |
-| `piano` | Piano | Melody Corner | 音符小舞台 | 右侧中下区域，Piano 标记附近的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 音符 / TBD | TBD | TBD |
-| `plants` | Plants | Garden Patch | 小狗花园 | 右下角 Plants 虚线区域内的黄色点 | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | 小植物或叶子 / TBD | TBD | TBD |
+| `chess` | Chess | Checkmate Corner | 棋遇小屋 | Upper-left activity zone, yellow point above the Chess label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | chess piece / TBD | TBD | TBD |
+| `couch` | Couch | Cozy Couch Cove | 软乎乎沙发湾 | Upper-left activity zone, yellow point below the Couch label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | pillow / TBD | TBD | TBD |
+| `photo_wall` | Photo Wall | Snapshot Studio | 咔嚓照相馆 | Left-center area, yellow point near the Photo Wall label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | camera or frame / TBD | TBD | TBD |
+| `goodies` | Goodies | Treat Trove | 甜甜补给站 | Lower-left inset area, yellow point near the Goodies label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | snack bag / TBD | TBD | TBD |
+| `book_wall` | Book Wall | Storybook Wall | 故事书墙 | Upper-right mid corridor, yellow point near the Book Wall label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | bookmark, sticker, or badge / TBD | TBD | TBD |
+| `tap_water` | Tap Water | Splash Stop | 汪汪补水站 | Bottom center-right, yellow point near the Tap Water label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | water drop, cup, or small kettle / TBD | TBD | TBD |
+| `ice_cream_shop` | Ice Cream Shop | Scoop Station | 冰淇淋小站 | Between Tap Water and Drink Shop, yellow point near the right side of the gray horizontal bar; intended as ice cream shop | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | ice cream scoop or cone / TBD | TBD | TBD |
+| `drink_shop` | Drink Shop | Fizzy Fridge | 气泡饮料铺 | Lower-right area, yellow point near the right-side Fridge / drink shop label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | soda can or drink cup | TBD | free cola / TBD |
+| `piano` | Piano | Melody Corner | 音符小舞台 | Right-center lower area, yellow point near the Piano label | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | musical note / TBD | TBD | TBD |
+| `plants` | Plants | Garden Patch | 小狗花园 | Yellow point inside the dashed Plants area at lower-right | TBD | 3 m=100%, 6 m=50%, 10 m+=0% | small plant or leaf / TBD | TBD | TBD |
 
-后续标定要求：
+Subsequent calibration requirements:
 
-- 把每个黄色圆点转换为 `mapPosition` 和 `worldPosition`。
-- 如果景点文字位置与黄色点位置不同，导航目的地和透明度计算应使用黄色点或该点附近的可行走目标点。
-- 如果黄色点距离墙体太近，应额外定义一个用户可到达点 `arrivalPoint`，但物品本身仍从黄色点出现。
+- Convert each yellow dot to `mapPosition` and `worldPosition`.
+- If an attraction text position differs from the yellow dot position, navigation destination and transparency calculations should use the yellow dot or a nearby walkable target point.
+- If a yellow dot is too close to a wall, additionally define a user-reachable `arrivalPoint`, while the item itself still spawns at the yellow dot.
 
-## 小地图数据
+### Auto-Detected First-Version Collectible Spawn Coordinates
 
-小地图应该使用与场地世界坐标相同的数据来源。
+Source image: `Assets/PuppyPath/Maps/map_with_spawn_points.jpg`, original size `2468 x 2160`.
 
-必须显示的 marker：
+Detection method: extract connected components by orange dot color threshold; use each dot component's center. This part has high confidence.
 
-- 用户位置 marker。
-- 每个景点的狗爪 marker。
-- 可选：当前选中目标 marker。
-- 可选：路线预览 line。
+| ID | Auto-Detected Center Pixel Coordinates |
+| --- | --- |
+| `chess` | `(262, 470)` |
+| `couch` | `(198, 663)` |
+| `photo_wall` | `(624, 859)` |
+| `book_wall` | `(1710, 857)` |
+| `goodies` | `(623, 1388)` |
+| `piano` | `(2181, 1642)` |
+| `tap_water` | `(1400, 1752)` |
+| `ice_cream_shop` | `(1660, 1784)` |
+| `drink_shop` | `(1930, 1804)` |
+| `plants` | `(2339, 1956)` |
 
-世界坐标到小地图 UI 的转换：
+Note: if the map image is updated later or dot positions move, these coordinates must be re-detected or manually updated.
+
+### Auto-Detected First-Version Walkable / Navigation Draft
+
+Current `VenueMapDefinition` provides a `Populate Detected Draft Map Data` menu to write a first-version draft in one click:
+
+- `main_walkable_auto_draft`: coarse polygon outline of the purple walkable area.
+- `central_block_auto_draft`: coarse obstacle polygon of the large gray blocked area in the center.
+- `navGraph`: 14 hand-filtered centerline waypoints.
+
+This part has medium confidence and needs manual review in the Scene view:
+
+- Whether the green outer contour roughly follows the purple area boundary.
+- Whether the red obstacle contour covers the non-walkable center area.
+- Whether blue waypoints all sit near the center of the purple walkable area.
+- Whether blue connection lines pass through walls; if so, delete that neighbor link or move the node.
+- Whether the orange test route avoids gray non-walkable areas.
+
+## Mini-Map Data
+
+The mini-map should use the same data source as venue world coordinates. Per the storyboard, `MiniMap` refers to the in-game HUD-style local mini-map showing geography only near the user; full venue selection is handled by `BigMap`.
+
+Markers that must be shown:
+
+- User position marker.
+- Paw marker for each attraction.
+- Optional: currently selected target marker.
+- Optional: route preview line.
+
+World coordinate to mini-map UI conversion:
 
 ```text
 worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredPosition
 ```
 
-这个转换必须使用与世界场景相同的原点、比例和旋转，避免小地图和真实位置漂移。
+This conversion must use the same origin, scale, and rotation as the world scene to avoid drift between the mini-map and real position.
 
-## 小狗位置规则
+2026-07-01 first-version implementation:
 
-自由行走：
+- `VenueMapUiController` handles coordinate mapping for the local mini-map / full large map UI.
+- The mini-map sits in the upper-right of the view and crops to the area near the user via `RawImage.uvRect`; the large map opens as a centered panel showing the full venue.
+- The `XR Camera` current world position is first converted to venue-local coordinates via `VenueContentRoot.InverseTransformPoint`, then `VenueMapDefinition.WorldToMapPixel` yields the user map pixel coordinates.
+- Attraction markers are placed using `AttractionDefinition.GetArrivalPixel()`; if an attraction has a custom arrival pixel, arrival is shown preferentially; otherwise the collectible spawn pixel is shown.
+- The local mini-map shows only attraction markers within the current crop; the full large map shows all attraction markers.
+- Clicking an attraction marker on the large map calls `VenueNavigationRuntime.StartNavigationToAttraction(attractionId)`.
+- `CancelNavigation()` calls `VenueNavigationRuntime.StopNavigation()` and clears the current selected marker.
+- `VenueMapOpenButton` can be attached to the mini-map `RawImage` or a button object to call `VenueMapUiController.OpenLargeMap()` when the mini-map is clicked.
 
-- 优先小狗目标点：用户前方 1.5-2 m。
-- 允许距离范围：1-3 m。
-- 不主动把小狗放到用户身后。
-- 如果正前方被阻挡：
-  - 尝试左前方。
-  - 尝试右前方。
-  - 尝试更靠近用户的正前方点。
-  - 最后选择前半球附近最近且可见的可行走点。
+## Puppy Position Rules
 
-导航：
+Free roaming:
 
-- 小狗应该在路线前方，而不是贴在用户脚边。
-- 小狗带路距离需要现场调试。
-- 小狗必须保持在可行走区域内。
-- 小狗不应该为了去下一个路线点而穿墙。
+- Preferred puppy target point: 1.5–2 m in front of the user.
+- Allowed distance range: 1–3 m.
+- Do not actively place the puppy behind the user.
+- If directly ahead is blocked:
+  - Try left-forward.
+  - Try right-forward.
+  - Try a point directly ahead but closer to the user.
+  - Finally choose the nearest visible walkable point in the forward hemisphere.
 
-抓物品：
+Navigation:
 
-- 小狗坐在用户 / 景点附近。
-- 小狗应朝向用户或物品。
-- 小狗位置必须方便用户把虚拟物品拖到它身上。
+- The puppy should lead along the route ahead, not stick to the user's feet.
+- Puppy lead distance needs on-site tuning.
+- The puppy must stay inside walkable areas.
+- The puppy should not clip through walls to reach the next route point.
 
-## 现场验证清单
+## Runtime Route Validation
 
-### Editor 标定验证清单
+After map data processing is complete, use `VenueNavigationRuntime` for the first round of runtime validation.
 
-- `VenueMapDefinition.Map Pixel Size` 应保持为 `2468 x 2160`。
-- `Sync Map Pixel Size From Imported Texture` 应保持关闭，避免 Unity 导入压缩尺寸覆盖原图坐标。
-- 在 `VenueMapDefinition` 右键菜单执行 `Log Calibration Summary`，Console 中 `Scale world distance` 应为 `3.45 m` 左右。
-- Scene 视图打开 `Gizmos` 后，应能看到红色 `VenueOrigin` 和红色比例线。
-- 如果比例线方向或地图边界看起来反了，优先检查是否把图片坐标当成了 Unity 坐标；当前约定是图片 `+Y` 向下，Unity `+Z` 向地图北方 / 图片向上。
+Recommended scene wiring:
 
-- 测量 Unity 中的红色参考墙：应为 3.45 m。
-- 站在每个黄色虚拟物品出现点附近，验证小地图 marker 是否对齐。
-- 从 Couch 走到 Photo Wall，验证路线方向。
-- 在 Drink Shop 附近走动，验证物品透明度距离规则：3 m 内清楚显示，6 m 半透明，10 m 以上不可见。
-- 确认小狗不会出现在非黄色区域内。
-- 确认小狗在狭窄通道中仍然保持可见。
-- 确认大地图朝向与用户真实移动一致。
+- Create an empty `VenueContentRoot` and parent all fixed venue content under it.
+- `VenueCalibrationDebug`, `VenueRouteLine`, `VenueWalkableGrid`, and future attraction items should all be children of `VenueContentRoot`.
+- Create a `VenueNavigationRuntime` empty object in the scene and attach `VenueNavigationRuntime`.
+- `Map Definition` points to the current `VenueMapDefinition`.
+- `XR Camera` points to CenterEye / HMD transform under `OVRCameraRig`.
+- `Venue Content Root` points to `VenueContentRoot`.
+- `Route Line Controller` points to the route object with `VenueRouteLineController + LineRenderer`.
+- Optional: `Dog Guide Controller` points to the existing puppy controller for temporary validation that the puppy receives recommended direction.
 
-## 必须遵守的文档同步规则
+Device visualization wiring:
 
-当地图变化、比例尺变化、景点位置变化、黄色可行走区域变化，或真实现场测试发现偏移时，必须在同一次场景 / 数据修改中同步更新本文档。
+- Create `VenueWalkableGrid` under `VenueContentRoot`.
+- Add `MeshFilter`, `MeshRenderer`, and `VenueWalkableGridVisualizer` to `VenueWalkableGrid`.
+- `Map Definition` points to the current `VenueMapDefinition`.
+- For `Cell Size Meters`, start with `0.5`; for `Cell Fill Ratio`, use `0.82`; color should be semi-transparent yellow.
+
+Temporary on-site calibration:
+
+- Create `VenueAlignmentManager` in the scene.
+- `Map Definition` points to the current `VenueMapDefinition`.
+- `XR Camera` points to CenterEye / HMD transform.
+- `Venue Content Root` points to `VenueContentRoot`.
+- Enable `Align On Start` and `Align Yaw To Head Forward`.
+- Before device startup, stand at the real Photo Wall upper-right origin facing map north / Unity `+Z`.
+- After startup, yellow grid cells should lie near the real walkable area; if overall rotation is off, adjust `Additional Yaw Degrees` and rebuild / Play again.
+
+Spatial Anchor prerequisites:
+
+- Select `OVRCameraRig`.
+- Under `OVRManager > Quest Features > General`, enable `Anchor Support`.
+- `Anchor Sharing Support` is not required when multi-user sharing is not needed.
+- Create `VenueSpatialAnchorBootstrap` near `VenueContentRoot`, set `Map Definition` and `Venue Content Root`; enable `Create Anchor On Start` when testing.
+
+Testing:
+
+- Fill `Test Destination Attraction Id` with an attraction id, e.g. `photo_wall`, `drink_shop`, `plants`.
+- Run `Start Test Navigation` from the component context menu.
+- The ground route should generate from near the current HMD to the target attraction and stay inside green walkable areas.
+- While moving, runtime replans the route at intervals; if no new route is found temporarily, the last valid route is kept.
+- Run `Stop Navigation` from the component context menu to clear the route and stop temporary puppy navigation.
+
+Route Line notes:
+
+- `VenueRouteLine` itself is only an empty object carrying `LineRenderer`; without route points, squares seen in Scene / XR are usually selection boxes or Rect-like gizmos, not the actual route.
+- Only when `VenueNavigationRuntime.StartNavigationToAttraction(...)` or `VenueRouteLineController.Show Test Route` successfully generates more than 2 route points does `LineRenderer` show the real ground route.
+- Current `VenueRouteLineController` automatically configures `LineRenderer` as world space, thicker line width, shadows off, and defaults to runtime unlit material to avoid Quest visibility issues from Lit materials or ground z-fighting.
+- If the line is still invisible, first confirm: whether `VenueNavigationRuntime.Route Line Controller` references `VenueRouteLine`; whether `StartNavigationToAttraction` succeeded; whether `Line Height Offset` is above ground; whether `LineRenderer.Position Count` is greater than 1.
+
+Note: current `VenueNavigationRuntime` only handles routes and recommended direction—it is not final puppy behavior. `DogVenueFollower` is still required for keeping the puppy in front of the user, obstacle avoidance, free roaming, and treasure proximity feedback.
+
+Item pickup:
+
+- The puppy sits near the user / attraction.
+- The puppy should face the user or the item.
+- Puppy position must make it easy for the user to drag virtual items onto the puppy.
+
+## On-Site Validation Checklist
+
+## Long-Press Calibration in Quest
+
+2026-07-01 update: added `VenueControllerCalibrationInput` to recalibrate `VenueOrigin` position and orientation at runtime on device.
+
+Usage:
+
+- Create a `VenueControllerCalibrationInput` object in the Scene, or attach the component to an existing calibration manager object.
+- `Alignment Manager` points to `VenueAlignmentManager` in the scene.
+- `Spatial Anchor Bootstrap` is optional and points to `VenueSpatialAnchorBootstrap`. If `Recreate Spatial Anchor After Calibration` is enabled, each long-press calibration replaces the runtime anchor.
+- Default `Calibration Button = OVRInput.RawButton.Start`, usually the Quest left controller menu button; `Alternate Calibration Button = OVRInput.RawButton.Back` is also enabled as backup input.
+- Default `Hold Seconds` is 1.75 s to reduce accidental triggers.
+- Stand at the real `VenueOrigin` (Photo Wall upper-right origin), face map north / Unity `+Z`, long-press the calibration button, and `VenueContentRoot` realigns to the current HMD position and orientation.
+
+Note: Quest system Meta / Oculus buttons may be reserved by the OS and not reliably capturable by the app. If neither `Start` nor `Back` triggers, change `Calibration Button` in the Inspector to `A`, `B`, `X`, or `Y` for testing. For production on-site use, prefer a hard-to-mispress admin button combination or hidden calibration menu.
+
+### Editor Calibration Validation Checklist
+
+- `VenueMapDefinition.Map Pixel Size` should remain `2468 x 2160`.
+- Keep `Sync Map Pixel Size From Imported Texture` disabled to avoid Unity import compression size overwriting source image coordinates.
+- Run `Log Calibration Summary` from the `VenueMapDefinition` context menu; Console `Scale world distance` should be about `3.45 m`.
+- With `Gizmos` enabled in the Scene view, red `VenueOrigin` and the red scale line should be visible.
+- If the scale line direction or map bounds look inverted, first check whether image coordinates were mistaken for Unity coordinates; current convention is image `+Y` down, Unity `+Z` toward map north / image up.
+
+- Measure the red reference wall in Unity: should be 3.45 m.
+- Stand near each yellow virtual item spawn point and verify mini-map marker alignment.
+- Walk from Couch to Photo Wall and verify route direction.
+- Move near Drink Shop and verify item transparency distance rules: clear within 3 m, semi-transparent at 6 m, invisible at 10 m+.
+- Confirm the puppy does not appear outside non-yellow areas.
+- Confirm the puppy stays visible in narrow passages.
+- Confirm large-map orientation matches the user's real movement.
+
+## Required Documentation Sync Rules
+
+When the map changes, scale changes, attraction positions change, yellow walkable areas change, or on-site testing reveals offset, this document must be updated in the same scene / data change pass.
