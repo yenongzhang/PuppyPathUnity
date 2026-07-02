@@ -17,5 +17,5 @@ MonoBehaviour:
   accessory: {fileID: 11400000, guid: 77a9f1574b59281439e404c0e036c7eb, type: 2}
   rewardTitle: SURPRISE!
   rewardMessage: You got a plush teddy bear!
-  rewardIcon: {fileID: 2129427380, guid: 67f2bac5225113548ae4f2d543b36ae5, type: 3}
+  rewardIcon: {fileID: 555393011, guid: 93fd41ff166323542950ceff72081806, type: 3}
   triggerFireworks: 1
