@@ -12,7 +12,8 @@ public enum DogAccessorySlot
     Face,
     Neck,
     Back,
-    Tail
+    Tail,
+    Paws
 }
 
 /// <summary>

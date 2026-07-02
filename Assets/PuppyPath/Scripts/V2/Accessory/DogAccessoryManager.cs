@@ -13,6 +13,7 @@ public class DogAccessoryManager : MonoBehaviour
     [SerializeField] private DogAccessoryDefinition contextMenuTestAccessory;
 
     private DogAccessoryAnchors currentAnchors;
+    private GameObject currentDog;
     private readonly Dictionary<string, GameObject> attached = new();
 
     private void Awake()
@@ -31,6 +32,7 @@ public class DogAccessoryManager : MonoBehaviour
 
     private void HandleDogSpawned(GameObject dog)
     {
+        currentDog = dog;
         currentAnchors = dog != null ? dog.GetComponentInChildren<DogAccessoryAnchors>() : null;
 
         if (currentAnchors == null)
@@ -70,7 +72,71 @@ public class DogAccessoryManager : MonoBehaviour
         instance.transform.localRotation = Quaternion.Euler(definition.localEulerOffset);
         instance.transform.localScale = definition.localScale;
 
+        RebindSkinnedMeshesToDogSkeleton(instance);
+
         attached[definition.id] = instance;
+    }
+
+    /// <summary>
+    /// Soft/deforming accessories (e.g. a hat or socks that bend with the dog's own
+    /// animation) are exported with their own copy of the dog's skeleton. Unity's
+    /// SkinnedMeshRenderer.bones array points at that copy, not the actually-animated
+    /// dog instance, so without this the accessory mesh would sit static / bind-pose.
+    /// This retargets each bone reference (by matching name) onto the corresponding bone
+    /// Transform on the currently spawned dog, so the accessory deforms with it.
+    /// Accessories with no SkinnedMeshRenderer (plain rigid props) are left untouched.
+    /// </summary>
+    private void RebindSkinnedMeshesToDogSkeleton(GameObject accessoryInstance)
+    {
+        if (currentDog == null)
+            return;
+
+        SkinnedMeshRenderer[] renderers = accessoryInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+
+        if (renderers.Length == 0)
+            return;
+
+        Dictionary<string, Transform> dogBonesByName = new();
+
+        foreach (Transform boneTransform in currentDog.GetComponentsInChildren<Transform>(true))
+        {
+            if (!dogBonesByName.ContainsKey(boneTransform.name))
+                dogBonesByName[boneTransform.name] = boneTransform;
+        }
+
+        foreach (SkinnedMeshRenderer renderer in renderers)
+        {
+            Transform[] originalBones = renderer.bones;
+            Transform[] remappedBones = new Transform[originalBones.Length];
+            bool allBonesMatched = true;
+
+            for (int i = 0; i < originalBones.Length; i++)
+            {
+                if (originalBones[i] != null && dogBonesByName.TryGetValue(originalBones[i].name, out Transform matchingDogBone))
+                {
+                    remappedBones[i] = matchingDogBone;
+                }
+                else
+                {
+                    remappedBones[i] = originalBones[i];
+                    allBonesMatched = false;
+                }
+            }
+
+            renderer.bones = remappedBones;
+
+            if (renderer.rootBone != null && dogBonesByName.TryGetValue(renderer.rootBone.name, out Transform matchingRootBone))
+                renderer.rootBone = matchingRootBone;
+
+            if (!allBonesMatched)
+            {
+                Debug.LogWarning(
+                    $"DogAccessoryManager: some bones on '{renderer.name}' have no same-named bone on the " +
+                    "dog's skeleton and will not follow its animation. Check that the accessory was exported " +
+                    "with bone names matching the dog's GameRig."
+                );
+            }
+        }
     }
 
     public void DetachAccessory(string id)
