@@ -159,6 +159,17 @@ public class DogGuideController : MonoBehaviour
     private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
     private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
 
+    /// <summary>Raised once after a dog instance finishes spawning/setup in BeginGuiding, so V2 systems (accessories, rewards) can hook in without coupling to internal guide state.</summary>
+    public event System.Action<GameObject> DogSpawned;
+
+    public GameObject CurrentDog => currentDog;
+
+    /// <summary>Public passthrough to the existing animation crossfade path, for V2 callers (e.g. RewardRevealController) that need to trigger a one-shot state like "HappyStart" without duplicating CrossFade logic.</summary>
+    public void PlayOneShotState(string stateName)
+    {
+        PlayAnimation(stateName, 1f, true);
+    }
+
     public void BeginGuiding(List<Transform> runtimePath, Transform userCamera)
     {
         xrCamera = userCamera;
@@ -193,6 +204,7 @@ public class DogGuideController : MonoBehaviour
 
         SetupAudioSource();
         SetupExpressionMaterials();
+        DogSpawned?.Invoke(currentDog);
 
         currentState = NavigationRuntimeController.NavState.Neutral;
         previousState = NavigationRuntimeController.NavState.Neutral;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
 public class DogNavStateTester : MonoBehaviour
@@ -38,7 +39,12 @@ public class DogNavStateTester : MonoBehaviour
         if (dogGuideController == null)
             return;
 
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard == null)
+            return;
+
+        if (keyboard[Key.Digit1].wasPressedThisFrame)
         {
             Debug.Log("Test NavState: Neutral");
 
@@ -49,7 +55,7 @@ public class DogNavStateTester : MonoBehaviour
             );
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha2))
+        if (keyboard[Key.Digit2].wasPressedThisFrame)
         {
             Debug.Log("Test NavState: Waiting");
 
@@ -60,7 +66,7 @@ public class DogNavStateTester : MonoBehaviour
             );
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha3))
+        if (keyboard[Key.Digit3].wasPressedThisFrame)
         {
             Debug.Log("Test NavState: GettingCloser");
 
@@ -71,7 +77,7 @@ public class DogNavStateTester : MonoBehaviour
             );
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha4))
+        if (keyboard[Key.Digit4].wasPressedThisFrame)
         {
             Debug.Log("Test NavState: GettingFarther");
 
@@ -82,7 +88,7 @@ public class DogNavStateTester : MonoBehaviour
             );
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha5))
+        if (keyboard[Key.Digit5].wasPressedThisFrame)
         {
             Debug.Log("Test NavState: Lost");
 
@@ -93,7 +99,7 @@ public class DogNavStateTester : MonoBehaviour
             );
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha6))
+        if (keyboard[Key.Digit6].wasPressedThisFrame)
         {
             Debug.Log("Test NavState: Arrived");
 

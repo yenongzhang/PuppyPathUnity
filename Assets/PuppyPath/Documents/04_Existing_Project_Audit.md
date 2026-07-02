@@ -416,6 +416,31 @@ V2 用法：
 - `Populate Default Attractions`：生成 10 个默认景点数据条目。
 - `Log Calibration Summary`：在 Console 打印当前比例尺、米/像素、世界比例线距离和景点数量。
 
+## 2026-07-01 开发线 B 新增脚本记录
+
+开发线 B（小狗饰品 / 奖励 / 动画测试，含并入的景点渐显 + 抓取收集层）新增脚本位于 `Assets/PuppyPath/Scripts/V2/Accessory`：
+
+- `DogAccessoryAnchors.cs`：挂在小狗 prefab 根节点，统一暴露一个挂载点（2026-07-02 根据设计师意见调整：不再按 Head/Face/Neck/Back/Tail 查找具体骨骼，`GetAnchor(slot)` 现在忽略 slot 参数，统一返回根节点 transform，也可用 `Root Anchor` 字段手动覆盖）。`DogAccessorySlot` 枚举保留在 `DogAccessoryDefinition` 上作为描述性分类标签，不再驱动挂载点查找。
+- `DogAccessoryDefinition.cs`：`ScriptableObject`，描述一件饰品（`id`、描述性 slot 标签、prefab、位置/旋转/缩放偏移）。**注意**：多个饰品要同时共存必须使用不同的 `id`——`DogAccessoryManager` 按 `id` 去重，同 `id` 重复 attach 会先 detach 旧的再挂新的。
+- `DogAccessoryManager.cs`：订阅 `DogGuideController.DogSpawned` 事件，提供 `AttachAccessory`/`DetachAccessory`/`HasAccessory`/`ClearAll`，挂载时把饰品实例化为挂载点的子物体（跟随小狗整体位置/朝向移动，不跟随骨骼自身动画细节）。
+- `DogAccessoryTestKeys.cs`：测试专用键盘脚本，风格对齐现有 `DogStateTester`/`DogNavStateTester`，只应放在测试场景里。
+- `RewardDefinition.cs`：`ScriptableObject`，把"景点 -> 饰品 -> 奖励"合一，不额外建 mapping 资产。
+- `RewardRevealController.cs`：提供独立可测的 `ShowReward(string attractionId)` API，挂饰品 + 触发 `DogGuideController.PlayOneShotState` + 可选烟花 + 显示 TMP 奖励面板，不依赖 `VenueMapDefinition`/`AttractionDefinition`。
+- `CollectibleItemDefinition.cs`：`ScriptableObject`，描述一个景点的悬浮收藏物（item prefab、3 档渐显距离参数）。
+- `FloatingCollectibleItem.cs`：挂在收藏物 prefab 上，按传入 alpha 控制材质透明度和可见性，收集后隐藏并禁用交互组件。
+- `AttractionTrigger.cs`：测试阶段的景点出现点（挂在场景里手动摆放的 Transform 上，不读取 `VenueMapDefinition` 真实坐标），按用户距离计算渐显 alpha。
+- `CollectibleGrabHandler.cs`：挂在收藏物 prefab 上，订阅 Meta XR Interaction SDK `Oculus.Interaction.Grabbable` 的 `WhenPointerEventRaised` 事件，释放时判断是否放到小狗身上，命中则标记 session 内已收集并调用 `RewardRevealController.ShowReward`。
+
+对 `DogGuideController.cs` 的改动（仅追加，未修改任何现有私有逻辑）：
+
+- `public event System.Action<GameObject> DogSpawned`：`BeginGuiding` 完成 dog 初始化后触发。
+- `public GameObject CurrentDog`：只读属性，暴露当前生成的小狗实例。
+- `public void PlayOneShotState(string stateName)`：调用现有私有 `PlayAnimation` 的公开包装，供 `RewardRevealController` 等 V2 脚本从外部触发一次性动画状态。
+
+抓取交互确认基于项目实际在用的 **Meta XR Interaction SDK**（`com.meta.xr.sdk.interaction`，`PointableCanvasModule` 已经用于现有 UI 点击），而不是 XR Interaction Toolkit（已安装但未接入任何现有场景）。`Grabbable` + `HandGrabInteractable`/`DistanceHandGrabInteractable` 组件需要在 Unity 编辑器里手动挂到收藏物 prefab 上，代码侧只依赖 `Grabbable` 的事件接口，不强绑定具体 interactable 类型。
+
+小狗 prefab 上的饰品锚点、占位测试数据资产、`DogAccessoryTestScene` 测试场景、收藏物 prefab 上的 Meta SDK 组件挂载，均为纯 Unity 编辑器操作，未随本次代码提交自动生成，需要在编辑器中手动完成。
+
 ## 必须遵守的文档同步规则
 
 当任何现有脚本被重新用途化、替换、删除或为 V2 大幅修改时，必须更新本文档，让后续开发者知道项目仍然依赖哪些旧内容。

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deb1fae9b54a8054eb21767dd55d3019, type: 3}
+  m_Name: Collectible_testA
+  m_EditorClassIdentifier: Assembly-CSharp::CollectibleItemDefinition
+  attractionId: test_attraction_a
+  displayName: testA
+  itemPrefab: {fileID: 7952356923486619018, guid: 2589cbf059412e24eb15392cf4bffd38, type: 3}
+  fullyVisibleDistance: 3
+  halfVisibleDistance: 6
+  hiddenDistance: 10

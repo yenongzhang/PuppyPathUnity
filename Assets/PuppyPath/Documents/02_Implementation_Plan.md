@@ -312,13 +312,10 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
 
 步骤：
 
-1. 在小狗 prefab 上添加饰品 anchor：
-   - 头部。
-   - 眼睛 / 脸部。
-   - 脖子。
-   - 身体 / 背部。
-   - 尾巴或侧面，如有需要。
-2. 为每个收集物定义饰品 slot。
+1. 在小狗 prefab 根节点添加统一的饰品挂载点（2026-07-02 根据设计师意见调整：饰品挂在小狗整体根节点上，跟随小狗整体位置/朝向移动，不挂在某根具体骨骼上、不跟随骨骼自身的动画细节，例如头部动画的点头、尾巴摇动）。
+   - `DogAccessorySlot`（Head/Face/Neck/Back/Tail）保留作为资产上的描述性标签，方便区分"这件饰品大致是头部风格还是脖子风格"，但不再对应到具体骨骼查找。
+   - 每件饰品通过 `DogAccessoryDefinition` 上的 `localPositionOffset`/`localEulerOffset` 手动微调相对根节点的大致位置。
+2. 为每个收集物定义饰品 slot（作为描述性分类，不影响挂载点）。
 3. 把收集到的饰品 prefab attach 到对应 slot。
 4. 保存当前 session 的收集状态；暂时不需要 app 重启后持久化。
 5. 播放 1-2 秒 shaking / surprise 动画。
@@ -427,6 +424,31 @@ Meta Quest / XR 交互应基于当前项目已经使用的 XR 设置来实现。
   - 手势 grab 抓取物品、拖动、检测是否放到小狗身上、放上后触发挂载和收集标记。
   - 距离和位置先用测试场景里的固定坐标 / 半径模拟，不依赖 `VenueMapDefinition` 的真实场地坐标；等开发线 A 的场地坐标就绪后再对接真实景点位置。
   - `CollectibleItemDefinition` 数据类型随这块一起实现。
+
+2026-07-01 已交付（脚本层，Unity 编辑器内的手动接线步骤见下方"仍需在 Unity 编辑器中完成"）：
+
+- `Assets/PuppyPath/Scripts/V2/Accessory/DogAccessoryAnchors.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/DogAccessoryDefinition.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/DogAccessoryManager.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/DogAccessoryTestKeys.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/RewardDefinition.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/RewardRevealController.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/CollectibleItemDefinition.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/FloatingCollectibleItem.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/AttractionTrigger.cs`
+- `Assets/PuppyPath/Scripts/V2/Accessory/CollectibleGrabHandler.cs`
+- `DogGuideController.cs` 追加了 `DogSpawned` 事件、`CurrentDog` 只读属性、`PlayOneShotState(string)` 方法（其余逻辑未改动）。
+
+抓取交互建立在 Meta XR Interaction SDK 的 `Oculus.Interaction.Grabbable`（`WhenPointerEventRaised` 事件）之上，`HandGrabInteractable` 等具体 interactable 组件需要在 Inspector 里挂到收藏品 prefab 上，`FloatingCollectibleItem`/`CollectibleGrabHandler` 代码里不假设具体 interactable 类型（用 `Behaviour` 引用），保持解耦。
+
+2026-07-02 根据设计师意见调整：`DogAccessoryAnchors` 改为统一挂载到小狗根节点（不区分 Head/Face/Neck/Back 具体骨骼），饰品跟随小狗整体位置/朝向移动，不跟随骨骼自身动画细节。`GetAnchor(slot)` 现在忽略 slot 参数，统一返回根节点 transform（或手动指定的 `rootAnchor` 覆盖值）。`DogAccessoryManager`/`DogGuideController` 无需改动。
+
+仍需在 Unity 编辑器中完成（纯手动操作，非代码）：
+
+- 在小狗实际使用的 prefab（当前测试场景引用的是 `DogPrefab3.prefab`，注意项目里有 `DogPrefab`/`DogPrefab2`/`DogPrefab3` 三个变体，需要确认 `DogGuideController.dogPrefab` 具体指向哪个）根节点挂 `DogAccessoryAnchors`，`Root Anchor` 字段留空即可（默认使用自身 transform）。
+- 创建占位测试数据资产（`DogAccessoryDefinition`、`RewardDefinition`、`CollectibleItemDefinition`）和占位几何体 prefab，注意每个 `DogAccessoryDefinition` 需要不同的 `id` 才能同时共存，不能多个资产共用同一个 `id`。
+- 复制 `DogTestScene.unity` 为 `DogAccessoryTestScene.unity`，挂好新脚本、场景引用和测试键位。
+- 在收藏品 prefab 上挂 Meta XR Interaction SDK 的 `Grabbable` + `HandGrabInteractable`（或 `DistanceHandGrabInteractable`），并接到 `CollectibleGrabHandler`/`FloatingCollectibleItem` 的对应字段。
 
 边界约束：
 
