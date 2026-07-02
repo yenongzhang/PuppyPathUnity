@@ -1,6 +1,6 @@
 # 场地标定和数据规范
 
-最后更新：2026-07-01
+最后更新：2026-07-02
 
 ## 核心要求
 
@@ -338,12 +338,12 @@ Obstacle
 
 小地图应该使用与场地世界坐标相同的数据来源。根据 storyboard，`MiniMap` 指游戏 HUD 式局部小地图，只显示用户附近不远处的地理信息；完整场地选择由 `BigMap` 负责。
 
-必须显示的 marker：
+必须显示的 marker / line：
 
-- 用户位置 marker。
 - 每个景点的狗爪 marker。
 - 可选：当前选中目标 marker。
-- 可选：路线预览 line。
+- 地图道路 line。
+- 可选：选中目标后的路线预览 line。当前默认关闭，不在地图 UI 上显示导航路线。
 
 世界坐标到小地图 UI 的转换：
 
@@ -355,14 +355,17 @@ worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredP
 
 2026-07-01 第一版实现：
 
-- `VenueMapUiController` 负责局部小地图 / 完整大地图 UI 的坐标映射。
-- 小地图放在视界右上方，并通过 `RawImage.uvRect` 裁切到用户附近区域；大地图作为居中 panel 打开并显示完整场地。
+- `VenueMapUiController` 负责完整大地图 UI 的坐标映射。
+- 当前版本取消局部小地图，只使用完整大地图。地图 UI 使用普通 `Image` 显示场地图片，不再需要 `RawImage` 或 `RawImage.uvRect`。
+- `VenueMapDefinition.mapTexture` 是校准参考和坐标数据来源，不再默认覆盖 UI 上的美化地图。若需要显示 definition 贴图，才手动开启 `Use Map Definition Texture For Display`。
 - `XR Camera` 当前世界位置会先通过 `VenueContentRoot.InverseTransformPoint` 转成场地本地坐标，再调用 `VenueMapDefinition.WorldToMapPixel` 得到用户地图像素坐标。
 - 景点 marker 使用 `AttractionDefinition.GetArrivalPixel()` 放置；如果景点有自定义 arrival pixel，则优先显示 arrival，否则显示 collectible spawn pixel。
-- 局部小地图只显示当前裁切范围内的景点 marker；完整大地图显示全部景点 marker。
-- 大地图景点 marker 点击后调用 `VenueNavigationRuntime.StartNavigationToAttraction(attractionId)`。
+- 完整大地图显示全部景点 marker，当前不显示用户位置 marker。
+- 大地图景点 marker 点击后调用 `VenueNavigationRuntime.StartNavigationToAttraction(attractionId)`。朋友列表导航已取消，朋友列表区域只作为 intro / flow 文案区域。
 - `CancelNavigation()` 调用 `VenueNavigationRuntime.StopNavigation()`，并清除当前选中 marker。
-- `VenueMapOpenButton` 可挂在小地图 `RawImage` 或按钮物体上，用于点击小地图时调用 `VenueMapUiController.OpenLargeMap()`。
+- `VenueMapOpenButton` 可挂在打开地图按钮物体上，用于从 `NavigationHudPanel` 重新打开地图。
+- `MapImage` 本身不应吃射线；运行时会关闭旧地图图片的 `Image.raycastTarget`，道路和路线 overlay 也不会挡住景点 marker。`Markers` overlay 会强制创建在 `MapImage` 下，保证 marker 坐标和点击层级正确。
+- 到达过的景点由 `VenueMapUiController.MarkAttractionVisited(attractionId)` 标记，并使用 Inspector 中的 `Visited Attraction Marker Color` 保持变色。
 
 ## 小狗位置规则
 
@@ -371,6 +374,7 @@ worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredP
 - 优先小狗目标点：用户前方 1.5-2 m。
 - 允许距离范围：1-3 m。
 - 不主动把小狗放到用户身后。
+- 当前随便逛逛模式会调用 `VenueNavigationRuntime.StartFreeRoamGuiding()`，复用 `DogGuideController` 生成小狗并持续跟随。
 - 如果正前方被阻挡：
   - 尝试左前方。
   - 尝试右前方。
@@ -439,6 +443,16 @@ Route Line 注意事项：
 - 如果仍看不到线，优先确认：`VenueNavigationRuntime.Route Line Controller` 是否已拖入 `VenueRouteLine`；`StartNavigationToAttraction` 是否成功；`Line Height Offset` 是否高于地面；`LineRenderer.Position Count` 是否大于 1。
 
 注意：当前 `VenueNavigationRuntime` 只负责路线和推荐方向，不等于最终小狗行为。最终仍需要 `DogVenueFollower` 来负责小狗始终保持在用户前方、避障、自由行走和宝藏接近反馈。
+
+## 大地图道路
+
+2026-07-02 更新：大地图 UI 使用 `VenueMapDefinition.navGraph` 显示道路网络。景点 marker 使用 `AttractionDefinition.GetArrivalPixel()`，用户只能通过景点 marker 选择导航目标。
+
+当前规则：
+
+- 地图任意点击不再生成目的地 marker。
+- 目的地必须来自景点 marker。
+- 原朋友列表 UI 不参与导航；旧 `Path_Kevin`、`Path_Ying` 等 prefab 不再用于当前 flow。
 
 抓物品：
 

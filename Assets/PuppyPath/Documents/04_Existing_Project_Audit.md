@@ -412,7 +412,7 @@ V2 用法：
 - `VenueMapUiController.cs`：新增第一版 V2 小地图 / 大地图 UI 控制器，将用户和景点的真实场地坐标映射到 UI marker，并把大地图景点点击接入 `VenueNavigationRuntime`。
 - `VenueMapMarker.cs`：新增地图 marker 组件，用于保存 attraction id、显示选中状态和处理点击。
 - `VenueMapOpenButton.cs`：新增小地图打开大地图的轻量点击入口。
-- `PuppyPathV2FlowController.cs`：新增 storyboard flow 控制器，用于在复用旧 Canvas 的基础上切换 `Intro`、`FreeRoam`、`BigMap`、`Navigation`、`Reward`、`ItemGrab`、`RewardPopup` 等 UI panel。
+- `PuppyPathV2FlowController.cs`：早期 storyboard flow 原型。2026-07-02 决定当前 UI flow 弃用该脚本，改回由旧 `NavigationController` / `NavigationHUDController` 管理 Intro、Map、NavigationHudPanel。
 - `VenueAlignmentManager.cs`：新增现场校准组件，可在用户站到真实 `VenueOrigin` 并面朝地图北方时，将 `VenueContentRoot` 对齐到当前 HMD。
 - `VenueSpatialAnchorBootstrap.cs`：新增 Meta Spatial Anchor bootstrap，可在 `VenueOrigin` 创建 `OVRSpatialAnchor`，并把 `VenueContentRoot` 挂到 anchor 下。
 - `VenueWalkableGridVisualizer.cs`：新增黄色可行走区域网格可视化，用于 Quest 真机内确认地图对齐、比例和方向。
@@ -486,7 +486,7 @@ Storyboard 明确了 `MiniMap` 是游戏 HUD 式局部小地图，不是完整�
 - 保留旧按钮、字体、气泡和地图图片资源作为视觉资产。
 - 停用旧 `PuppyPathSelectionUI` 的网格选择逻辑、旧 `NavigationController` 的 path prefab 流程、旧 `PathPreviewController` 的静态路径库。
 - 在旧 Canvas 中新增或改造 panel：`IntroPanel`、`FreeRoamHud`、`BigMapPanel`、`NavigationHud`、`RewardPanel`、`ItemGrabPanel`、`RewardPopupPanel`。
-- 使用 `PuppyPathV2FlowController` 管理 storyboard 状态流，使用 `VenueMapUiController` 管理局部 minimap 和完整 big map。
+- 当前不再使用 `PuppyPathV2FlowController` 管理 storyboard 状态流。使用旧 `NavigationController` 管理 flow，`VenueMapUiController` 只负责地图、景点 marker、地图路线显示和触发场地导航。
 
 ## 2026-07-01 旧导航复用边界
 

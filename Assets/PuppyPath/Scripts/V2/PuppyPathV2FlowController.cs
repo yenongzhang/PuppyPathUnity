@@ -28,8 +28,9 @@ public class PuppyPathV2FlowController : MonoBehaviour
     [Header("Text")]
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private string introText = "Hi! I'm PuppyPath.";
-    [SerializeField] private string freeRoamText = "Free roam";
-    [SerializeField] private string navigationText = "Follow PuppyPath";
+    [SerializeField] private string freeRoamText = "随便逛逛，探索一下吧";
+    [SerializeField] private string navigationTextTemplate = "正在前往 {0} 中";
+    [SerializeField] private string fallbackNavigationTargetName = "目的地";
     [SerializeField] private string rewardPopupText = "Reward collected";
 
     [Header("Reward Popup")]
@@ -42,6 +43,7 @@ public class PuppyPathV2FlowController : MonoBehaviour
 
     private Coroutine rewardPopupRoutine;
     private Vector2 rewardPopupOriginalPosition;
+    private string currentNavigationTargetName;
 
     private void Start()
     {
@@ -71,9 +73,15 @@ public class PuppyPathV2FlowController : MonoBehaviour
         EnterFreeRoam();
     }
 
+    public void CloseIntroAndMap()
+    {
+        EnterFreeRoam();
+    }
+
     public void EnterFreeRoam()
     {
         StopRewardPopupRoutine();
+        currentNavigationTargetName = null;
 
         if (navigationRuntime != null)
             navigationRuntime.StopNavigation();
@@ -91,6 +99,12 @@ public class PuppyPathV2FlowController : MonoBehaviour
         if (mapUiController != null)
             mapUiController.OpenLargeMap();
 
+        if (CurrentState == AppState.Navigation)
+        {
+            SetActive(bigMapPanel, true);
+            return;
+        }
+
         SetState(AppState.BigMap);
     }
 
@@ -99,12 +113,30 @@ public class PuppyPathV2FlowController : MonoBehaviour
         if (mapUiController != null)
             mapUiController.CloseLargeMap();
 
+        if (CurrentState == AppState.Navigation)
+        {
+            SetActive(bigMapPanel, false);
+            return;
+        }
+
         SetState(AppState.FreeRoam);
     }
 
     public void EnterNavigation()
     {
+        EnterNavigation(null);
+    }
+
+    public void EnterNavigation(string targetDisplayName)
+    {
         StopRewardPopupRoutine();
+        currentNavigationTargetName = string.IsNullOrWhiteSpace(targetDisplayName)
+            ? fallbackNavigationTargetName
+            : targetDisplayName;
+
+        if (mapUiController != null)
+            mapUiController.CloseLargeMap();
+
         SetState(AppState.Navigation);
     }
 
@@ -196,10 +228,11 @@ public class PuppyPathV2FlowController : MonoBehaviour
     {
         CurrentState = state;
 
-        SetActive(introPanel, state == AppState.Intro);
-        SetActive(freeRoamHud, state == AppState.FreeRoam || state == AppState.BigMap || state == AppState.Navigation || state == AppState.RewardPopup);
-        SetActive(bigMapPanel, state == AppState.BigMap);
-        SetActive(navigationHud, state == AppState.Navigation);
+        bool introAndMapOpen = state == AppState.Intro || state == AppState.BigMap;
+        SetActive(introPanel, introAndMapOpen);
+        SetActive(freeRoamHud, false);
+        SetActive(bigMapPanel, introAndMapOpen);
+        SetActive(navigationHud, state == AppState.FreeRoam || state == AppState.Navigation);
         SetActive(rewardPopupPanel, state == AppState.RewardPopup);
 
         UpdateStatusText(state);
@@ -216,7 +249,9 @@ public class PuppyPathV2FlowController : MonoBehaviour
                 statusText.text = introText;
                 break;
             case AppState.Navigation:
-                statusText.text = navigationText;
+                statusText.text = string.Format(navigationTextTemplate, string.IsNullOrWhiteSpace(currentNavigationTargetName)
+                    ? fallbackNavigationTargetName
+                    : currentNavigationTargetName);
                 break;
             case AppState.RewardPopup:
                 statusText.text = rewardPopupText;

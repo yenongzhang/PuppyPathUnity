@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class VenueMapOpenButton : MonoBehaviour, IPointerClickHandler
 {
-    [SerializeField] private PuppyPathV2FlowController flowController;
+    [SerializeField] private NavigationController navigationController;
     [SerializeField] private VenueMapUiController mapUiController;
 
     public void OnPointerClick(PointerEventData eventData)
@@ -13,9 +13,18 @@ public class VenueMapOpenButton : MonoBehaviour, IPointerClickHandler
 
     public void OpenLargeMap()
     {
-        if (flowController != null)
-            flowController.OpenBigMap();
+        if (navigationController != null)
+            navigationController.OpenMapFromHud();
         else if (mapUiController != null)
             mapUiController.OpenLargeMap();
+    }
+
+    private void Awake()
+    {
+        if (navigationController == null)
+            navigationController = FindFirstObjectByType<NavigationController>();
+
+        if (mapUiController == null)
+            mapUiController = FindFirstObjectByType<VenueMapUiController>();
     }
 }

@@ -1,5 +1,5 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class NavigationHUDController : MonoBehaviour
 {
@@ -7,43 +7,87 @@ public class NavigationHUDController : MonoBehaviour
     [SerializeField] private GameObject friendListPanel;
     [SerializeField] private GameObject introPanel;
     [SerializeField] private GameObject mapPanel;
+    [SerializeField] private GameObject xPanel;
 
     [Header("Navigation HUD")]
     [SerializeField] private GameObject navigationHudPanel;
+    [SerializeField] private GameObject cancelNavigationButton;
     [SerializeField] private TMP_Text stateText;
+    [SerializeField] private string freeRoamText = "Sniff around with me!";
+    [SerializeField] private string navigationTextTemplate = "Paws this way to {0}!";
+
+    public void ShowIntroAndMap()
+    {
+        SetMainPanelGroupVisible(true);
+        SetNavigationHudVisible(false, false);
+
+        UpdateStateText("");
+    }
+
+    public void EnterFreeRoamMode()
+    {
+        SetMainPanelGroupVisible(false);
+        SetNavigationHudVisible(true, false);
+
+        UpdateStateText(freeRoamText);
+    }
 
     public void EnterNavigationMode()
     {
+        EnterNavigationMode(null);
+    }
+
+    public void EnterNavigationMode(string destinationName)
+    {
+        SetMainPanelGroupVisible(false);
+        SetNavigationHudVisible(true, true);
+
+        string displayName = string.IsNullOrWhiteSpace(destinationName) ? "the next treasure" : destinationName;
+        UpdateStateText(string.Format(navigationTextTemplate, displayName));
+    }
+
+    public void ExitNavigationMode()
+    {
+        ShowIntroAndMap();
+    }
+
+    public void SetMapVisible(bool visible)
+    {
+        SetMainPanelGroupVisible(visible);
+
+        if (visible)
+            SetNavigationHudVisible(false, false);
+        else
+            SetNavigationHudVisible(true, false);
+    }
+
+    public void SetIntroAndMapVisible(bool visible)
+    {
+        SetMainPanelGroupVisible(visible);
+    }
+
+    private void SetMainPanelGroupVisible(bool visible)
+    {
         if (friendListPanel != null)
-            friendListPanel.SetActive(false);
+            friendListPanel.SetActive(visible);
 
         if (introPanel != null)
             introPanel.SetActive(false);
 
         if (mapPanel != null)
-            mapPanel.SetActive(false);
+            mapPanel.SetActive(visible);
 
-        if (navigationHudPanel != null)
-            navigationHudPanel.SetActive(true);
-
-        UpdateStateText("Getting ready...");
+        if (xPanel != null)
+            xPanel.SetActive(visible);
     }
 
-    public void ExitNavigationMode()
+    private void SetNavigationHudVisible(bool visible, bool navigationMode)
     {
-        if (friendListPanel != null)
-            friendListPanel.SetActive(true);
-
-        if (introPanel != null)
-            introPanel.SetActive(true);
-
-        if (mapPanel != null)
-            mapPanel.SetActive(true);
-
         if (navigationHudPanel != null)
-            navigationHudPanel.SetActive(false);
+            navigationHudPanel.SetActive(visible);
 
-        UpdateStateText("");
+        if (cancelNavigationButton != null)
+            cancelNavigationButton.SetActive(visible && navigationMode);
     }
 
     public void UpdateStateText(string text)

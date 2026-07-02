@@ -9,6 +9,7 @@ public class VenueMapMarker : MonoBehaviour
     [SerializeField] private Button button;
     [SerializeField] private Color normalColor = new Color(1f, 0.64f, 0.08f, 1f);
     [SerializeField] private Color selectedColor = new Color(0.3f, 0.85f, 1f, 1f);
+    [SerializeField] private Color visitedColor = new Color(0.42f, 0.9f, 0.52f, 1f);
 
     public string AttractionId { get; private set; }
 
@@ -19,12 +20,21 @@ public class VenueMapMarker : MonoBehaviour
         ResolveReferences();
     }
 
-    public void Configure(VenueMapUiController mapOwner, AttractionDefinition attraction, bool showLabel)
+    public void Configure(
+        VenueMapUiController mapOwner,
+        AttractionDefinition attraction,
+        bool showLabel,
+        Color markerNormalColor,
+        Color markerSelectedColor,
+        Color markerVisitedColor)
     {
         ResolveReferences();
 
         owner = mapOwner;
         AttractionId = attraction != null ? attraction.id : string.Empty;
+        normalColor = markerNormalColor;
+        selectedColor = markerSelectedColor;
+        visitedColor = markerVisitedColor;
 
         if (label != null)
         {
@@ -40,15 +50,20 @@ public class VenueMapMarker : MonoBehaviour
             button.onClick.AddListener(HandleClick);
         }
 
-        SetSelected(false);
+        SetState(false, false);
     }
 
     public void SetSelected(bool selected)
     {
+        SetState(selected, false);
+    }
+
+    public void SetState(bool selected, bool visited)
+    {
         ResolveReferences();
 
         if (iconImage != null)
-            iconImage.color = selected ? selectedColor : normalColor;
+            iconImage.color = selected ? selectedColor : visited ? visitedColor : normalColor;
 
         transform.localScale = selected ? Vector3.one * 1.18f : Vector3.one;
     }

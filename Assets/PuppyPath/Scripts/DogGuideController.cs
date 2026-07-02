@@ -136,11 +136,14 @@ public class DogGuideController : MonoBehaviour
     private bool isGuiding;
     private bool isPerformingBehavior;
     private bool currentBehaviorIsStateReaction;
+    private bool positiveRandomBehaviorsSuppressed;
 
     private NavigationRuntimeController.NavState currentState = NavigationRuntimeController.NavState.Neutral;
     private NavigationRuntimeController.NavState previousState = NavigationRuntimeController.NavState.Neutral;
 
     private Vector3 currentRecommendedDirection = Vector3.forward;
+    private Vector3 guidanceTargetOverride;
+    private bool hasGuidanceTargetOverride;
     private bool hasAppliedExpression;
 
     private Coroutine randomBehaviorRoutine;
@@ -187,14 +190,31 @@ public class DogGuideController : MonoBehaviour
             return;
         }
 
-        if (currentDog != null)
-            Destroy(currentDog);
+        if (behaviorRoutine != null)
+        {
+            StopCoroutine(behaviorRoutine);
+            behaviorRoutine = null;
+        }
 
-        Vector3 spawnPos = xrCamera.position + GetFlatForward(xrCamera) * 1.2f;
-        spawnPos.y = path[0].position.y;
+        if (randomBehaviorRoutine != null)
+        {
+            StopCoroutine(randomBehaviorRoutine);
+            randomBehaviorRoutine = null;
+        }
 
-        currentDog = Instantiate(dogPrefab, spawnPos, Quaternion.identity);
-        dogAnimator = currentDog.GetComponentInChildren<Animator>();
+        bool createdDog = currentDog == null;
+        if (createdDog)
+        {
+            Vector3 spawnPos = xrCamera.position + GetFlatForward(xrCamera) * 1.2f;
+            spawnPos.y = path[0].position.y;
+
+            currentDog = Instantiate(dogPrefab, spawnPos, Quaternion.identity);
+            dogAnimator = currentDog.GetComponentInChildren<Animator>();
+        }
+        else if (dogAnimator == null)
+        {
+            dogAnimator = currentDog.GetComponentInChildren<Animator>();
+        }
 
         if (dogAnimator != null)
         {
@@ -212,9 +232,14 @@ public class DogGuideController : MonoBehaviour
         isGuiding = true;
         isPerformingBehavior = false;
         currentBehaviorIsStateReaction = false;
+        hasGuidanceTargetOverride = false;
 
-        currentAnimationState = "";
-        lastAnimationChangeTime = -999f;
+        if (createdDog)
+        {
+            currentAnimationState = "";
+            lastAnimationChangeTime = -999f;
+        }
+
         nearTargetTimer = 0f;
         lastBarkTime = -999f;
         hasAppliedExpression = false;
@@ -222,7 +247,8 @@ public class DogGuideController : MonoBehaviour
         SetRandomExpressionForState(NavigationRuntimeController.NavState.Neutral);
         hasAppliedExpression = true;
 
-        PlayAnimation(standState, 1f, true);
+        if (createdDog)
+            PlayAnimation(standState, 1f, true);
 
         if (enableRandomBehaviors)
         {
@@ -234,6 +260,11 @@ public class DogGuideController : MonoBehaviour
     }
 
     public void StopGuiding()
+    {
+        StopGuiding(true);
+    }
+
+    public void StopGuiding(bool destroyDog)
     {
         isGuiding = false;
         isPerformingBehavior = false;
@@ -252,23 +283,105 @@ public class DogGuideController : MonoBehaviour
             behaviorRoutine = null;
         }
 
-        if (currentDog != null)
+        if (destroyDog && currentDog != null)
         {
             Destroy(currentDog);
             currentDog = null;
         }
 
-        dogAnimator = null;
-        dogAudioSource = null;
-        eyesRenderer = null;
-        mouthRenderer = null;
-        eyesRuntimeMaterial = null;
-        mouthRuntimeMaterial = null;
+        if (destroyDog)
+        {
+            dogAnimator = null;
+            dogAudioSource = null;
+            eyesRenderer = null;
+            mouthRenderer = null;
+            eyesRuntimeMaterial = null;
+            mouthRuntimeMaterial = null;
+            currentAnimationState = "";
+        }
 
         path.Clear();
         xrCamera = null;
-        currentAnimationState = "";
+        hasGuidanceTargetOverride = false;
         nearTargetTimer = 0f;
+    }
+
+    public void SetGuidanceTargetOverride(Vector3 targetPosition, Vector3 recommendedDirection)
+    {
+        guidanceTargetOverride = targetPosition;
+        hasGuidanceTargetOverride = true;
+
+        currentRecommendedDirection = recommendedDirection;
+        currentRecommendedDirection.y = 0f;
+        if (currentRecommendedDirection.sqrMagnitude < 0.0001f && xrCamera != null)
+            currentRecommendedDirection = GetFlatForward(xrCamera);
+        currentRecommendedDirection.Normalize();
+    }
+
+    public void ClearGuidanceTargetOverride()
+    {
+        hasGuidanceTargetOverride = false;
+    }
+
+    public void SetPositiveRandomBehaviorsSuppressed(bool suppressed)
+    {
+        positiveRandomBehaviorsSuppressed = suppressed;
+
+        if (suppressed && isPerformingBehavior && !currentBehaviorIsStateReaction)
+            StopCurrentBehavior();
+    }
+
+    public void TickFreeRoamFollow(Vector3 targetPosition, Vector3 recommendedDirection)
+    {
+        if (!isGuiding || currentDog == null || xrCamera == null)
+            return;
+
+        if (isPerformingBehavior)
+            StopCurrentBehavior();
+
+        currentState = NavigationRuntimeController.NavState.Neutral;
+        SetGuidanceTargetOverride(targetPosition, recommendedDirection);
+
+        Vector3 targetPos = targetPosition;
+        targetPos.y = currentDog.transform.position.y;
+
+        float distanceToTarget = GetFlatDistance(currentDog.transform.position, targetPos);
+        bool dogIsBehindUser = IsDogBehindUser(GetRecommendedDirection());
+
+        if (dogIsBehindUser || distanceToTarget > 1.35f)
+        {
+            TryPlayLocomotionAndMove(
+                targetPos,
+                canterState,
+                1.05f,
+                catchUpMoveSpeed,
+                minDistanceForCanterAnimation);
+            return;
+        }
+
+        if (distanceToTarget > 0.65f)
+        {
+            TryPlayLocomotionAndMove(
+                targetPos,
+                trotState,
+                1.0f,
+                trotMoveSpeed,
+                minDistanceForTrotAnimation);
+            return;
+        }
+
+        if (distanceToTarget > 0.25f)
+        {
+            TryPlayLocomotionAndMove(
+                targetPos,
+                walkState,
+                0.95f,
+                walkMoveSpeed,
+                minDistanceForWalkAnimation);
+            return;
+        }
+
+        PlayStand(1f);
     }
 
     public void ApplyNavigationState(
@@ -355,6 +468,9 @@ public class DogGuideController : MonoBehaviour
         if (currentState == NavigationRuntimeController.NavState.Arrived)
             return;
 
+        if (positiveRandomBehaviorsSuppressed && hasGuidanceTargetOverride)
+            return;
+
         if (currentState == NavigationRuntimeController.NavState.Lost ||
             currentState == NavigationRuntimeController.NavState.GettingFarther ||
             currentState == NavigationRuntimeController.NavState.Waiting)
@@ -373,7 +489,9 @@ public class DogGuideController : MonoBehaviour
         Vector3 userPos = xrCamera.position;
         Vector3 flatDir = GetRecommendedDirection();
 
-        Vector3 leadTargetPos = userPos + flatDir * leadDistance;
+        Vector3 leadTargetPos = hasGuidanceTargetOverride
+            ? guidanceTargetOverride
+            : userPos + flatDir * leadDistance;
         leadTargetPos.y = currentDog.transform.position.y;
 
         float userDogDistance = GetFlatDistance(userPos, currentDog.transform.position);
@@ -458,6 +576,9 @@ public class DogGuideController : MonoBehaviour
     private bool CanDoPositiveRandomBehavior()
     {
         if (!isGuiding || currentDog == null || xrCamera == null)
+            return false;
+
+        if (positiveRandomBehaviorsSuppressed)
             return false;
 
         if (isPerformingBehavior)
