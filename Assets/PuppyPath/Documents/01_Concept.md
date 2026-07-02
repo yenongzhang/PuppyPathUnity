@@ -156,6 +156,20 @@ PuppyPath 是一只可爱的混合现实小狗伙伴。它熟悉真实活动场�
 | Drink Shop | Fizzy Fridge | 气泡饮料铺 | 适合可乐、饮料券 |
 | Piano | Melody Corner | 音符小舞台 | 适合音符、领结、音乐奖励 |
 | Plants | Garden Patch | 小狗花园 | 适合叶子、花环、自然主题奖励 |
+| Origin Test 1 | Biscuit Bounce Booth | 饼干蹦蹦站 | 临时测试景点；当前绑定 `hat_reward` |
+| Origin Test 2 | Wagging Wonder Stop | 摇尾惊喜站 | 临时测试景点；当前绑定 `shirt_reward` |
+| Origin Test 3 | Sniffle Spark Station | 嗅嗅闪光站 | 临时测试景点；当前绑定 `socks_reward` |
+
+2026-07-02 临时 collectible 集成说明：
+
+- `VenueOriginTestAttractionGenerator` 生成的三个 `origin_test_*` 景点作为当前 UIScene 的可交互 collectible 测试点。
+- `VenueCollectibleSpawner.explicitPlacements` 显式绑定：
+  - `origin_test_1` / Biscuit Bounce Booth -> `hat_reward`。
+  - `origin_test_2` / Wagging Wonder Stop -> `shirt_reward`。
+  - `origin_test_3` / Sniffle Spark Station -> `socks_reward`。
+- 当前不在景点位置显示真实 3D accessory 模型；景点位置只显示约小狗高度的橙色测试球。
+- 当前测试交互不再要求用户用 ray / pinch / grab 把物品交给小狗。用户进入景点 1 m 内后，小狗自动走到测试球旁，HUD 显示感谢用户帮 Puppy 找到该地点宝藏。
+- HUD 感谢提示显示约 3 秒后，测试球隐藏，小狗穿上 reward 中配置的 accessory prefab、播放开心动画、播放烟花和宝藏音效，然后显示 4 秒 `SURPRISE!` reward panel。
 
 ## 设计原则
 

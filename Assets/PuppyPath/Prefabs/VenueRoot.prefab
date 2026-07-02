@@ -334,6 +334,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VenueRouteLineController
   mapDefinition: {fileID: 11400000, guid: 0d99b874e0007844392c5f60e3a016bb, type: 2}
+  walkableGridVisualizer: {fileID: 0}
+  drawLineRenderer: 0
   lineHeightOffset: 0.03
   lineWidth: 0.07
   routeColor: {r: 0.45, g: 0.85, b: 1, a: 1}
@@ -409,6 +411,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2505642851634945670, guid: f396e3429a4864fc2ad497cb3ce5fe2c, type: 3}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -450,7 +453,10 @@ MonoBehaviour:
   yOffset: 0.015
   maxCells: 12000
   overrideMaterial: {fileID: -2505642851634945670, guid: f396e3429a4864fc2ad497cb3ce5fe2c, type: 3}
+  routeOverrideMaterial: {fileID: 0}
   gridColor: {r: 1, g: 0.82, b: 0.08, a: 0.42}
+  routeGridColor: {r: 0.66, g: 0.32, b: 1, a: 0.72}
+  routeHighlightRadiusMeters: 0.45
 --- !u!1 &6780506138644505158
 GameObject:
   m_ObjectHideFlags: 0
@@ -640,6 +646,7 @@ MonoBehaviour:
   statusText: {fileID: 0}
   freeWalkText: Free roam
   navigationTextTemplate: Go to {0}
+  flowControllerOwnsLargeMapVisibility: 1
   hideLargeMapOnStart: 1
 --- !u!1 &8497366679570374752
 GameObject:

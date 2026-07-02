@@ -400,7 +400,7 @@ worldPosition -> mapPosition -> normalizedMapPosition -> RectTransform anchoredP
 - `Map Definition` 指向当前 `VenueMapDefinition`。
 - `XR Camera` 指向 `OVRCameraRig` 下的 CenterEye / HMD transform。
 - `Venue Content Root` 指向 `VenueContentRoot`。
-- `Route Line Controller` 指向带 `VenueRouteLineController + LineRenderer` 的路线物体。
+- `Route Line Controller` 指向带 `VenueRouteLineController` 的路线物体；当前推荐同时把 `Walkable Grid Visualizer` 字段指向 `VenueWalkableGridVisualizer`，让路线通过 grid 变色显示。
 - 可选：`Dog Guide Controller` 指向现有小狗控制器，用于临时验证小狗是否能收到推荐方向。
 
 真机可视化接线：
@@ -435,12 +435,12 @@ Spatial Anchor 前置设置：
 - 走动时 runtime 会按间隔重新规划路线；如果临时找不到新路线，会保留上一条有效路线。
 - 组件右键执行 `Stop Navigation` 可清除路线并停止小狗临时导航。
 
-Route Line 注意事项：
+Route / Grid 注意事项：
 
-- `VenueRouteLine` 本身只是承载 `LineRenderer` 的空物体；在没有路线点时，Scene / XR 中看到的方形通常只是物体选择框或 Rect-like gizmo，不代表真实路线。
-- 只有 `VenueNavigationRuntime.StartNavigationToAttraction(...)` 或 `VenueRouteLineController.Show Test Route` 成功生成 2 个以上路线点后，`LineRenderer` 才会显示真正的地面路线。
-- 当前 `VenueRouteLineController` 会自动把 `LineRenderer` 配置为 world space、较粗线宽、关闭阴影，并默认使用 runtime unlit 材质，避免 Quest 中因为 Lit 材质或地面 z-fighting 看不清。
-- 如果仍看不到线，优先确认：`VenueNavigationRuntime.Route Line Controller` 是否已拖入 `VenueRouteLine`；`StartNavigationToAttraction` 是否成功；`Line Height Offset` 是否高于地面；`LineRenderer.Position Count` 是否大于 1。
+- 当前不再默认使用 `LineRenderer` 显示导航路线。`VenueRouteLineController.Draw Line Renderer` 默认关闭。
+- `VenueRouteLineController.ShowWorldRoute(...)` 成功后，会调用 `VenueWalkableGridVisualizer.ShowWorldRoute(...)`，把路线附近的可行走 grid 切到 `Route Grid Color`，例如紫色。
+- 如果仍看不到路线高亮，优先确认：`VenueNavigationRuntime.Route Line Controller` 是否已拖入路线物体；`VenueRouteLineController.Walkable Grid Visualizer` 是否已拖入 grid；`VenueWalkableGridVisualizer.Route Grid Color` alpha 是否足够高；`StartNavigationToAttraction` 是否成功。
+- 如需调试旧线条，可临时开启 `VenueRouteLineController.Draw Line Renderer`。
 
 注意：当前 `VenueNavigationRuntime` 只负责路线和推荐方向，不等于最终小狗行为。最终仍需要 `DogVenueFollower` 来负责小狗始终保持在用户前方、避障、自由行走和宝藏接近反馈。
 
@@ -454,11 +454,32 @@ Route Line 注意事项：
 - 目的地必须来自景点 marker。
 - 原朋友列表 UI 不参与导航；旧 `Path_Kevin`、`Path_Ying` 等 prefab 不再用于当前 flow。
 
+## 测试景点 / Placeholder 物品
+
+2026-07-02 更新：新增两个测试工具。
+
+- `VenueAttractionPlaceholderSpawner`：按 `VenueMapDefinition.attractions` 在每个景点的 `collectibleSpawnPixel` 生成一个圆球 placeholder。之后拿到正式模型后，可替换 `Placeholder Prefab` 或扩展为按景点 id 映射不同 prefab。
+- `VenueOriginTestAttractionGenerator`：用于现场调试。组件菜单执行 `Generate Origin Test Attractions` 后，会在当前地图原点附近的可行走区域自动挑选 3 个不太贴近的点，生成测试景点数据，并自动建立对应 navgraph 节点和连接。它不生成额外 3D 球；虚拟物品 placeholder 统一由 `VenueAttractionPlaceholderSpawner` 按 `collectibleSpawnPixel` 生成。由于原点后续可能移动，原点移动后可以重新执行该菜单刷新测试数据。
+
+2026-07-02 更新：当前 `VenueMapDefinition.asset` 中三个 origin test 景点已命名为：
+
+| id | Display Name | 中文名 | 当前 reward |
+| --- | --- | --- | --- |
+| `origin_test_1` | Biscuit Bounce Booth | 饼干蹦蹦站 | `hat_reward` |
+| `origin_test_2` | Wagging Wonder Stop | 摇尾惊喜站 | `shirt_reward` |
+| `origin_test_3` | Sniffle Spark Station | 嗅嗅闪光站 | `socks_reward` |
+
+`UIScene` 的 `VenueCollectibleSpawner.explicitPlacements` 已把以上三个测试景点分别绑定到对应 reward。当前测试版在景点处生成约小狗高度的橙色测试球，不直接显示真实 3D accessory 模型；用户进入测试球 1 m 内后，小狗自动走到球旁，并由对应 reward 把真实 accessory 穿到狗身上。`DogAccessoryManager` 和 `RewardRevealController` 挂在同一个 `VenueRoot` 上：`DogAccessoryManager.dogGuideController` 指向当前场景 `DogGuideController`，`RewardRevealController.accessoryManager` 指向这个 manager。
+
 抓物品：
 
 - 小狗坐在用户 / 景点附近。
 - 小狗应朝向用户或物品。
-- 小狗位置必须方便用户把虚拟物品拖到它身上。
+- 小狗位置必须方便它自动走到虚拟物品旁。
+- 当前临时交互不是最终手势 grab，也不需要用户 ray / pinch。`VenueCollectibleSpawner` 检测用户进入测试球 1 m 内后，HUD 显示 `Thank you for helping Puppy find the {place} treasure!`，小狗自动走到球旁；约 3 秒后隐藏球、穿戴对应 accessory、播放开心动画、播放烟花和 `Assets/PuppyPath/Audio/puppy_treasure_sparkle_pop.wav`，并显示 4 秒 `SURPRISE!` reward panel。`RaycastPinchCollectibleDragger` 当前保留但在 `UIScene` 中禁用。
+- `RewardRevealController` 会优先使用 Inspector 里绑定的 `Reward Panel Root`、`Title Text`、`Body Text`、`Reward Icon Image`；如果这些字段为空，会在运行时按名字寻找场景中的 `RewardPanel`，并自动绑定其中的 TMP 文本和 Image。Reward icon 播放期间会自动添加 `RewardIconWiggle`，做左右小幅快速摇晃。
+- 烟花音效有两个入口：宝藏发现流程填 `RewardRevealController.Firework Sound`；导航到达流程填 `NavigationController.Firework Sound`。如果希望两种烟花都响，同一个下载好的 AudioClip 两处都拖进去。
+- `VenueAttractionPlaceholderSpawner.rebuildOnStart` 和 `VenueOriginTestAttractionGenerator.createPlaceholderSpheres` 当前关闭；场景中旧的 `origin_test_*_placeholder_sphere` 也保持 inactive，避免与可交互测试球混淆。
 
 ## 现场验证清单
 
@@ -489,6 +510,7 @@ Route Line 注意事项：
 - 站在每个黄色虚拟物品出现点附近，验证小地图 marker 是否对齐。
 - 从 Couch 走到 Photo Wall，验证路线方向。
 - 在 Drink Shop 附近走动，验证物品透明度距离规则：3 m 内清楚显示，6 m 半透明，10 m 以上不可见。
+- 在 `origin_test_1`、`origin_test_2`、`origin_test_3` 附近走动，验证对应测试球按距离渐显，高度约小狗高度；用户进入 1 m 内后，小狗自动走到球旁，HUD 显示感谢文案，然后触发 `hat_reward`、`shirt_reward`、`socks_reward` 的穿戴、烟花音效和 reward panel。
 - 确认小狗不会出现在非黄色区域内。
 - 确认小狗在狭窄通道中仍然保持可见。
 - 确认大地图朝向与用户真实移动一致。

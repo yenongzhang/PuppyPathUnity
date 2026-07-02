@@ -122,6 +122,36 @@ MonoBehaviour:
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
     hiddenDistanceMeters: 10
+  - id: origin_test_1
+    sourceMapLabel: Origin Test 1
+    displayName: Biscuit Bounce Booth
+    chineseDisplayName: "\u997C\u5E72\u8E66\u8E66\u7AD9"
+    collectibleSpawnPixel: {x: 986.6429, y: 746.1345}
+    arrivalPixel: {x: 986.6429, y: 746.1345}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: origin_test_2
+    sourceMapLabel: Origin Test 2
+    displayName: Wagging Wonder Stop
+    chineseDisplayName: "\u6447\u5C3E\u60CA\u559C\u7AD9"
+    collectibleSpawnPixel: {x: 940.5721, y: 800.00037}
+    arrivalPixel: {x: 940.5721, y: 800.00037}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
+  - id: origin_test_3
+    sourceMapLabel: Origin Test 3
+    displayName: Sniffle Spark Station
+    chineseDisplayName: "\u55C5\u55C5\u95EA\u5149\u7AD9"
+    collectibleSpawnPixel: {x: 1038.951, y: 677.1978}
+    arrivalPixel: {x: 1038.951, y: 677.1978}
+    hasCustomArrivalPixel: 0
+    fullAlphaDistanceMeters: 3
+    halfAlphaDistanceMeters: 6
+    hiddenDistanceMeters: 10
   walkableAreas:
   - id: main_walkable_auto_draft
     displayName: Main Walkable Auto Draft
@@ -441,6 +471,9 @@ MonoBehaviour:
       - top_01b
       - top_02b
       - top_03
+      - origin_test_1_arrival
+      - origin_test_2_arrival
+      - origin_test_3_arrival
     - id: top_02b
       mapPixel: {x: 1136.1017, y: 643.4023}
       neighborNodeIds:
@@ -448,6 +481,7 @@ MonoBehaviour:
       - top_02
       - top_03
       - top_03b
+      - origin_test_3_arrival
     - id: top_03
       mapPixel: {x: 1259.4692, y: 657.90576}
       neighborNodeIds:
@@ -467,3 +501,18 @@ MonoBehaviour:
       - top_03
       - top_03b
       - right_upper
+    - id: origin_test_1_arrival
+      mapPixel: {x: 980.9792, y: 740.4822}
+      neighborNodeIds:
+      - top_02
+      - origin_test_2_arrival
+    - id: origin_test_2_arrival
+      mapPixel: {x: 942.5056, y: 793.07245}
+      neighborNodeIds:
+      - top_02
+      - origin_test_1_arrival
+    - id: origin_test_3_arrival
+      mapPixel: {x: 1045.5452, y: 688.4674}
+      neighborNodeIds:
+      - top_02
+      - top_02b

@@ -446,12 +446,15 @@ V2 用法：
 - `FloatingCollectibleItem.cs`：挂在收藏物 prefab 上，按传入 alpha 控制材质透明度和可见性，收集后隐藏并禁用交互组件。
 - `AttractionTrigger.cs`：测试阶段的景点出现点（挂在场景里手动摆放的 Transform 上，不读取 `VenueMapDefinition` 真实坐标），按用户距离计算渐显 alpha。
 - `CollectibleGrabHandler.cs`：挂在收藏物 prefab 上，订阅 Meta XR Interaction SDK `Oculus.Interaction.Grabbable` 的 `WhenPointerEventRaised` 事件，释放时判断是否放到小狗身上，命中则标记 session 内已收集并调用 `RewardRevealController.ShowReward`。
+- `VenueCollectibleSpawner.cs`：UIScene 集成层，读取 `VenueMapDefinition` 的 `collectibleSpawnPixel`，用 `explicitPlacements` 把 reward collectible 放到指定景点。目前 `origin_test_1/2/3` 分别绑定 `hat_reward`、`shirt_reward`、`socks_reward`。当前测试版默认生成带 collider 的橙色测试球，不在景点位置实例化真实 accessory 模型。
+- `RaycastPinchCollectibleDragger.cs`：正式手势 grab 前的测试输入层，从 XR Camera 发射 physics ray / sphere cast，用 Quest index trigger 或 Editor 鼠标拖动测试球；松手时调用 `CollectibleGrabHandler.TryCollectNow()`。当前场景中的 Meta / ISDK visible ray 主要来自 Canvas pointer，只命中 UI canvas；该脚本会自行绘制 `CollectiblePhysicsRay` 来测试 3D collectible collider。
 
 对 `DogGuideController.cs` 的改动（仅追加，未修改任何现有私有逻辑）：
 
 - `public event System.Action<GameObject> DogSpawned`：`BeginGuiding` 完成 dog 初始化后触发。
 - `public GameObject CurrentDog`：只读属性，暴露当前生成的小狗实例。
 - `public void PlayOneShotState(string stateName)`：调用现有私有 `PlayAnimation` 的公开包装，供 `RewardRevealController` 等 V2 脚本从外部触发一次性动画状态。
+- `public void SetInteractionHold(bool hold, string holdAnimationState = null)`：collectible 拖动期间暂停自由探索 / 导航驱动，让小狗保持坐下等待；松手后恢复。
 
 抓取交互确认基于项目实际在用的 **Meta XR Interaction SDK**（`com.meta.xr.sdk.interaction`，`PointableCanvasModule` 已经用于现有 UI 点击），而不是 XR Interaction Toolkit（已安装但未接入任何现有场景）。`Grabbable` + `HandGrabInteractable`/`DistanceHandGrabInteractable` 组件需要在 Unity 编辑器里手动挂到收藏物 prefab 上，代码侧只依赖 `Grabbable` 的事件接口，不强绑定具体 interactable 类型。
 
@@ -511,3 +514,19 @@ V2 应新增 wrapper / runtime：
 ## 必须遵守的文档同步规则
 
 当任何现有脚本被重新用途化、替换、删除或为 V2 大幅修改时，必须更新本文档，让后续开发者知道项目仍然依赖哪些旧内容。
+## 2026-07-02 Auto Treasure Discovery Update
+
+Current `UIScene` collectible flow no longer requires user ray / pinch / grab interaction with the dog:
+
+- `VenueCollectibleSpawner` spawns orange test treasure balls at `origin_test_1/2/3`; `heightOffset` is now 0.45 m so the treasure sits closer to puppy height.
+- When the user / HMD enters 1 m of a treasure ball, `NavigationHUDController.ShowTreasureFoundMessage(...)` shows a cute English thank-you HUD message.
+- `DogGuideController.WalkToInteractionTarget(...)` temporarily pauses free-roam / navigation drive and walks Puppy to the treasure ball.
+- After about 3 seconds, `CollectibleGrabHandler.TryCollectAutomatically()` hides the ball and triggers the reward.
+- `RewardRevealController` attaches the accessory, plays the happy animation, spawns the firework prefab, plays `Assets/PuppyPath/Audio/puppy_treasure_sparkle_pop.wav`, then shows a 4-second `SURPRISE!` reward panel. If no panel is wired in Inspector, it creates a simple TMP runtime panel and fallback icon.
+- `RaycastPinchCollectibleDragger` remains in the project as a fallback test tool, but it is disabled in `UIScene`.
+
+Updated test reward copy:
+
+- `hat_reward`: fizzy cola.
+- `shirt_reward`: cloud-soft pup tee.
+- `socks_reward`: snack-proof puppy socks.

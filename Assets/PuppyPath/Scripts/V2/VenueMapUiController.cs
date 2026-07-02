@@ -68,6 +68,7 @@ public class VenueMapUiController : MonoBehaviour
     [SerializeField] private string navigationTextTemplate = "Go to {0}";
 
     [Header("Startup")]
+    [SerializeField] private bool flowControllerOwnsLargeMapVisibility = true;
     [SerializeField] private bool hideLargeMapOnStart = true;
 
     private readonly List<VenueMapMarker> attractionMarkers = new List<VenueMapMarker>();
@@ -92,7 +93,7 @@ public class VenueMapUiController : MonoBehaviour
 
     private void Start()
     {
-        if (hideLargeMapOnStart && largeMapPanel != null)
+        if (!flowControllerOwnsLargeMapVisibility && hideLargeMapOnStart && largeMapPanel != null)
             largeMapPanel.SetActive(false);
 
         PrepareMapImageForMarkerRaycasts();

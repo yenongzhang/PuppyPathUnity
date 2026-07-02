@@ -7,6 +7,7 @@ using UnityEngine;
 public class FloatingCollectibleItem : MonoBehaviour
 {
     [SerializeField] private Renderer[] renderers;
+    [SerializeField] private Collider[] raycastColliders;
     [SerializeField] private Behaviour interactableToDisableOnCollect;
 
     private Material[] runtimeMaterials;
@@ -19,6 +20,9 @@ public class FloatingCollectibleItem : MonoBehaviour
     {
         if (renderers == null || renderers.Length == 0)
             renderers = GetComponentsInChildren<Renderer>(true);
+
+        if (raycastColliders == null || raycastColliders.Length == 0)
+            raycastColliders = GetComponentsInChildren<Collider>(true);
 
         runtimeMaterials = new Material[renderers.Length];
 
@@ -46,6 +50,15 @@ public class FloatingCollectibleItem : MonoBehaviour
 
         if (interactableToDisableOnCollect != null)
             interactableToDisableOnCollect.enabled = shouldBeVisible;
+
+        if (raycastColliders != null)
+        {
+            foreach (Collider raycastCollider in raycastColliders)
+            {
+                if (raycastCollider != null)
+                    raycastCollider.enabled = shouldBeVisible;
+            }
+        }
 
         if (!shouldBeVisible || runtimeMaterials == null)
             return;
@@ -78,5 +91,14 @@ public class FloatingCollectibleItem : MonoBehaviour
 
         if (interactableToDisableOnCollect != null)
             interactableToDisableOnCollect.enabled = !collected;
+
+        if (raycastColliders == null)
+            return;
+
+        foreach (Collider raycastCollider in raycastColliders)
+        {
+            if (raycastCollider != null)
+                raycastCollider.enabled = !collected;
+        }
     }
 }

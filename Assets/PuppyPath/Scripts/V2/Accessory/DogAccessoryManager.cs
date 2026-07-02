@@ -52,6 +52,8 @@ public class DogAccessoryManager : MonoBehaviour
             return;
         }
 
+        EnsureDogAnchors();
+
         if (currentAnchors == null)
         {
             Debug.LogWarning("DogAccessoryManager: no dog anchors available, cannot attach accessory.");
@@ -75,6 +77,31 @@ public class DogAccessoryManager : MonoBehaviour
         RebindSkinnedMeshesToDogSkeleton(instance);
 
         attached[definition.id] = instance;
+    }
+
+    private void EnsureDogAnchors()
+    {
+        if (currentAnchors != null)
+            return;
+
+        if (manualAnchors != null)
+        {
+            currentAnchors = manualAnchors;
+            return;
+        }
+
+        GameObject dog = dogGuideController != null ? dogGuideController.CurrentDog : null;
+        if (dog == null)
+            return;
+
+        HandleDogSpawned(dog);
+
+        if (currentAnchors == null)
+        {
+            currentAnchors = dog.AddComponent<DogAccessoryAnchors>();
+            currentDog = dog;
+            Debug.LogWarning("DogAccessoryManager: spawned dog had no DogAccessoryAnchors, so a root anchor was added at runtime.");
+        }
     }
 
     /// <summary>

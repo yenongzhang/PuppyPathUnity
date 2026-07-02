@@ -19,6 +19,7 @@ public class CollectibleGrabHandler : MonoBehaviour
     private RewardRevealController rewardRevealController;
     private DogGuideController dogGuideController;
     private bool collected;
+    public bool IsCollected => collected;
 
     private void Awake()
     {
@@ -60,20 +61,25 @@ public class CollectibleGrabHandler : MonoBehaviour
             TryCollectAt(evt.Pose.position);
     }
 
-    private void TryCollectAt(Vector3 releasePosition)
+    public bool TryCollectNow()
+    {
+        return TryCollectAt(transform.position);
+    }
+
+    public bool TryCollectAt(Vector3 releasePosition)
     {
         if (collected || string.IsNullOrEmpty(attractionId))
-            return;
+            return false;
 
         GameObject dog = dogGuideController != null ? dogGuideController.CurrentDog : null;
 
         if (dog == null)
-            return;
+            return false;
 
         float distance = Vector3.Distance(releasePosition, dog.transform.position);
 
         if (distance > collectDistance)
-            return;
+            return false;
 
         collected = true;
         collectedThisSession.Add(attractionId);
@@ -83,5 +89,24 @@ public class CollectibleGrabHandler : MonoBehaviour
 
         if (rewardRevealController != null)
             rewardRevealController.ShowReward(attractionId);
+
+        return true;
+    }
+
+    public bool TryCollectAutomatically()
+    {
+        if (collected || string.IsNullOrEmpty(attractionId))
+            return false;
+
+        collected = true;
+        collectedThisSession.Add(attractionId);
+
+        if (floatingItem != null)
+            floatingItem.SetCollected(true);
+
+        if (rewardRevealController != null)
+            rewardRevealController.ShowReward(attractionId);
+
+        return true;
     }
 }

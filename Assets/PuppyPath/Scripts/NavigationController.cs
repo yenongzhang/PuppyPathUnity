@@ -31,6 +31,8 @@ public class NavigationController : MonoBehaviour
     [SerializeField] private int randomFireworksPerWave = 4;
     [SerializeField] private bool destroyFireworksAfterDelay = true;
     [SerializeField] private float fireworkDestroyDelay = 4f;
+    [SerializeField] private AudioClip fireworkSound;
+    [SerializeField] private float fireworkSoundVolume = 0.75f;
     [SerializeField] private bool debugFireworks = true;
     [Header("Arrival")]
     [SerializeField] private float arrivalFreeRoamDelay = 0f;
@@ -468,6 +470,10 @@ public class NavigationController : MonoBehaviour
             StopCoroutine(fireworkRoutine);
 
         Vector3 basePosition = GetFireworkBasePosition();
+
+        if (fireworkSound != null)
+            AudioSource.PlayClipAtPoint(fireworkSound, basePosition, fireworkSoundVolume);
+
         fireworkRoutine = StartCoroutine(PlayFireworkRoutine(basePosition));
     }
 

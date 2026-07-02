@@ -15,7 +15,7 @@ MonoBehaviour:
   attractionId: socks_attraction
   displayName: socksReward
   accessory: {fileID: 11400000, guid: 316a49c2125ac0f48bf695d7c07c9f77, type: 2}
-  rewardTitle: Yeaaaaah
-  rewardMessage: Good
+  rewardTitle: SURPRISE!
+  rewardMessage: You got snack-proof puppy socks! Perfect for dramatic little hops.
   rewardIcon: {fileID: 0}
-  triggerFireworks: 0
+  triggerFireworks: 1

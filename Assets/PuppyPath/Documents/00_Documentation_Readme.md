@@ -1,6 +1,6 @@
 # PuppyPath V2 文档说明
 
-最后更新：2026-06-30
+最后更新：2026-07-02
 
 ## 文档目的
 
@@ -8,7 +8,7 @@
 
 - Unity 场景必须在比例、可行走区域、景点位置上匹配真实活动场地。
 - 小狗需要一直保持在用户视野中；用户需要导航时它负责带路，用户抓取虚拟物品时它乖乖坐下等待。
-- 每个景点附近会有悬浮的可收集虚拟物品。用户把物品拖到小狗身上后，物品会变成小狗的穿戴饰品，并解锁对应惊喜。
+- 每个景点附近会有悬浮的可收集虚拟物品。当前 V2 测试版中，用户走到景点 1 m 内后，小狗会自动发现宝藏、穿上对应饰品，并解锁对应惊喜。
 - UI 流程从现有 `logoCanvas` 开始，然后进入小地图、自由行走、导航、景点收集的体验。
 
 ## 文档列表
@@ -40,6 +40,9 @@
   - Drink Shop -> Fizzy Fridge / 气泡饮料铺
   - Piano -> Melody Corner / 音符小舞台
   - Plants -> Garden Patch / 小狗花园
+  - Origin Test 1 -> Biscuit Bounce Booth / 饼干蹦蹦站（临时测试景点）
+  - Origin Test 2 -> Wagging Wonder Stop / 摇尾惊喜站（临时测试景点）
+  - Origin Test 3 -> Sniffle Spark Station / 嗅嗅闪光站（临时测试景点）
 
 ## 当前实现状态
 
@@ -47,4 +50,6 @@ V2 已开始实现。当前已完成第一版场地坐标 / 地图数据层、Sc
 
 真机测试方面，已新增 `VenueAlignmentManager`、`VenueSpatialAnchorBootstrap` 和 `VenueWalkableGridVisualizer`。当前可以先在 Quest 中用黄色格子可视化可行走区域，并通过站在 Photo Wall 右上角原点、面朝地图北方的方式临时对齐场地。
 
-下一步重点是完善 Spatial Anchor 的保存 / 加载恢复流程，把 `VenueNavigationRuntime` 接入实际 UI 选择流程，并继续开发专门的 `DogVenueFollower`，让小狗在自由行走和导航模式下都保持在用户前方且不穿墙。
+2026-07-02 更新：`UIScene` 已接入自动宝藏发现链路。当前不再把帽子 / 衣服 / 袜子 3D 模型直接放在景点位置，而是由 `VenueCollectibleSpawner` 在 `origin_test_1`、`origin_test_2`、`origin_test_3` 三个临时景点生成约小狗高度的橙色测试球；用户进入景点 1 m 内后，HUD 显示英文感谢提示，小狗自动走到球旁，3 秒后触发 `RewardRevealController`：隐藏球、穿戴对应 reward accessory、播放开心动画、播放烟花和 `puppy_treasure_sparkle_pop.wav` 音效，显示 4 秒 `SURPRISE!` reward panel，然后回到随便走走 HUD。
+
+下一步重点是完善 Spatial Anchor 的保存 / 加载恢复流程，并继续开发专门的 `DogVenueFollower`，让小狗在自由行走和导航模式下都保持在用户前方且不穿墙。

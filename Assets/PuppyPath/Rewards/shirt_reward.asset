@@ -15,7 +15,7 @@ MonoBehaviour:
   attractionId: shirt_attraction
   displayName: shirtReward
   accessory: {fileID: 11400000, guid: f2861f5c79cc0a94da99e64f5b806769, type: 2}
-  rewardTitle: Yeah!
-  rewardMessage: You can eat an icecream :)
+  rewardTitle: SURPRISE!
+  rewardMessage: You got a cloud-soft pup tee! Official uniform for very serious tail work.
   rewardIcon: {fileID: 0}
-  triggerFireworks: 0
+  triggerFireworks: 1

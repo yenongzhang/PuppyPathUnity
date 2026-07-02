@@ -15,6 +15,7 @@ public class NavigationHUDController : MonoBehaviour
     [SerializeField] private TMP_Text stateText;
     [SerializeField] private string freeRoamText = "Sniff around with me!";
     [SerializeField] private string navigationTextTemplate = "Paws this way to {0}!";
+    [SerializeField] private string treasureFoundTextTemplate = "Thank you for helping Puppy find the {0} treasure!";
 
     public void ShowIntroAndMap()
     {
@@ -49,6 +50,25 @@ public class NavigationHUDController : MonoBehaviour
     public void ExitNavigationMode()
     {
         ShowIntroAndMap();
+    }
+
+    public void ShowTreasureFoundMessage(string placeName)
+    {
+        SetMainPanelGroupVisible(false);
+        SetNavigationHudVisible(true, false);
+
+        string displayName = string.IsNullOrWhiteSpace(placeName) ? "hidden" : placeName;
+        UpdateStateText(string.Format(treasureFoundTextTemplate, displayName));
+    }
+
+    public void HideNavigationHud()
+    {
+        SetNavigationHudVisible(false, false);
+    }
+
+    public void RestoreFreeRoamHud()
+    {
+        EnterFreeRoamMode();
     }
 
     public void SetMapVisible(bool visible)

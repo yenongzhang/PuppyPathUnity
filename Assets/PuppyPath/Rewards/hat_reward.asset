@@ -15,7 +15,7 @@ MonoBehaviour:
   attractionId: hat_attraction
   displayName: hatReward
   accessory: {fileID: 11400000, guid: 47c1bc8aaf5c005448c426aa1f5aa36d, type: 2}
-  rewardTitle: Congrats!
-  rewardMessage: You got a free cola!
+  rewardTitle: SURPRISE!
+  rewardMessage: You got a fizzy cola! Tiny bubbles, giant puppy wiggles.
   rewardIcon: {fileID: 0}
-  triggerFireworks: 0
+  triggerFireworks: 1

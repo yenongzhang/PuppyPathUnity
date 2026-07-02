@@ -137,6 +137,7 @@ public class DogGuideController : MonoBehaviour
     private bool isPerformingBehavior;
     private bool currentBehaviorIsStateReaction;
     private bool positiveRandomBehaviorsSuppressed;
+    private bool interactionHold;
 
     private NavigationRuntimeController.NavState currentState = NavigationRuntimeController.NavState.Neutral;
     private NavigationRuntimeController.NavState previousState = NavigationRuntimeController.NavState.Neutral;
@@ -331,9 +332,67 @@ public class DogGuideController : MonoBehaviour
             StopCurrentBehavior();
     }
 
+    public void SetInteractionHold(bool hold, string holdAnimationState = null)
+    {
+        interactionHold = hold;
+        SetPositiveRandomBehaviorsSuppressed(hold);
+
+        if (!hold)
+            return;
+
+        if (isPerformingBehavior && !currentBehaviorIsStateReaction)
+            StopCurrentBehavior();
+
+        if (!string.IsNullOrWhiteSpace(holdAnimationState))
+            PlayOneShotState(holdAnimationState);
+    }
+
+    public IEnumerator WalkToInteractionTarget(Vector3 targetPosition, float stopDistance = 0.22f, string arrivalAnimationState = null)
+    {
+        if (currentDog == null)
+            yield break;
+
+        interactionHold = true;
+        SetPositiveRandomBehaviorsSuppressed(true);
+
+        if (isPerformingBehavior && !currentBehaviorIsStateReaction)
+            StopCurrentBehavior();
+
+        targetPosition.y = currentDog.transform.position.y;
+        float safeStopDistance = Mathf.Max(0.05f, stopDistance);
+
+        while (currentDog != null && GetFlatDistance(currentDog.transform.position, targetPosition) > safeStopDistance)
+        {
+            float distance = GetFlatDistance(currentDog.transform.position, targetPosition);
+            string moveState = distance > 0.75f ? trotState : walkState;
+            float moveSpeed = distance > 0.75f ? trotMoveSpeed : walkMoveSpeed;
+            float animationGate = distance > 0.75f ? minDistanceForTrotAnimation : minDistanceForWalkAnimation;
+
+            TryPlayLocomotionAndMove(targetPosition, moveState, 1f, moveSpeed, animationGate);
+            yield return null;
+        }
+
+        if (currentDog != null)
+        {
+            Vector3 lookDirection = targetPosition - currentDog.transform.position;
+            lookDirection.y = 0f;
+
+            if (lookDirection.sqrMagnitude > 0.0001f)
+                currentDog.transform.rotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
+
+            if (!string.IsNullOrWhiteSpace(arrivalAnimationState))
+                PlayOneShotState(arrivalAnimationState);
+            else
+                PlayStand(1f);
+        }
+    }
+
     public void TickFreeRoamFollow(Vector3 targetPosition, Vector3 recommendedDirection)
     {
         if (!isGuiding || currentDog == null || xrCamera == null)
+            return;
+
+        if (interactionHold)
             return;
 
         if (isPerformingBehavior)
@@ -390,6 +449,9 @@ public class DogGuideController : MonoBehaviour
         Vector3 recommendedDirection
     )
     {
+        if (interactionHold)
+            return;
+
         NavigationRuntimeController.NavState effectiveState = navState;
 
         if (distanceToGoal <= celebrationDistance &&
@@ -460,6 +522,9 @@ public class DogGuideController : MonoBehaviour
     private void Update()
     {
         if (!isGuiding || currentDog == null || xrCamera == null)
+            return;
+
+        if (interactionHold)
             return;
 
         if (isPerformingBehavior)

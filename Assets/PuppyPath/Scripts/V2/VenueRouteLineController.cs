@@ -5,6 +5,8 @@ using UnityEngine;
 public class VenueRouteLineController : MonoBehaviour
 {
     [SerializeField] private VenueMapDefinition mapDefinition;
+    [SerializeField] private VenueWalkableGridVisualizer walkableGridVisualizer;
+    [SerializeField] private bool drawLineRenderer;
     [SerializeField] private float lineHeightOffset = 0.08f;
     [SerializeField] private float lineWidth = 0.07f;
     [SerializeField] private Color routeColor = new Color(0.45f, 0.85f, 1f, 1f);
@@ -61,7 +63,7 @@ public class VenueRouteLineController : MonoBehaviour
     public bool ShowRoute(Vector2 startPixel, Vector2 endPixel)
     {
         ResolveLineRenderer();
-        if (lineRenderer == null || mapDefinition == null)
+        if (mapDefinition == null)
             return false;
 
         if (!VenuePathfinder.TryFindWorldPath(mapDefinition, startPixel, endPixel, routeWorldPoints))
@@ -78,7 +80,7 @@ public class VenueRouteLineController : MonoBehaviour
     public bool ShowWorldRoute(IList<Vector3> worldPoints)
     {
         ResolveLineRenderer();
-        if (lineRenderer == null || worldPoints == null || worldPoints.Count < 2)
+        if (worldPoints == null || worldPoints.Count < 2)
         {
             ClearRoute();
             return false;
@@ -99,6 +101,9 @@ public class VenueRouteLineController : MonoBehaviour
         ResolveLineRenderer();
         if (lineRenderer != null)
             lineRenderer.positionCount = 0;
+
+        if (walkableGridVisualizer != null)
+            walkableGridVisualizer.ClearRoute();
     }
 
     [ContextMenu("Show Test Route")]
@@ -115,6 +120,20 @@ public class VenueRouteLineController : MonoBehaviour
 
     private void ApplyWorldRoute(IList<Vector3> worldPoints)
     {
+        if (walkableGridVisualizer != null)
+            walkableGridVisualizer.ShowWorldRoute(worldPoints);
+
+        if (!drawLineRenderer)
+        {
+            if (lineRenderer != null)
+                lineRenderer.positionCount = 0;
+            return;
+        }
+
+        ResolveLineRenderer();
+        if (lineRenderer == null)
+            return;
+
         ConfigureLineRenderer();
 
         lineRenderer.positionCount = worldPoints.Count;

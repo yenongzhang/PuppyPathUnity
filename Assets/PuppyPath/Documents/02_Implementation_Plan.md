@@ -52,8 +52,8 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - `Assets/PuppyPath/Scripts/V2/VenueCoordinateMapper.cs`：地图像素坐标和 Unity 世界坐标之间的转换工具。
 - `Assets/PuppyPath/Scripts/V2/VenueCalibrationDebugView.cs`：Scene 视图调试绘制工具，用于检查原点、地图边界、比例尺和景点 marker。
 - `Assets/PuppyPath/Scripts/V2/VenuePathfinder.cs`：第一版手工导航图寻路工具，基于 waypoint graph 生成地图像素路线和 Unity 世界路线。
-- `Assets/PuppyPath/Scripts/V2/VenueRouteLineController.cs`：第一版路线 LineRenderer 绘制组件，可用测试起点和目标景点画路线。
-- `Assets/PuppyPath/Scripts/V2/VenueNavigationRuntime.cs`：第一版 V2 场地导航运行时，负责从 HMD 世界位置生成到景点的真实场地路线、刷新地面路线 line，并向小狗控制器提供导航和自由探索推荐方向。
+- `Assets/PuppyPath/Scripts/V2/VenueRouteLineController.cs`：场地路线可视化组件，可用测试起点和目标景点生成路线；当前默认不显示 LineRenderer，而是把路线交给 `VenueWalkableGridVisualizer` 高亮沿途 grid。
+- `Assets/PuppyPath/Scripts/V2/VenueNavigationRuntime.cs`：第一版 V2 场地导航运行时，负责从 HMD 世界位置生成到景点的真实场地路线、刷新地面 grid 路线高亮，并向小狗控制器提供导航和自由探索推荐方向。
 - `Assets/PuppyPath/Scripts/V2/VenueMapUiController.cs`：第一版 V2 大地图 UI 控制器，负责把景点位置映射到完整地图 UI marker，绘制道路，并把景点点击接入 `VenueNavigationRuntime`。
 - `Assets/PuppyPath/Scripts/V2/VenueMapMarker.cs`：地图 UI marker 组件，保存 attraction id、显示选中状态，并把点击事件回传给地图 UI 控制器。
 - `Assets/PuppyPath/Scripts/V2/VenueMapOpenButton.cs`：右上方地图按钮打开大地图的轻量入口，可挂在按钮物体上。
@@ -131,7 +131,7 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 
 - 大地图不再使用“点击任意地图位置 -> 放置 marker -> 显示旧 waypoint path”的流程。
 - 景点由 `VenueMapDefinition.attractions` 驱动，打开大地图后直接显示每个景点 marker；点击景点 marker 后，使用 `VenuePathfinder` 从用户当前位置生成到该景点 arrival pixel 的路线。
-- 大地图 UI 会根据 `VenueMapDefinition.navGraph` 绘制道路网络，但默认不在地图 UI 上绘制当前导航路线；地面路线仍由 `VenueRouteLineController` 绘制，带路行为仍由 `VenueNavigationRuntime` 通知小狗。
+- 大地图 UI 会根据 `VenueMapDefinition.navGraph` 绘制道路网络，但默认不在地图 UI 上绘制当前导航路线；地面路线由 `VenueRouteLineController` 通知 `VenueWalkableGridVisualizer` 把路线附近 grid 变色显示，带路行为仍由 `VenueNavigationRuntime` 通知小狗。
 - 朋友列表导航取消。原本朋友列表所在区域只作为 intro / flow 文案区域使用，不再调用旧 path prefab，也不再调用 venue navigation。
 - `PuppyPathSelectionUI` 作为旧 UI 桥接层保留：当场景中存在 `VenueMapUiController` 时，任意地图点击会被忽略；朋友按钮默认只更新文案，不显示 Show Path，也不会启动导航。
 
@@ -143,6 +143,7 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - 不再显示用户当前位置 marker，因此不需要 `User Marker Prefab`。
 - `Road Line Parent`、`Route Line Parent` 和 `Large Map Marker Parent` 可以留空。即使误填成外层 `MapPanel`，运行时默认也会强制在 `Large Map Image` 下自动创建 `RoadLines`、`RouteLines` 和 `Markers` 三个 overlay 层。当前 `Draw Selected Route On Map` 默认关闭，所以 `RouteLines` 一般不显示。
 - `Large Map Rect` / `Large Map Image` 都应指向真正的地图图片对象，也就是当前场景里的 `MapImage`，不要指向外层 `MapPanel`。
+- `VenueMapUiController.Flow Controller Owns Large Map Visibility` 应保持开启，让旧 `NavigationHUDController` 管 `MapPanel` 的开关；否则 Quest build 中可能因为 Start 顺序导致 logo 后 `MapPanel` 被 V2 map controller 隐藏。
 - `MapImage` 上旧 `PuppyPathSelectionUI` 可以暂时保留作为桥接，但旧任意地图点击会被忽略，旧地图图片的 `Image.raycastTarget` 会在运行时关闭，避免挡住新的景点 marker。
 - 景点 marker 的运行时最小尺寸为 72 x 72，即使 Inspector 里旧值还是 34 x 34，也会被放大到可点尺寸。
 - `Attraction Marker Color`、`Selected Attraction Marker Color` 和 `Visited Attraction Marker Color` 可在 Inspector 中调色；用户到达某景点后，该景点 marker 保持 visited 颜色。
@@ -163,6 +164,11 @@ V2 应该复用这些好的动画和 UI 基础，但核心场景模型必须改�
 - 提示 UI。
 - 是否已收集。
 - 对应小狗饰品位置。
+
+当前 placeholder：
+
+- `VenueAttractionPlaceholderSpawner` 可按 `VenueMapDefinition.attractions` 在每个 `collectibleSpawnPixel` 放置一个圆球占位物。
+- `VenueOriginTestAttractionGenerator` 可在 Inspector / 组件菜单中执行 `Generate Origin Test Attractions`，在当前地图原点附近的可行走区域生成 3 个测试景点数据，并自动写入对应 navgraph 节点和邻居连接。它不生成额外 3D 球；虚拟物品 placeholder 统一由 `VenueAttractionPlaceholderSpawner` 按 `collectibleSpawnPixel` 生成。
 - 奖励内容。
 
 推荐新增脚本：
@@ -379,7 +385,7 @@ V2 小狗行为新规则：
 
 ```text
 Boot / Logo -> Intro -> FreeRoam -> Tap Map Button -> BigMap -> Tap Attraction
--> Navigation -> Arrived -> 3D item grab to dog -> RewardPopup -> FreeRoam
+-> Navigation / FreeRoam arrival near treasure -> Puppy auto treasure discovery -> RewardPopup -> FreeRoam
 ```
 
 当前不再新增或继续接入 `PuppyPathV2FlowController`。旧 Canvas 上的轻量状态切换改由 `NavigationController` 和 `NavigationHUDController` 承担：启动时显示 `FriendListPanel` 内的 `IntroPhase1` + 地图 + `XPanel`，旧 `IntroPanel` 永远不显示；点击 `LetsGoButton` 或 `XPanel` 后进入自由探索 HUD，点击景点 marker 后进入导航 HUD。
@@ -610,6 +616,21 @@ Boot / Logo -> Intro -> FreeRoam -> Tap Map Button -> BigMap -> Tap Attraction
 抓取交互建立在 Meta XR Interaction SDK 的 `Oculus.Interaction.Grabbable`（`WhenPointerEventRaised` 事件）之上，`HandGrabInteractable` 等具体 interactable 组件需要在 Inspector 里挂到收藏品 prefab 上，`FloatingCollectibleItem`/`CollectibleGrabHandler` 代码里不假设具体 interactable 类型（用 `Behaviour` 引用），保持解耦。
 
 2026-07-02 根据设计师意见调整：`DogAccessoryAnchors` 改为统一挂载到小狗根节点（不区分 Head/Face/Neck/Back 具体骨骼），饰品跟随小狗整体位置/朝向移动，不跟随骨骼自身动画细节。`GetAnchor(slot)` 现在忽略 slot 参数，统一返回根节点 transform（或手动指定的 `rootAnchor` 覆盖值）。`DogAccessoryManager`/`DogGuideController` 无需改动。
+
+2026-07-02 UIScene collectible 集成：
+
+- 新增 `VenueCollectibleSpawner`，按 `VenueMapDefinition.attractions[].collectibleSpawnPixel` 在真实场地坐标中生成 collectible。当前测试版不实例化真实 accessory 3D 模型，而是生成约小狗高度、带 collider 的橙色测试球；第一版支持 `explicitPlacements`，用于把指定 reward 绑定到指定 attraction。
+- 当前 collectible 触发方式改为自动发现：用户 / HMD 进入测试球 1 m 内后，`VenueCollectibleSpawner` 显示 HUD 感谢文案，调用 `DogGuideController.WalkToInteractionTarget(...)` 让小狗走到球旁，约 3 秒后调用 `CollectibleGrabHandler.TryCollectAutomatically()`。
+- `CollectibleGrabHandler` 现在仍保留 `TryCollectNow()` / `TryCollectAt(...)` 兼容旧测试，但当前 UIScene 使用 `TryCollectAutomatically()`，不再要求用户用 ray / pinch / grab 与小狗交互。
+- `RewardRevealController` 负责穿戴 accessory、播放开心动画、播放烟花和 `puppy_treasure_sparkle_pop.wav` 音效、显示 4 秒 `SURPRISE!` reward panel，并在结束后恢复随便走走 HUD。若 Inspector 没有绑定 reward panel，运行时会自动生成一个简单 TMP panel 和 fallback icon。
+- 如果场景里已有设计好的 `RewardPanel`，`RewardRevealController` 会优先使用 Inspector 绑定；未绑定时会按名字自动寻找 `RewardPanel` 并绑定其中的 TMP 文本和 Image。reward 图会由 `RewardIconWiggle` 做左右小幅快速摇晃。
+- 烟花音效字段分两处：宝藏 reward 用 `RewardRevealController.Firework Sound`，导航到达烟花用 `NavigationController.Firework Sound`。
+- `UIScene` 当前在 `VenueRoot` 上挂了 `DogAccessoryManager`、`RewardRevealController`、`VenueCollectibleSpawner`；`RaycastPinchCollectibleDragger` 保留但已禁用。`DogAccessoryManager.dogGuideController` 必须指向当前场景里的 `DogGuideController`；`RewardRevealController.accessoryManager` 必须指向同一个 `DogAccessoryManager`。
+- 当前 `VenueCollectibleSpawner.explicitPlacements` 绑定：
+  - `origin_test_1` / Biscuit Bounce Booth -> `hat_reward`。
+  - `origin_test_2` / Wagging Wonder Stop -> `shirt_reward`。
+  - `origin_test_3` / Sniffle Spark Station -> `socks_reward`。
+- `VenueAttractionPlaceholderSpawner.rebuildOnStart` 和 `VenueOriginTestAttractionGenerator.createPlaceholderSpheres` 当前在 `UIScene` 中关闭，避免低矮 debug placeholder 球与可交互 collectible 球重叠。
 
 仍需在 Unity 编辑器中完成（纯手动操作，非代码）：
 
