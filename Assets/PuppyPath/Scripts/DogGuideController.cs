@@ -1572,9 +1572,13 @@ public class DogGuideController : MonoBehaviour
                 {
                     PlayStand(1f);
                     nearTargetTimer = 0f;
+                    return false;
                 }
 
-                return false;
+                // 还没决定切回 Stand 之前，动画仍在播放，位移也要跟着走完最后这一小段，
+                // 避免出现"腿在动、狗没动"的原地打滑。
+                MoveDogTo(targetPos, moveSpeed);
+                return true;
             }
 
             nearTargetTimer = 0f;
