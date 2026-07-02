@@ -619,6 +619,10 @@ MonoBehaviour:
   useMapDefinitionTextureForDisplay: 0
   forceOverlayParentsUnderMapImage: 1
   closeLargeMapAfterSelection: 1
+  mapContentLeft: 1
+  mapContentRight: 1
+  mapContentBottom: 1
+  mapContentTop: 1
   attractionMarkerPrefab: {fileID: 0}
   attractionMarkerSize: {x: 34, y: 34}
   minimumAttractionMarkerSize: {x: 72, y: 72}
