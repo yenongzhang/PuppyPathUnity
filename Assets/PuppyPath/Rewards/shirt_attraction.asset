@@ -15,7 +15,7 @@ MonoBehaviour:
   attractionId: shirt_attraction
   displayName: 
   accessory: {fileID: 11400000, guid: f2861f5c79cc0a94da99e64f5b806769, type: 2}
-  rewardTitle: Congrats! You got free cola!
+  rewardTitle: 
   rewardMessage: 
   rewardIcon: {fileID: 0}
   triggerFireworks: 0

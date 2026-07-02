@@ -64,6 +64,8 @@ public class VenueAlignmentManager : MonoBehaviour
                 "VenueAlignmentManager: aligned venue origin to HMD. " +
                 "Stand at Photo Wall upper-right origin and face map north / Unity +Z when calibrating.");
         }
+
+        RefreshCollectibleSpawns();
     }
 
     [ContextMenu("Align Translation Only To Current Head Pose")]
@@ -80,6 +82,15 @@ public class VenueAlignmentManager : MonoBehaviour
 
         Vector3 localOrigin = mapDefinition != null ? mapDefinition.originWorldPosition : Vector3.zero;
         venueContentRoot.position = targetOriginWorld - venueContentRoot.rotation * localOrigin;
+
+        RefreshCollectibleSpawns();
+    }
+
+    private void RefreshCollectibleSpawns()
+    {
+        VenueCollectibleSpawner spawner = FindFirstObjectByType<VenueCollectibleSpawner>();
+        if (spawner != null)
+            spawner.RebuildCollectibles();
     }
 
     private static float GetFlatYawDegrees(Vector3 forward)

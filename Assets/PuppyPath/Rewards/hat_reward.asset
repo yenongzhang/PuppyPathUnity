@@ -16,6 +16,6 @@ MonoBehaviour:
   displayName: hatReward
   accessory: {fileID: 11400000, guid: 47c1bc8aaf5c005448c426aa1f5aa36d, type: 2}
   rewardTitle: SURPRISE!
-  rewardMessage: You got a fizzy cola! Tiny bubbles, giant puppy wiggles.
-  rewardIcon: {fileID: 0}
+  rewardMessage: You got a fizzy cola!
+  rewardIcon: {fileID: 1200837048, guid: c856b66d9ab53ca4bb574fd61f747b6f, type: 3}
   triggerFireworks: 1

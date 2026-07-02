@@ -17,6 +17,21 @@ public class NavigationHUDController : MonoBehaviour
     [SerializeField] private string navigationTextTemplate = "Paws this way to {0}!";
     [SerializeField] private string treasureFoundTextTemplate = "Thank you for helping Puppy find the {0} treasure!";
 
+    private int treasureRevealSequenceLock;
+
+    public bool IsTreasureRevealSequenceActive => treasureRevealSequenceLock > 0;
+
+    public void BeginTreasureRevealSequence()
+    {
+        treasureRevealSequenceLock++;
+    }
+
+    public void EndTreasureRevealSequence()
+    {
+        if (treasureRevealSequenceLock > 0)
+            treasureRevealSequenceLock--;
+    }
+
     public void ShowIntroAndMap()
     {
         SetMainPanelGroupVisible(true);
@@ -27,6 +42,9 @@ public class NavigationHUDController : MonoBehaviour
 
     public void EnterFreeRoamMode()
     {
+        if (IsTreasureRevealSequenceActive)
+            return;
+
         SetMainPanelGroupVisible(false);
         SetNavigationHudVisible(true, false);
 
@@ -68,6 +86,7 @@ public class NavigationHUDController : MonoBehaviour
 
     public void RestoreFreeRoamHud()
     {
+        EndTreasureRevealSequence();
         EnterFreeRoamMode();
     }
 

@@ -376,7 +376,11 @@ public class DogGuideController : MonoBehaviour
             PlayOneShotState(holdAnimationState);
     }
 
-    public IEnumerator WalkToInteractionTarget(Vector3 targetPosition, float stopDistance = 0.22f, string arrivalAnimationState = null)
+    public IEnumerator WalkToInteractionTarget(
+        Vector3 targetPosition,
+        float stopDistance = 0.22f,
+        string arrivalAnimationState = null,
+        float maxDuration = 12f)
     {
         if (currentDog == null)
             yield break;
@@ -389,15 +393,40 @@ public class DogGuideController : MonoBehaviour
 
         targetPosition.y = currentDog.transform.position.y;
         float safeStopDistance = Mathf.Max(0.05f, stopDistance);
+        float closeEnoughDistance = safeStopDistance + minDistanceForWalkAnimation + locomotionStartExtraDistance;
+        float elapsed = 0f;
+        int stuckFrames = 0;
+        Vector3 lastPosition = currentDog.transform.position;
+        const float stuckMoveThreshold = 0.01f;
+        const int stuckFrameLimit = 24;
 
-        while (currentDog != null && GetFlatDistance(currentDog.transform.position, targetPosition) > safeStopDistance)
+        while (currentDog != null)
         {
             float distance = GetFlatDistance(currentDog.transform.position, targetPosition);
+
+            if (distance <= safeStopDistance)
+                break;
+
+            if (elapsed >= maxDuration || distance <= closeEnoughDistance)
+                break;
+
             string moveState = distance > 0.75f ? trotState : walkState;
             float moveSpeed = distance > 0.75f ? trotMoveSpeed : walkMoveSpeed;
             float animationGate = distance > 0.75f ? minDistanceForTrotAnimation : minDistanceForWalkAnimation;
 
-            TryPlayLocomotionAndMove(targetPosition, moveState, 1f, moveSpeed, animationGate);
+            TryPlayLocomotionAndMove(targetPosition, moveState, moveSpeed, animationGate);
+
+            float moved = GetFlatDistance(lastPosition, currentDog.transform.position);
+            if (moved < stuckMoveThreshold)
+                stuckFrames++;
+            else
+                stuckFrames = 0;
+
+            if (stuckFrames >= stuckFrameLimit)
+                break;
+
+            lastPosition = currentDog.transform.position;
+            elapsed += Time.deltaTime;
             yield return null;
         }
 

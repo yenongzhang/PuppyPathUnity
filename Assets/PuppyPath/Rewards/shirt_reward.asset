@@ -16,6 +16,6 @@ MonoBehaviour:
   displayName: shirtReward
   accessory: {fileID: 11400000, guid: f2861f5c79cc0a94da99e64f5b806769, type: 2}
   rewardTitle: SURPRISE!
-  rewardMessage: You got a cloud-soft pup tee! Official uniform for very serious tail work.
-  rewardIcon: {fileID: 0}
+  rewardMessage: You got a cloud-soft pup tee!
+  rewardIcon: {fileID: -789983694, guid: 53c9cf3170071ca4081b957f05b3bc89, type: 3}
   triggerFireworks: 1

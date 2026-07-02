@@ -5,6 +5,8 @@ using UnityEngine;
 /// Attaches/detaches DogAccessoryDefinition prefabs onto the currently spawned dog's
 /// DogAccessoryAnchors. Can pick up the dog automatically via DogGuideController.DogSpawned,
 /// or be pointed at a DogAccessoryAnchors manually for standalone testing.
+/// Collected accessories persist for the current session and stack on the dog; new rewards
+/// never remove previously collected items.
 /// </summary>
 public class DogAccessoryManager : MonoBehaviour
 {
@@ -15,6 +17,7 @@ public class DogAccessoryManager : MonoBehaviour
     private DogAccessoryAnchors currentAnchors;
     private GameObject currentDog;
     private readonly Dictionary<string, GameObject> attached = new();
+    private readonly List<DogAccessoryDefinition> collectedDefinitions = new();
 
     private void Awake()
     {
@@ -32,16 +35,35 @@ public class DogAccessoryManager : MonoBehaviour
 
     private void HandleDogSpawned(GameObject dog)
     {
+        bool dogChanged = currentDog != dog;
         currentDog = dog;
         currentAnchors = dog != null ? dog.GetComponentInChildren<DogAccessoryAnchors>() : null;
 
-        if (currentAnchors == null)
+        if (currentAnchors == null && dog != null)
             Debug.LogWarning("DogAccessoryManager: spawned dog has no DogAccessoryAnchors component.");
+
+        if (!dogChanged)
+            return;
+
+        attached.Clear();
+
+        if (dog != null)
+            RestoreCollectedAccessories();
     }
 
     public bool HasAccessory(string id)
     {
-        return !string.IsNullOrEmpty(id) && attached.ContainsKey(id);
+        if (string.IsNullOrEmpty(id))
+            return false;
+
+        for (int i = 0; i < collectedDefinitions.Count; i++)
+        {
+            DogAccessoryDefinition definition = collectedDefinitions[i];
+            if (definition != null && definition.id == id)
+                return true;
+        }
+
+        return false;
     }
 
     public void AttachAccessory(DogAccessoryDefinition definition)
@@ -52,6 +74,11 @@ public class DogAccessoryManager : MonoBehaviour
             return;
         }
 
+        RegisterCollectedDefinition(definition);
+
+        if (IsAttachedInstanceValid(definition.id))
+            return;
+
         EnsureDogAnchors();
 
         if (currentAnchors == null)
@@ -60,13 +87,45 @@ public class DogAccessoryManager : MonoBehaviour
             return;
         }
 
+        DetachAccessoryInstance(definition.id);
+        SpawnAccessoryInstance(definition);
+    }
+
+    private void RegisterCollectedDefinition(DogAccessoryDefinition definition)
+    {
+        for (int i = 0; i < collectedDefinitions.Count; i++)
+        {
+            DogAccessoryDefinition existing = collectedDefinitions[i];
+            if (existing != null && existing.id == definition.id)
+                return;
+        }
+
+        collectedDefinitions.Add(definition);
+    }
+
+    private void RestoreCollectedAccessories()
+    {
+        for (int i = 0; i < collectedDefinitions.Count; i++)
+        {
+            DogAccessoryDefinition definition = collectedDefinitions[i];
+            if (definition == null || string.IsNullOrEmpty(definition.id))
+                continue;
+
+            if (IsAttachedInstanceValid(definition.id))
+                continue;
+
+            DetachAccessoryInstance(definition.id);
+            SpawnAccessoryInstance(definition);
+        }
+    }
+
+    private void SpawnAccessoryInstance(DogAccessoryDefinition definition)
+    {
         if (definition.accessoryPrefab == null)
         {
             Debug.LogWarning($"DogAccessoryManager: accessory '{definition.id}' has no prefab assigned.");
             return;
         }
-
-        DetachAccessory(definition.id);
 
         Transform anchor = currentAnchors.GetAnchor(definition.slot);
         GameObject instance = Instantiate(definition.accessoryPrefab, anchor);
@@ -79,9 +138,20 @@ public class DogAccessoryManager : MonoBehaviour
         attached[definition.id] = instance;
     }
 
+    private bool IsAttachedInstanceValid(string id)
+    {
+        if (string.IsNullOrEmpty(id) || currentDog == null)
+            return false;
+
+        if (!attached.TryGetValue(id, out GameObject instance) || instance == null)
+            return false;
+
+        return instance.transform.IsChildOf(currentDog.transform);
+    }
+
     private void EnsureDogAnchors()
     {
-        if (currentAnchors != null)
+        if (currentAnchors != null && currentDog != null)
             return;
 
         if (manualAnchors != null)
@@ -94,7 +164,8 @@ public class DogAccessoryManager : MonoBehaviour
         if (dog == null)
             return;
 
-        HandleDogSpawned(dog);
+        if (currentDog != dog)
+            HandleDogSpawned(dog);
 
         if (currentAnchors == null)
         {
@@ -168,6 +239,12 @@ public class DogAccessoryManager : MonoBehaviour
 
     public void DetachAccessory(string id)
     {
+        DetachAccessoryInstance(id);
+        RemoveCollectedDefinition(id);
+    }
+
+    private void DetachAccessoryInstance(string id)
+    {
         if (string.IsNullOrEmpty(id))
             return;
 
@@ -180,6 +257,16 @@ public class DogAccessoryManager : MonoBehaviour
         }
     }
 
+    private void RemoveCollectedDefinition(string id)
+    {
+        for (int i = collectedDefinitions.Count - 1; i >= 0; i--)
+        {
+            DogAccessoryDefinition definition = collectedDefinitions[i];
+            if (definition != null && definition.id == id)
+                collectedDefinitions.RemoveAt(i);
+        }
+    }
+
     public void ClearAll()
     {
         foreach (KeyValuePair<string, GameObject> entry in attached)
@@ -189,6 +276,7 @@ public class DogAccessoryManager : MonoBehaviour
         }
 
         attached.Clear();
+        collectedDefinitions.Clear();
     }
 
     [ContextMenu("Test Attach Configured Accessory")]

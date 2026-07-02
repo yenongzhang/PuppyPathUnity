@@ -16,6 +16,7 @@ public class RewardRevealController : MonoBehaviour
     [SerializeField] private DogAccessoryManager accessoryManager;
     [SerializeField] private DogGuideController dogGuideController;
     [SerializeField] private NavigationHUDController hudController;
+    [SerializeField] private NavigationController navigationController;
     [SerializeField] private string rewardReactionState = "HappyStart";
     [SerializeField] private GameObject fireworkPrefab;
     [SerializeField] private bool alwaysTriggerFireworks = true;
@@ -37,6 +38,9 @@ public class RewardRevealController : MonoBehaviour
 
     private void Awake()
     {
+        if (navigationController == null)
+            navigationController = FindFirstObjectByType<NavigationController>();
+
         ResolveRewardPanelReferences();
 
         if (rewardPanelRoot != null)
@@ -45,12 +49,20 @@ public class RewardRevealController : MonoBehaviour
 
     public void ShowReward(string attractionId)
     {
+        if (!ApplyRewardEffects(attractionId))
+            return;
+
+        ShowRewardPanel(attractionId);
+    }
+
+    public bool ApplyRewardEffects(string attractionId)
+    {
         RewardDefinition definition = FindReward(attractionId);
 
         if (definition == null)
         {
             Debug.LogWarning($"RewardRevealController: no RewardDefinition found for attractionId '{attractionId}'.");
-            return;
+            return false;
         }
 
         if (definition.accessory != null && accessoryManager != null)
@@ -61,6 +73,19 @@ public class RewardRevealController : MonoBehaviour
 
         if (alwaysTriggerFireworks || definition.triggerFireworks)
             PlayRewardFireworks();
+
+        return true;
+    }
+
+    public void ShowRewardPanel(string attractionId)
+    {
+        RewardDefinition definition = FindReward(attractionId);
+
+        if (definition == null)
+        {
+            Debug.LogWarning($"RewardRevealController: no RewardDefinition found for attractionId '{attractionId}'.");
+            return;
+        }
 
         ShowPanel(definition);
     }
@@ -100,6 +125,7 @@ public class RewardRevealController : MonoBehaviour
     private void ShowPanel(RewardDefinition definition)
     {
         ResolveRewardPanelReferences();
+        EnsureRewardIconWiggle();
 
         if (hudController != null)
             hudController.HideNavigationHud();
@@ -150,6 +176,12 @@ public class RewardRevealController : MonoBehaviour
             ? dogGuideController.CurrentDog.transform.position
             : transform.position;
 
+        if (navigationController != null)
+        {
+            navigationController.PlayCelebrationFireworks(spawnPos);
+            return;
+        }
+
         spawnPos += Vector3.up * fireworkHeightOffset;
 
         if (fireworkPrefab != null)
@@ -162,7 +194,10 @@ public class RewardRevealController : MonoBehaviour
     private void ResolveRewardPanelReferences()
     {
         if (rewardPanelRoot != null && titleText != null && bodyText != null && rewardIconImage != null)
+        {
+            EnsureRewardIconWiggle();
             return;
+        }
 
         if (autoFindRewardPanel)
             AutoFindSceneRewardPanel();
@@ -170,10 +205,20 @@ public class RewardRevealController : MonoBehaviour
         if (rewardPanelRoot != null)
         {
             AutoBindRewardPanelChildren();
+            EnsureRewardIconWiggle();
             return;
         }
 
         CreateFallbackRewardPanel();
+    }
+
+    private void EnsureRewardIconWiggle()
+    {
+        if (rewardIconImage == null || rewardIconWiggle != null)
+            return;
+
+        rewardIconWiggle = rewardIconImage.GetComponent<RewardIconWiggle>()
+            ?? rewardIconImage.gameObject.AddComponent<RewardIconWiggle>();
     }
 
     private void AutoFindSceneRewardPanel()

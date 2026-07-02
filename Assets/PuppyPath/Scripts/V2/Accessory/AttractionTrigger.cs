@@ -29,7 +29,13 @@ public class AttractionTrigger : MonoBehaviour
         }
 
         if (spawnedGrabHandler != null && definition != null)
-            spawnedGrabHandler.Configure(definition.attractionId, rewardRevealController, dogGuideController);
+        {
+            spawnedGrabHandler.Configure(
+                definition.attractionId,
+                definition.attractionId,
+                rewardRevealController,
+                dogGuideController);
+        }
     }
 
     private void Update()

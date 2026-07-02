@@ -20,11 +20,12 @@ public class VenueCollectibleSpawner : MonoBehaviour
     [SerializeField] private RewardRevealController rewardRevealController;
     [SerializeField] private DogGuideController dogGuideController;
     [SerializeField] private NavigationHUDController hudController;
+    [SerializeField] private VenueMapUiController mapUiController;
 
     [Header("Rewards")]
     [SerializeField] private List<RewardDefinition> rewards = new List<RewardDefinition>();
     [SerializeField] private List<Placement> explicitPlacements = new List<Placement>();
-    [SerializeField] private bool cycleRewardsAcrossAttractions;
+    [SerializeField] private bool cycleRewardsAcrossAttractions = true;
 
     [Header("Spawn")]
     [SerializeField] private bool rebuildOnStart = true;
@@ -34,17 +35,22 @@ public class VenueCollectibleSpawner : MonoBehaviour
     [SerializeField] private bool makeGeneratedCollidersTriggers = true;
     [SerializeField] private string spawnedNamePrefix = "VenueCollectible_";
 
-    [Header("Test Ball Visual")]
-    [SerializeField] private bool useTestBallVisual = true;
+    [Header("Collectible Visual")]
+    [SerializeField] private GameObject collectibleVisualPrefab;
+    [SerializeField] private float collectibleTargetHeightMeters = 0.4f;
+    [SerializeField] private bool useTestBallVisual;
     [SerializeField] private float testBallDiameter = 0.28f;
     [SerializeField] private Color testBallColor = new Color(1f, 0.64f, 0.12f, 1f);
 
     [Header("Auto Discovery")]
     [SerializeField] private bool enableAutoDiscovery = true;
+    [SerializeField] private bool alwaysShowGiftVisual = true;
     [SerializeField] private float discoveryDistance = 1.0f;
+    [SerializeField] private bool useFlatDiscoveryDistance = true;
     [SerializeField] private float dogStopDistance = 0.18f;
     [SerializeField] private float hudMessageSeconds = 3.0f;
-    [SerializeField] private string dogTreasureArrivalState = "HappyStart";
+    [SerializeField] private float maxDogWalkSeconds = 10.0f;
+    [SerializeField] private string dogTreasureArrivalState = "";
 
     private readonly List<SpawnedCollectible> spawnedCollectibles = new List<SpawnedCollectible>();
 
@@ -60,8 +66,17 @@ public class VenueCollectibleSpawner : MonoBehaviour
 
     private void Start()
     {
+        if (mapUiController == null)
+            mapUiController = FindFirstObjectByType<VenueMapUiController>();
+
         if (rebuildOnStart)
-            RebuildCollectibles();
+            StartCoroutine(RebuildWhenVenueReady());
+    }
+
+    private IEnumerator RebuildWhenVenueReady()
+    {
+        yield return null;
+        RebuildCollectibles();
     }
 
     private void Update()
@@ -74,8 +89,14 @@ public class VenueCollectibleSpawner : MonoBehaviour
             if (spawned == null || spawned.item == null || spawned.attraction == null || spawned.spawnPoint == null)
                 continue;
 
-            float distance = Vector3.Distance(userReference.position, spawned.spawnPoint.position);
-            spawned.item.SetVisibility(ComputeAlpha(spawned.attraction, distance));
+            float distance = useFlatDiscoveryDistance
+                ? GetFlatDistance(userReference.position, spawned.spawnPoint.position)
+                : Vector3.Distance(userReference.position, spawned.spawnPoint.position);
+
+            if (alwaysShowGiftVisual)
+                spawned.item.SetVisibility(1f);
+            else
+                spawned.item.SetVisibility(ComputeAlpha(spawned.attraction, distance));
 
             if (enableAutoDiscovery &&
                 !spawned.discoveryStarted &&
@@ -83,10 +104,48 @@ public class VenueCollectibleSpawner : MonoBehaviour
                 !spawned.grabHandler.IsCollected &&
                 distance <= discoveryDistance)
             {
-                spawned.discoveryStarted = true;
-                StartCoroutine(DiscoverCollectibleRoutine(spawned));
+                TryStartDiscovery(spawned);
             }
         }
+    }
+
+    public bool TryStartDiscoveryForAttraction(string venueAttractionId)
+    {
+        if (string.IsNullOrWhiteSpace(venueAttractionId))
+            return false;
+
+        foreach (SpawnedCollectible spawned in spawnedCollectibles)
+        {
+            if (spawned == null || spawned.attraction == null || spawned.grabHandler == null)
+                continue;
+
+            if (spawned.discoveryStarted || spawned.grabHandler.IsCollected)
+                continue;
+
+            if (!string.Equals(spawned.attraction.id, venueAttractionId, StringComparison.Ordinal))
+                continue;
+
+            TryStartDiscovery(spawned);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void TryStartDiscovery(SpawnedCollectible spawned)
+    {
+        if (spawned == null || spawned.discoveryStarted || spawned.grabHandler == null || spawned.grabHandler.IsCollected)
+            return;
+
+        spawned.discoveryStarted = true;
+        BeginTreasureRevealSequence();
+        StartCoroutine(DiscoverCollectibleRoutine(spawned));
+    }
+
+    private void BeginTreasureRevealSequence()
+    {
+        if (hudController != null)
+            hudController.BeginTreasureRevealSequence();
     }
 
     [ContextMenu("Rebuild Venue Collectibles")]
@@ -98,31 +157,72 @@ public class VenueCollectibleSpawner : MonoBehaviour
             return;
 
         Transform parent = GetCollectibleParent();
-
-        if (explicitPlacements != null && explicitPlacements.Count > 0)
-        {
-            foreach (Placement placement in explicitPlacements)
-                SpawnExplicitPlacement(placement, parent);
-
-            return;
-        }
-
-        if (rewards == null || rewards.Count == 0)
-            return;
-
+        Dictionary<string, RewardDefinition> explicitByVenue = BuildExplicitPlacementLookup();
         int rewardIndex = 0;
+        int spawnedCount = 0;
+
         foreach (AttractionDefinition attraction in mapDefinition.attractions)
         {
             if (attraction == null || string.IsNullOrWhiteSpace(attraction.id))
                 continue;
 
-            if (!cycleRewardsAcrossAttractions && rewardIndex >= rewards.Count)
-                break;
+            if (!HasCollectibleSpawnPoint(attraction))
+                continue;
 
-            RewardDefinition reward = rewards[rewardIndex % rewards.Count];
+            if (CollectibleGrabHandler.IsVenueAttractionCollected(attraction.id))
+                continue;
+
+            RewardDefinition reward = ResolveRewardForAttraction(attraction.id, explicitByVenue, ref rewardIndex);
+            if (reward == null)
+                continue;
+
             SpawnCollectible(attraction, reward, parent);
-            rewardIndex++;
+            spawnedCount++;
         }
+
+        Debug.Log($"VenueCollectibleSpawner: spawned {spawnedCount} gift collectibles.");
+    }
+
+    private static bool HasCollectibleSpawnPoint(AttractionDefinition attraction)
+    {
+        return attraction != null && attraction.collectibleSpawnPixel.sqrMagnitude > 0.0001f;
+    }
+
+    private Dictionary<string, RewardDefinition> BuildExplicitPlacementLookup()
+    {
+        Dictionary<string, RewardDefinition> lookup = new Dictionary<string, RewardDefinition>();
+
+        if (explicitPlacements == null)
+            return lookup;
+
+        foreach (Placement placement in explicitPlacements)
+        {
+            if (placement == null || placement.reward == null || string.IsNullOrWhiteSpace(placement.venueAttractionId))
+                continue;
+
+            lookup[placement.venueAttractionId] = placement.reward;
+        }
+
+        return lookup;
+    }
+
+    private RewardDefinition ResolveRewardForAttraction(
+        string venueAttractionId,
+        Dictionary<string, RewardDefinition> explicitByVenue,
+        ref int rewardIndex)
+    {
+        if (explicitByVenue.TryGetValue(venueAttractionId, out RewardDefinition explicitReward))
+            return explicitReward;
+
+        if (rewards == null || rewards.Count == 0)
+            return null;
+
+        if (!cycleRewardsAcrossAttractions && rewardIndex >= rewards.Count)
+            return null;
+
+        RewardDefinition reward = rewards[rewardIndex % rewards.Count];
+        rewardIndex++;
+        return reward;
     }
 
     [ContextMenu("Clear Venue Collectibles")]
@@ -154,6 +254,9 @@ public class VenueCollectibleSpawner : MonoBehaviour
         if (placement == null || placement.reward == null || string.IsNullOrWhiteSpace(placement.venueAttractionId))
             return;
 
+        if (CollectibleGrabHandler.IsVenueAttractionCollected(placement.venueAttractionId))
+            return;
+
         AttractionDefinition attraction = mapDefinition.FindAttraction(placement.venueAttractionId);
         SpawnCollectible(attraction, placement.reward, parent);
     }
@@ -178,7 +281,12 @@ public class VenueCollectibleSpawner : MonoBehaviour
         ConfigureColliders(root);
         FloatingCollectibleItem floatingItem = root.AddComponent<FloatingCollectibleItem>();
         CollectibleGrabHandler grabHandler = root.AddComponent<CollectibleGrabHandler>();
-        grabHandler.Configure(reward.attractionId, rewardRevealController, dogGuideController);
+        grabHandler.Configure(
+            reward.attractionId,
+            attraction.id,
+            rewardRevealController,
+            dogGuideController,
+            mapUiController);
 
         spawnedCollectibles.Add(new SpawnedCollectible
         {
@@ -193,7 +301,11 @@ public class VenueCollectibleSpawner : MonoBehaviour
     private IEnumerator DiscoverCollectibleRoutine(SpawnedCollectible spawned)
     {
         if (spawned == null || spawned.spawnPoint == null || spawned.grabHandler == null)
+        {
+            if (hudController != null)
+                hudController.EndTreasureRevealSequence();
             yield break;
+        }
 
         string placeName = spawned.attraction != null && !string.IsNullOrWhiteSpace(spawned.attraction.displayName)
             ? spawned.attraction.displayName
@@ -202,34 +314,62 @@ public class VenueCollectibleSpawner : MonoBehaviour
         if (hudController != null)
             hudController.ShowTreasureFoundMessage(placeName);
 
-        float elapsed = 0f;
-        Coroutine dogWalkRoutine = null;
+        bool dogWalkFinished = dogGuideController == null || dogGuideController.CurrentDog == null;
+        if (!dogWalkFinished)
+            StartCoroutine(RunDogWalkThenFlag(spawned.spawnPoint.position, () => dogWalkFinished = true));
 
-        if (dogGuideController != null && dogGuideController.CurrentDog != null)
-            dogWalkRoutine = StartCoroutine(dogGuideController.WalkToInteractionTarget(spawned.spawnPoint.position, dogStopDistance, dogTreasureArrivalState));
-
-        while (elapsed < hudMessageSeconds)
+        float dogWalkElapsed = 0f;
+        while (!dogWalkFinished && dogWalkElapsed < maxDogWalkSeconds)
         {
-            elapsed += Time.deltaTime;
+            dogWalkElapsed += Time.deltaTime;
             yield return null;
         }
 
-        if (dogWalkRoutine != null)
-            yield return dogWalkRoutine;
+        spawned.grabHandler.TryCollectEffectsOnly();
 
-        spawned.grabHandler.TryCollectAutomatically();
+        float hudElapsed = 0f;
+        while (hudElapsed < hudMessageSeconds)
+        {
+            hudElapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (rewardRevealController != null && !string.IsNullOrEmpty(spawned.grabHandler.AttractionId))
+            rewardRevealController.ShowRewardPanel(spawned.grabHandler.AttractionId);
 
         if (dogGuideController != null)
             dogGuideController.SetInteractionHold(false);
     }
 
+    private IEnumerator RunDogWalkThenFlag(Vector3 targetPosition, System.Action onFinished)
+    {
+        string arrivalState = string.IsNullOrWhiteSpace(dogTreasureArrivalState) ? null : dogTreasureArrivalState;
+        yield return dogGuideController.WalkToInteractionTarget(
+            targetPosition,
+            dogStopDistance,
+            arrivalState,
+            maxDogWalkSeconds);
+
+        onFinished?.Invoke();
+    }
+
     private GameObject CreateVisual(RewardDefinition reward, Transform parent)
     {
-        GameObject item;
+        if (collectibleVisualPrefab != null)
+        {
+            GameObject item = Instantiate(collectibleVisualPrefab, parent);
+            item.name = "GiftVisual_" + reward.attractionId;
+            item.transform.localPosition = Vector3.zero;
+            item.transform.localRotation = Quaternion.identity;
+            item.transform.localScale = Vector3.one;
+            FitUniformHeight(item, collectibleTargetHeightMeters);
+            item.AddComponent<CollectibleGiftHover>();
+            return item;
+        }
 
         if (useTestBallVisual)
         {
-            item = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject item = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             item.name = "CollectibleBall_" + reward.attractionId;
             item.transform.SetParent(parent, false);
             item.transform.localScale = Vector3.one * testBallDiameter;
@@ -240,12 +380,36 @@ public class VenueCollectibleSpawner : MonoBehaviour
         if (reward.accessory == null || reward.accessory.accessoryPrefab == null)
             return null;
 
-        item = Instantiate(reward.accessory.accessoryPrefab, parent);
-        item.name = "ItemVisual_" + reward.attractionId;
-        item.transform.localPosition = Vector3.zero;
-        item.transform.localRotation = Quaternion.identity;
-        item.transform.localScale = spawnedLocalScale;
-        return item;
+        GameObject accessoryItem = Instantiate(reward.accessory.accessoryPrefab, parent);
+        accessoryItem.name = "ItemVisual_" + reward.attractionId;
+        accessoryItem.transform.localPosition = Vector3.zero;
+        accessoryItem.transform.localRotation = Quaternion.identity;
+        accessoryItem.transform.localScale = spawnedLocalScale;
+        FitUniformHeight(accessoryItem, collectibleTargetHeightMeters);
+        return accessoryItem;
+    }
+
+    private static void FitUniformHeight(GameObject visualRoot, float targetHeightMeters)
+    {
+        if (visualRoot == null || targetHeightMeters <= 0f)
+            return;
+
+        visualRoot.transform.localScale = Vector3.one;
+
+        Renderer[] renderers = visualRoot.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length == 0)
+            return;
+
+        Bounds bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+            bounds.Encapsulate(renderers[i].bounds);
+
+        float height = bounds.size.y;
+        if (height <= 0.0001f)
+            return;
+
+        float scaleFactor = targetHeightMeters / height;
+        visualRoot.transform.localScale = Vector3.one * scaleFactor;
     }
 
     private void ApplyTestBallMaterial(GameObject item)
@@ -336,6 +500,13 @@ public class VenueCollectibleSpawner : MonoBehaviour
     private Vector3 VenueLocalToWorld(Vector3 venueLocalPosition)
     {
         return venueContentRoot != null ? venueContentRoot.TransformPoint(venueLocalPosition) : venueLocalPosition;
+    }
+
+    private static float GetFlatDistance(Vector3 a, Vector3 b)
+    {
+        a.y = 0f;
+        b.y = 0f;
+        return Vector3.Distance(a, b);
     }
 
     private static void DestroySpawned(GameObject spawned)

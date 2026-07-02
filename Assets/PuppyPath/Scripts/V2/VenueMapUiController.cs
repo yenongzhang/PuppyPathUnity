@@ -99,6 +99,7 @@ public class VenueMapUiController : MonoBehaviour
         PrepareMapImageForMarkerRaycasts();
         RebuildRoadLines();
         RebuildMarkers();
+        ApplySessionCollectedMarkers();
         UpdateStatusText();
     }
 
@@ -273,6 +274,39 @@ public class VenueMapUiController : MonoBehaviour
 
         ClearSelectedRoute();
         UpdateSelectedMarkerVisuals();
+    }
+
+    public void MarkAttractionCollected(string attractionId)
+    {
+        if (string.IsNullOrWhiteSpace(attractionId))
+            return;
+
+        visitedAttractionIds.Add(attractionId);
+
+        for (int i = 0; i < markerEntries.Count; i++)
+        {
+            MarkerEntry entry = markerEntries[i];
+            if (entry == null || entry.marker == null || entry.attraction == null)
+                continue;
+
+            if (entry.attraction.id != attractionId)
+                continue;
+
+            entry.marker.gameObject.SetActive(false);
+            break;
+        }
+
+        if (selectedAttractionId == attractionId)
+            selectedAttractionId = null;
+
+        ClearSelectedRoute();
+        UpdateSelectedMarkerVisuals();
+    }
+
+    public void ApplySessionCollectedMarkers()
+    {
+        foreach (string attractionId in CollectibleGrabHandler.GetCollectedVenueAttractionIds())
+            MarkAttractionCollected(attractionId);
     }
 
     private void ApplyMapTexture()

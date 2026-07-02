@@ -486,7 +486,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &148753168
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1589,6 +1589,7 @@ MonoBehaviour:
   accessoryManager: {fileID: 592989963}
   dogGuideController: {fileID: 867437600}
   hudController: {fileID: 867437599}
+  navigationController: {fileID: 0}
   rewardReactionState: HappyStart
   fireworkPrefab: {fileID: 3219399190893028965, guid: 9dafff078a2556b4b9a19251ea2ca5d9, type: 3}
   alwaysTriggerFireworks: 1
@@ -1623,6 +1624,7 @@ MonoBehaviour:
   rewardRevealController: {fileID: 592989964}
   dogGuideController: {fileID: 867437600}
   hudController: {fileID: 867437599}
+  mapUiController: {fileID: 0}
   rewards:
   - {fileID: 11400000, guid: 69906b8c5dbd571489e2ce00dfda4b28, type: 2}
   - {fileID: 11400000, guid: 5a8e8b3c58db2ef4f84cf3a6c59c26f0, type: 2}
@@ -1634,20 +1636,25 @@ MonoBehaviour:
     reward: {fileID: 11400000, guid: 5a8e8b3c58db2ef4f84cf3a6c59c26f0, type: 2}
   - venueAttractionId: origin_test_3
     reward: {fileID: 11400000, guid: 3c80af9cc2ba77a4db6ae25f6368ff30, type: 2}
-  cycleRewardsAcrossAttractions: 0
+  cycleRewardsAcrossAttractions: 1
   rebuildOnStart: 1
   heightOffset: 0.45
   spawnedLocalScale: {x: 1, y: 1, z: 1}
   addColliderIfMissing: 1
   makeGeneratedCollidersTriggers: 1
   spawnedNamePrefix: VenueCollectible_
-  useTestBallVisual: 1
+  collectibleVisualPrefab: {fileID: 919132149155446097, guid: 2e92d03322fc1fe4bb69b1f693e97013, type: 3}
+  collectibleTargetHeightMeters: 0.4
+  useTestBallVisual: 0
   testBallDiameter: 0.28
   testBallColor: {r: 1, g: 0.64, b: 0.12, a: 1}
   enableAutoDiscovery: 1
+  alwaysShowGiftVisual: 1
   discoveryDistance: 1
+  useFlatDiscoveryDistance: 1
   dogStopDistance: 0.18
   hudMessageSeconds: 3
+  maxDogWalkSeconds: 10
   dogTreasureArrivalState: HappyStart
 --- !u!114 &592989966
 MonoBehaviour:
@@ -2540,6 +2547,7 @@ MonoBehaviour:
   runtimeController: {fileID: 867437601}
   venueNavigationRuntime: {fileID: 1048274709}
   venueMapUiController: {fileID: 1048274708}
+  venueCollectibleSpawner: {fileID: 0}
   hudController: {fileID: 867437599}
   selectionUI: {fileID: 847605898}
   introPhase1: {fileID: 1600044598}
@@ -2741,6 +2749,8 @@ MonoBehaviour:
   animationCrossFadeTime: 0.18
   shortTransitionDuration: 0.45
   longTransitionDuration: 0.75
+  minLocomotionAnimationSpeed: 0.6
+  maxLocomotionAnimationSpeed: 1.5
   turnInPlaceAngleThreshold: 35
   turnFrontDuration: 0.55
   minAnimationHoldTime: 0.28
@@ -2749,6 +2759,8 @@ MonoBehaviour:
   nearTargetStandDelay: 0.25
   eyesMaterialKeyword: eyes
   mouthMaterialKeyword: mouth
+  expressionChangeCooldown: 1.5
+  expressionFadeDuration: 0.18
   expressionGroups:
   - state: 0
     eyes:
@@ -3813,17 +3825,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 993776563}
-  m_LocalRotation: {x: -0, y: -0, z: -0.08008227, w: 0.99678826}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 305739844}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -9.187}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -236, y: -220.75}
-  m_SizeDelta: {x: 381.4, y: 541.5}
+  m_AnchoredPosition: {x: -236, y: -207.7}
+  m_SizeDelta: {x: 381.4, y: 364.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &993776565
 MonoBehaviour:
@@ -3838,7 +3850,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.4392157}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3876,6 +3888,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2362827819776422971, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2362827819776422971, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
@@ -3888,16 +3904,24 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1824646805}
     - target: {fileID: 4037211034007917017, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
+      propertyPath: lineWidth
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 4037211034007917017, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: routeColor.b
-      value: 0.28930807
+      value: 0.42767292
       objectReference: {fileID: 0}
     - target: {fileID: 4037211034007917017, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: routeColor.g
-      value: 0.22107501
+      value: 0.42767292
       objectReference: {fileID: 0}
     - target: {fileID: 4037211034007917017, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: routeColor.r
-      value: 0.2580346
+      value: 0.42767292
+      objectReference: {fileID: 0}
+    - target: {fileID: 4037211034007917017, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
+      propertyPath: lineHeightOffset
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 4037211034007917017, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: walkableGridVisualizer
@@ -3932,12 +3956,28 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4358636183642586197, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
+      propertyPath: m_Parameters.colorGradient.ctime0
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4358636183642586197, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4358636183642586197, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4358636183642586197, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4358636183642586197, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
-      value: 0.07
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 4358636183642586197, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[1].value
-      value: 0.07
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 5152902620694554116, guid: b4d88ad9e86ea844a8c3dfa7db1b2980, type: 3}
       propertyPath: xrCamera
@@ -6343,7 +6383,7 @@ RectTransform:
   m_GameObject: {fileID: 1562129483}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.7}
-  m_LocalScale: {x: 0.0008, y: 0.0008, z: 0.0008}
+  m_LocalScale: {x: 0.0009, y: 0.0009, z: 0.0009}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 715063620}
@@ -7717,7 +7757,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: You got a free Soda!
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eea2d60bcce40414eaf80f63bda452c9, type: 2}
   m_sharedMaterial: {fileID: 2841289091148971490, guid: eea2d60bcce40414eaf80f63bda452c9, type: 2}
@@ -7744,8 +7784,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 40
-  m_fontSizeBase: 40
+  m_fontSize: 38
+  m_fontSizeBase: 38
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

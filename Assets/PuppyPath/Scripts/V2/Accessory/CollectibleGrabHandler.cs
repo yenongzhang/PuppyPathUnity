@@ -13,13 +13,29 @@ public class CollectibleGrabHandler : MonoBehaviour
     [SerializeField] private FloatingCollectibleItem floatingItem;
     [SerializeField] private float collectDistance = 0.6f;
 
-    private static readonly HashSet<string> collectedThisSession = new();
+    private static readonly HashSet<string> collectedRewardIdsThisSession = new();
+    private static readonly HashSet<string> collectedVenueAttractionIdsThisSession = new();
 
-    private string attractionId;
+    private string rewardAttractionId;
+    private string venueAttractionId;
     private RewardRevealController rewardRevealController;
     private DogGuideController dogGuideController;
+    private VenueMapUiController mapUiController;
     private bool collected;
+
     public bool IsCollected => collected;
+    public string AttractionId => rewardAttractionId;
+    public string VenueAttractionId => venueAttractionId;
+
+    public static bool IsVenueAttractionCollected(string venueId)
+    {
+        return !string.IsNullOrEmpty(venueId) && collectedVenueAttractionIdsThisSession.Contains(venueId);
+    }
+
+    public static IReadOnlyCollection<string> GetCollectedVenueAttractionIds()
+    {
+        return collectedVenueAttractionIdsThisSession;
+    }
 
     private void Awake()
     {
@@ -42,13 +58,22 @@ public class CollectibleGrabHandler : MonoBehaviour
             grabbable.WhenPointerEventRaised -= HandlePointerEvent;
     }
 
-    public void Configure(string newAttractionId, RewardRevealController newRewardRevealController, DogGuideController newDogGuideController)
+    public void Configure(
+        string newRewardAttractionId,
+        string newVenueAttractionId,
+        RewardRevealController newRewardRevealController,
+        DogGuideController newDogGuideController,
+        VenueMapUiController newMapUiController = null)
     {
-        attractionId = newAttractionId;
+        rewardAttractionId = newRewardAttractionId;
+        venueAttractionId = newVenueAttractionId;
         rewardRevealController = newRewardRevealController;
         dogGuideController = newDogGuideController;
+        mapUiController = newMapUiController;
 
-        if (!string.IsNullOrEmpty(attractionId) && collectedThisSession.Contains(attractionId) && floatingItem != null)
+        if (!string.IsNullOrEmpty(venueAttractionId) &&
+            collectedVenueAttractionIdsThisSession.Contains(venueAttractionId) &&
+            floatingItem != null)
         {
             collected = true;
             floatingItem.SetCollected(true);
@@ -68,7 +93,7 @@ public class CollectibleGrabHandler : MonoBehaviour
 
     public bool TryCollectAt(Vector3 releasePosition)
     {
-        if (collected || string.IsNullOrEmpty(attractionId))
+        if (collected || string.IsNullOrEmpty(rewardAttractionId))
             return false;
 
         GameObject dog = dogGuideController != null ? dogGuideController.CurrentDog : null;
@@ -81,31 +106,47 @@ public class CollectibleGrabHandler : MonoBehaviour
         if (distance > collectDistance)
             return false;
 
-        collected = true;
-        collectedThisSession.Add(attractionId);
-
-        if (floatingItem != null)
-            floatingItem.SetCollected(true);
+        if (!TryCollectEffectsOnly())
+            return false;
 
         if (rewardRevealController != null)
-            rewardRevealController.ShowReward(attractionId);
+            rewardRevealController.ShowRewardPanel(rewardAttractionId);
 
         return true;
     }
 
     public bool TryCollectAutomatically()
     {
-        if (collected || string.IsNullOrEmpty(attractionId))
+        if (!TryCollectEffectsOnly())
+            return false;
+
+        if (rewardRevealController != null)
+            rewardRevealController.ShowRewardPanel(rewardAttractionId);
+
+        return true;
+    }
+
+    public bool TryCollectEffectsOnly()
+    {
+        if (collected || string.IsNullOrEmpty(rewardAttractionId))
             return false;
 
         collected = true;
-        collectedThisSession.Add(attractionId);
+
+        if (!string.IsNullOrEmpty(rewardAttractionId))
+            collectedRewardIdsThisSession.Add(rewardAttractionId);
+
+        if (!string.IsNullOrEmpty(venueAttractionId))
+            collectedVenueAttractionIdsThisSession.Add(venueAttractionId);
 
         if (floatingItem != null)
             floatingItem.SetCollected(true);
 
+        if (mapUiController != null && !string.IsNullOrEmpty(venueAttractionId))
+            mapUiController.MarkAttractionCollected(venueAttractionId);
+
         if (rewardRevealController != null)
-            rewardRevealController.ShowReward(attractionId);
+            return rewardRevealController.ApplyRewardEffects(rewardAttractionId);
 
         return true;
     }

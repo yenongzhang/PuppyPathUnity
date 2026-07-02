@@ -9,6 +9,7 @@ public class NavigationController : MonoBehaviour
     [SerializeField] private NavigationRuntimeController runtimeController;
     [SerializeField] private VenueNavigationRuntime venueNavigationRuntime;
     [SerializeField] private VenueMapUiController venueMapUiController;
+    [SerializeField] private VenueCollectibleSpawner venueCollectibleSpawner;
     [SerializeField] private NavigationHUDController hudController;
     [SerializeField] private PuppyPathSelectionUI selectionUI;
 
@@ -58,6 +59,9 @@ public class NavigationController : MonoBehaviour
 
         if (venueMapUiController == null)
             venueMapUiController = FindFirstObjectByType<VenueMapUiController>();
+
+        if (venueCollectibleSpawner == null)
+            venueCollectibleSpawner = FindFirstObjectByType<VenueCollectibleSpawner>();
 
         ResetToIntro();
     }
@@ -271,13 +275,19 @@ public class NavigationController : MonoBehaviour
         hasCompletedNavigation = true;
 
         if (debugFireworks)
-            Debug.Log("NavigationController: CompleteNavigation() called. Playing destination fireworks.");
+            Debug.Log("NavigationController: CompleteNavigation() called.");
 
         HideDestinationBeacon();
-        PlayDestinationFireworks();
 
-        if (venueMapUiController != null)
-            venueMapUiController.MarkAttractionVisited(pendingPathId);
+        string arrivedAttractionId = pendingPathId;
+        bool treasureDiscoveryStarted = venueCollectibleSpawner != null
+            && venueCollectibleSpawner.TryStartDiscoveryForAttraction(arrivedAttractionId);
+
+        if (!treasureDiscoveryStarted)
+            PlayDestinationFireworks();
+
+        if (!treasureDiscoveryStarted && venueMapUiController != null)
+            venueMapUiController.MarkAttractionVisited(arrivedAttractionId);
 
         isInNavigationMode = false;
 
@@ -395,7 +405,7 @@ public class NavigationController : MonoBehaviour
         if (venueNavigationRuntime != null)
             venueNavigationRuntime.StartFreeRoamGuiding();
 
-        if (hudController != null)
+        if (hudController != null && !hudController.IsTreasureRevealSequenceActive)
             hudController.EnterFreeRoamMode();
     }
 
@@ -460,6 +470,16 @@ public class NavigationController : MonoBehaviour
 
     private void PlayDestinationFireworks()
     {
+        PlayCelebrationFireworksAtBase(GetFireworkBasePosition());
+    }
+
+    public void PlayCelebrationFireworks(Vector3 worldPosition)
+    {
+        PlayCelebrationFireworksAtBase(worldPosition + Vector3.up * fireworkHeightOffset);
+    }
+
+    private void PlayCelebrationFireworksAtBase(Vector3 basePosition)
+    {
         if (fireworkPrefabs == null || fireworkPrefabs.Count == 0)
         {
             Debug.LogWarning("NavigationController: no firework prefabs assigned.");
@@ -468,8 +488,6 @@ public class NavigationController : MonoBehaviour
 
         if (fireworkRoutine != null)
             StopCoroutine(fireworkRoutine);
-
-        Vector3 basePosition = GetFireworkBasePosition();
 
         if (fireworkSound != null)
             AudioSource.PlayClipAtPoint(fireworkSound, basePosition, fireworkSoundVolume);

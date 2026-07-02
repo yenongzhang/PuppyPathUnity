@@ -126,8 +126,8 @@ MonoBehaviour:
     sourceMapLabel: Origin Test 1
     displayName: Biscuit Bounce Booth
     chineseDisplayName: "\u997C\u5E72\u8E66\u8E66\u7AD9"
-    collectibleSpawnPixel: {x: 986.6429, y: 746.1345}
-    arrivalPixel: {x: 986.6429, y: 746.1345}
+    collectibleSpawnPixel: {x: 895.6513, y: 706.0702}
+    arrivalPixel: {x: 895.6513, y: 706.0702}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -465,6 +465,7 @@ MonoBehaviour:
       - top_02b
       - photo_wall_lane
       - top_01
+      - origin_test_1_arrival
     - id: top_02
       mapPixel: {x: 957.01355, y: 656.22943}
       neighborNodeIds:
@@ -502,10 +503,12 @@ MonoBehaviour:
       - top_03b
       - right_upper
     - id: origin_test_1_arrival
-      mapPixel: {x: 980.9792, y: 740.4822}
+      mapPixel: {x: 894.73926, y: 705.17175}
       neighborNodeIds:
       - top_02
       - origin_test_2_arrival
+      - origin_test_3_arrival
+      - top_01b
     - id: origin_test_2_arrival
       mapPixel: {x: 942.5056, y: 793.07245}
       neighborNodeIds:
@@ -516,3 +519,4 @@ MonoBehaviour:
       neighborNodeIds:
       - top_02
       - top_02b
+      - origin_test_1_arrival

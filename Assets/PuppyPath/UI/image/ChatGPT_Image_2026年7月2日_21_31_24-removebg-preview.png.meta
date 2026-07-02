@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c856b66d9ab53ca4bb574fd61f747b6f
+guid: 53c9cf3170071ca4081b957f05b3bc89
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "ChatGPT Image 2026\u5E747\u67082\u65E5 19_14_26_0"
+      name: "ChatGPT_Image_2026\u5E747\u67082\u65E5_21_31_24-removebg-preview_0"
       rect:
         serializedVersion: 2
         x: 0
-        y: 339
-        width: 1024
-        height: 944
+        y: 0
+        width: 500
+        height: 500
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -125,8 +125,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4a669243a8e43194e93671f204a176e5
-      internalID: 1200837048
+      spriteID: b6da8511633ab14479ae2ffa8dc1c485
+      internalID: -789983694
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: c1f246965f6941944a204e3a72b717d5
+    spriteID: 22254168166eb824fa3b8148dbf6906e
     internalID: 0
     vertices: []
     indices: 
@@ -145,9 +145,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":1024.0,"y":1536.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":500.0,"y":500.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      "ChatGPT Image 2026\u5E747\u67082\u65E5 19_14_26_0": 1200837048
+      "ChatGPT_Image_2026\u5E747\u67082\u65E5_21_31_24-removebg-preview_0": -789983694
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
