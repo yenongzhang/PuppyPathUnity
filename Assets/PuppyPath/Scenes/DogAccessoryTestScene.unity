@@ -676,6 +676,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1529297709770020855, guid: 2430f7f3aaffc2e4d90bc56c8235966e, type: 3}
+      propertyPath: dogPrefab
+      value: 
+      objectReference: {fileID: 5764794651156842405, guid: f9207f25ccd1c2a4f8f4a3879c9d8061, type: 3}
     - target: {fileID: 3256174559081559043, guid: 2430f7f3aaffc2e4d90bc56c8235966e, type: 3}
       propertyPath: userReference
       value: 
