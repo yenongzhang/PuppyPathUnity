@@ -32,6 +32,16 @@ public class VenueMapUiController : MonoBehaviour
     [SerializeField] private bool forceOverlayParentsUnderMapImage = true;
     [SerializeField] private bool closeLargeMapAfterSelection = true;
 
+    [Header("Displayed Map Content Bounds")]
+    [Tooltip("Normalized left edge of the real map inside the commercial image. 0 = image left edge.")]
+    [SerializeField, Range(0f, 1f)] private float mapContentLeft = 0f;
+    [Tooltip("Normalized right edge of the real map inside the commercial image. 1 = image right edge.")]
+    [SerializeField, Range(0f, 1f)] private float mapContentRight = 1f;
+    [Tooltip("Normalized bottom edge of the real map inside the commercial image. 0 = image bottom edge.")]
+    [SerializeField, Range(0f, 1f)] private float mapContentBottom = 0f;
+    [Tooltip("Normalized top edge of the real map inside the commercial image. 1 = image top edge.")]
+    [SerializeField, Range(0f, 1f)] private float mapContentTop = 1f;
+
     [Header("Marker Prefabs")]
     [SerializeField] private RectTransform attractionMarkerPrefab;
 
@@ -68,6 +78,11 @@ public class VenueMapUiController : MonoBehaviour
     private string selectedAttractionId;
     private Sprite runtimeMapSprite;
 
+    private void OnValidate()
+    {
+        ClampMapContentBounds();
+    }
+
     private void Awake()
     {
         ResolveMapImageReferences();
@@ -84,6 +99,34 @@ public class VenueMapUiController : MonoBehaviour
         RebuildRoadLines();
         RebuildMarkers();
         UpdateStatusText();
+    }
+
+    [ContextMenu("Rebuild Map Visuals")]
+    public void RebuildMapVisuals()
+    {
+        ClampMapContentBounds();
+        RebuildRoadLines();
+        RebuildMarkers();
+
+        if (!string.IsNullOrEmpty(selectedAttractionId) && drawSelectedRouteOnMap)
+        {
+            AttractionDefinition attraction = mapDefinition != null
+                ? mapDefinition.FindAttraction(selectedAttractionId)
+                : null;
+
+            if (attraction != null)
+                ShowSelectedRouteToMapPixel(attraction.GetArrivalPixel());
+        }
+    }
+
+    [ContextMenu("Reset Map Content Bounds")]
+    private void ResetMapContentBounds()
+    {
+        mapContentLeft = 0f;
+        mapContentRight = 1f;
+        mapContentBottom = 0f;
+        mapContentTop = 1f;
+        RebuildMapVisuals();
     }
 
     [ContextMenu("Rebuild Map Markers")]
@@ -472,10 +515,38 @@ public class VenueMapUiController : MonoBehaviour
         float normalizedX = Mathf.Clamp01(mapPixel.x / size.x);
         float normalizedY = Mathf.Clamp01(1f - mapPixel.y / size.y);
 
-        Rect rect = mapRect.rect;
+        Rect contentRect = GetMapContentRect(mapRect.rect);
         return new Vector2(
-            Mathf.Lerp(rect.xMin, rect.xMax, normalizedX),
-            Mathf.Lerp(rect.yMin, rect.yMax, normalizedY));
+            Mathf.Lerp(contentRect.xMin, contentRect.xMax, normalizedX),
+            Mathf.Lerp(contentRect.yMin, contentRect.yMax, normalizedY));
+    }
+
+    private Rect GetMapContentRect(Rect fullRect)
+    {
+        ClampMapContentBounds();
+
+        float xMin = Mathf.Lerp(fullRect.xMin, fullRect.xMax, mapContentLeft);
+        float xMax = Mathf.Lerp(fullRect.xMin, fullRect.xMax, mapContentRight);
+        float yMin = Mathf.Lerp(fullRect.yMin, fullRect.yMax, mapContentBottom);
+        float yMax = Mathf.Lerp(fullRect.yMin, fullRect.yMax, mapContentTop);
+
+        return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
+    }
+
+    private void ClampMapContentBounds()
+    {
+        const float minimumSpan = 0.001f;
+
+        mapContentLeft = Mathf.Clamp01(mapContentLeft);
+        mapContentRight = Mathf.Clamp01(mapContentRight);
+        mapContentBottom = Mathf.Clamp01(mapContentBottom);
+        mapContentTop = Mathf.Clamp01(mapContentTop);
+
+        if (mapContentRight <= mapContentLeft + minimumSpan)
+            mapContentRight = Mathf.Min(1f, mapContentLeft + minimumSpan);
+
+        if (mapContentTop <= mapContentBottom + minimumSpan)
+            mapContentTop = Mathf.Min(1f, mapContentBottom + minimumSpan);
     }
 
     private RectTransform GetMapRect()
