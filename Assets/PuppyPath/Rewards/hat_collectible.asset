@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: deb1fae9b54a8054eb21767dd55d3019, type: 3}
-  m_Name: Collectible_testA
+  m_Name: hat_collectible
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItemDefinition
-  attractionId: test_attraction_a
-  displayName: testA
-  itemPrefab: {fileID: 7952356923486619018, guid: 2589cbf059412e24eb15392cf4bffd38, type: 3}
+  attractionId: hat_attraction
+  displayName: HatCollective
+  itemPrefab: {fileID: 919132149155446097, guid: 02cf1e6e57f4c504895b757698358067, type: 3}
   fullyVisibleDistance: 3
   halfVisibleDistance: 6
   hiddenDistance: 10

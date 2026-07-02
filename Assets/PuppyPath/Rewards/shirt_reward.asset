@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dbc9a092fca42484dac3283e04ca0b30, type: 3}
-  m_Name: Reward_A
+  m_Name: shirt_reward
   m_EditorClassIdentifier: Assembly-CSharp::RewardDefinition
-  attractionId: test_attraction_a
-  displayName: RewardA
-  accessory: {fileID: 11400000, guid: 47c1bc8aaf5c005448c426aa1f5aa36d, type: 2}
-  rewardTitle: Congrats!
-  rewardMessage: You got a free cola!
+  attractionId: shirt_attraction
+  displayName: shirtReward
+  accessory: {fileID: 11400000, guid: f2861f5c79cc0a94da99e64f5b806769, type: 2}
+  rewardTitle: Yeah!
+  rewardMessage: You can eat an icecream :)
   rewardIcon: {fileID: 0}
   triggerFireworks: 0

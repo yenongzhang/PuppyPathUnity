@@ -967,6 +967,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RewardRevealController
   rewards:
   - {fileID: 11400000, guid: 69906b8c5dbd571489e2ce00dfda4b28, type: 2}
+  - {fileID: 11400000, guid: 5a8e8b3c58db2ef4f84cf3a6c59c26f0, type: 2}
   - {fileID: 11400000, guid: 3c80af9cc2ba77a4db6ae25f6368ff30, type: 2}
   accessoryManager: {fileID: 1891824884}
   dogGuideController: {fileID: 1891824880}
@@ -1008,9 +1009,11 @@ MonoBehaviour:
   accessoryBindings: []
   rewardBindings:
   - key: 15
-    attractionId: test_attraction_a
+    attractionId: hat_attraction
   - key: 16
-    attractionId: test_attraction_b
+    attractionId: socks_attraction
+  - key: 17
+    attractionId: shirt_attraction
   clearAllKey: 41
   hideRewardKey: 17
 --- !u!1 &1918962847

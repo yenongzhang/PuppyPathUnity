@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dbc9a092fca42484dac3283e04ca0b30, type: 3}
-  m_Name: Reward_B
+  m_Name: socks_reward
   m_EditorClassIdentifier: Assembly-CSharp::RewardDefinition
-  attractionId: test_attraction_b
-  displayName: RewardB
+  attractionId: socks_attraction
+  displayName: socksReward
   accessory: {fileID: 11400000, guid: 316a49c2125ac0f48bf695d7c07c9f77, type: 2}
-  rewardTitle: Yeah!
-  rewardMessage: You can eat an icecream :)
+  rewardTitle: Yeaaaaah
+  rewardMessage: Good
   rewardIcon: {fileID: 0}
   triggerFireworks: 0
