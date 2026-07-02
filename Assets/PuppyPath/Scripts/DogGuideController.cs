@@ -54,6 +54,8 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private float animationCrossFadeTime = 0.12f;
     [SerializeField] private float shortTransitionDuration = 0.45f;
     [SerializeField] private float longTransitionDuration = 0.75f;
+    [SerializeField] private float minLocomotionAnimationSpeed = 0.6f;
+    [SerializeField] private float maxLocomotionAnimationSpeed = 1.5f;
 
     [Header("Turn Settings")]
     [SerializeField] private float turnInPlaceAngleThreshold = 35f;
@@ -69,12 +71,21 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private string eyesMaterialKeyword = "eyes";
     [SerializeField] private string mouthMaterialKeyword = "mouth";
 
+    [Header("Expression Switching")]
+    [SerializeField] private float expressionChangeCooldown = 1.5f;
+    [SerializeField] private float expressionFadeDuration = 0.18f;
+
     [System.Serializable]
     private class DogStateExpressionGroup
     {
         public NavigationRuntimeController.NavState state;
+
+        // eyes[i] 和 mouths[i] 是设计好的一套表情组合，必须成对切换，
+        // 不能各自独立随机挑选，否则会拼出"生气眼+开心嘴"这类不协调组合。
         public Texture[] eyes;
         public Texture[] mouths;
+
+        [System.NonSerialized] public int lastPickedIndex = -1;
     }
 
     [Header("State Expression Groups")]
@@ -153,6 +164,9 @@ public class DogGuideController : MonoBehaviour
     private Renderer mouthRenderer;
     private Material eyesRuntimeMaterial;
     private Material mouthRuntimeMaterial;
+    private float lastExpressionChangeTime = -999f;
+    private Coroutine eyesFadeRoutine;
+    private Coroutine mouthFadeRoutine;
 
     private string currentAnimationState = "";
     private float lastAnimationChangeTime = -999f;
@@ -161,6 +175,8 @@ public class DogGuideController : MonoBehaviour
 
     private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
     private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int ColorId = Shader.PropertyToID("_Color");
 
     /// <summary>Raised once after a dog instance finishes spawning/setup in BeginGuiding, so V2 systems (accessories, rewards) can hook in without coupling to internal guide state.</summary>
     public event System.Action<GameObject> DogSpawned;
@@ -243,6 +259,7 @@ public class DogGuideController : MonoBehaviour
         nearTargetTimer = 0f;
         lastBarkTime = -999f;
         hasAppliedExpression = false;
+        lastExpressionChangeTime = -999f;
 
         SetRandomExpressionForState(NavigationRuntimeController.NavState.Neutral);
         hasAppliedExpression = true;
@@ -353,7 +370,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 canterState,
-                1.05f,
                 catchUpMoveSpeed,
                 minDistanceForCanterAnimation);
             return;
@@ -364,7 +380,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 trotState,
-                1.0f,
                 trotMoveSpeed,
                 minDistanceForTrotAnimation);
             return;
@@ -375,7 +390,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 walkState,
-                0.95f,
                 walkMoveSpeed,
                 minDistanceForWalkAnimation);
             return;
@@ -505,7 +519,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 leadTargetPos,
                 canterState,
-                1.05f,
                 catchUpMoveSpeed,
                 minDistanceForCanterAnimation
             );
@@ -519,7 +532,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 leadTargetPos,
                 trotState,
-                1.0f,
                 trotMoveSpeed,
                 minDistanceForTrotAnimation
             );
@@ -533,7 +545,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 leadTargetPos,
                 walkState,
-                0.95f,
                 walkMoveSpeed,
                 minDistanceForWalkAnimation
             );
@@ -547,7 +558,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 leadTargetPos,
                 sniffState,
-                1f,
                 sniffMoveSpeed,
                 minDistanceForSniffAnimation
             );
@@ -735,7 +745,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 sniffState,
-                1f,
                 sniffMoveSpeed,
                 minDistanceForSniffAnimation
             );
@@ -760,7 +769,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 canterState,
-                1.1f,
                 canterMoveSpeed,
                 minDistanceForCanterAnimation
             );
@@ -795,7 +803,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 turnLoopState,
-                0.9f,
                 turnMoveSpeed,
                 minDistanceForTurnAnimation
             );
@@ -823,7 +830,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 walkState,
-                0.85f,
                 walkMoveSpeed,
                 minDistanceForWalkAnimation
             );
@@ -849,7 +855,6 @@ public class DogGuideController : MonoBehaviour
             TryPlayLocomotionAndMove(
                 targetPos,
                 walkState,
-                0.8f,
                 walkMoveSpeed,
                 minDistanceForWalkAnimation
             );
@@ -1136,6 +1141,18 @@ public class DogGuideController : MonoBehaviour
         eyesRuntimeMaterial = null;
         mouthRuntimeMaterial = null;
 
+        if (eyesFadeRoutine != null)
+        {
+            StopCoroutine(eyesFadeRoutine);
+            eyesFadeRoutine = null;
+        }
+
+        if (mouthFadeRoutine != null)
+        {
+            StopCoroutine(mouthFadeRoutine);
+            mouthFadeRoutine = null;
+        }
+
         if (currentDog == null)
             return;
 
@@ -1189,11 +1206,42 @@ public class DogGuideController : MonoBehaviour
             return;
         }
 
-        Texture eyeTexture = PickRandomTexture(group.eyes);
-        Texture mouthTexture = PickRandomTexture(group.mouths);
+        int optionCount = Mathf.Min(
+            group.eyes != null ? group.eyes.Length : 0,
+            group.mouths != null ? group.mouths.Length : 0);
 
-        SetEyesTexture(eyeTexture);
-        SetMouthTexture(mouthTexture);
+        if (optionCount <= 0)
+        {
+            Debug.LogWarning($"DogGuideController: expression group for state {state} has no matching eyes/mouth pair.");
+            return;
+        }
+
+        // 防抖：状态在短时间内反复横跳时，不要跟着一起闪烁表情。
+        if (Time.time - lastExpressionChangeTime < expressionChangeCooldown)
+            return;
+
+        int index = PickExpressionIndex(group, optionCount);
+
+        group.lastPickedIndex = index;
+        lastExpressionChangeTime = Time.time;
+
+        CrossFadeExpressionTexture(eyesRuntimeMaterial, group.eyes[index], ref eyesFadeRoutine);
+        CrossFadeExpressionTexture(mouthRuntimeMaterial, group.mouths[index], ref mouthFadeRoutine);
+    }
+
+    private int PickExpressionIndex(DogStateExpressionGroup group, int optionCount)
+    {
+        if (optionCount <= 1)
+            return 0;
+
+        int index;
+
+        do
+        {
+            index = Random.Range(0, optionCount);
+        } while (index == group.lastPickedIndex);
+
+        return index;
     }
 
     private DogStateExpressionGroup FindExpressionGroup(NavigationRuntimeController.NavState state)
@@ -1210,22 +1258,72 @@ public class DogGuideController : MonoBehaviour
         return null;
     }
 
-    private Texture PickRandomTexture(Texture[] textures)
+    private void CrossFadeExpressionTexture(Material material, Texture texture, ref Coroutine routine)
     {
-        if (textures == null || textures.Length == 0)
-            return null;
+        if (material == null || texture == null)
+            return;
 
-        return textures[Random.Range(0, textures.Length)];
+        if (routine != null)
+            StopCoroutine(routine);
+
+        routine = StartCoroutine(FadeSwapExpressionTexture(material, texture));
     }
 
-    private void SetEyesTexture(Texture texture)
+    private IEnumerator FadeSwapExpressionTexture(Material material, Texture texture)
     {
-        SetMaterialBaseMap(eyesRuntimeMaterial, texture);
+        yield return FadeMaterialAlpha(material, 0f);
+        SetMaterialBaseMap(material, texture);
+        yield return FadeMaterialAlpha(material, 1f);
     }
 
-    private void SetMouthTexture(Texture texture)
+    private IEnumerator FadeMaterialAlpha(Material material, float targetAlpha)
     {
-        SetMaterialBaseMap(mouthRuntimeMaterial, texture);
+        float halfDuration = expressionFadeDuration * 0.5f;
+
+        if (halfDuration <= 0f)
+        {
+            SetMaterialAlpha(material, targetAlpha);
+            yield break;
+        }
+
+        float startAlpha = GetMaterialAlpha(material);
+        float elapsed = 0f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            SetMaterialAlpha(material, Mathf.Lerp(startAlpha, targetAlpha, elapsed / halfDuration));
+            yield return null;
+        }
+
+        SetMaterialAlpha(material, targetAlpha);
+    }
+
+    private float GetMaterialAlpha(Material material)
+    {
+        if (material.HasProperty(BaseColorId))
+            return material.GetColor(BaseColorId).a;
+
+        if (material.HasProperty(ColorId))
+            return material.GetColor(ColorId).a;
+
+        return 1f;
+    }
+
+    private void SetMaterialAlpha(Material material, float alpha)
+    {
+        if (material.HasProperty(BaseColorId))
+        {
+            Color color = material.GetColor(BaseColorId);
+            color.a = alpha;
+            material.SetColor(BaseColorId, color);
+        }
+        else if (material.HasProperty(ColorId))
+        {
+            Color color = material.GetColor(ColorId);
+            color.a = alpha;
+            material.SetColor(ColorId, color);
+        }
     }
 
     private void SetMaterialBaseMap(Material material, Texture texture)
@@ -1279,7 +1377,6 @@ public class DogGuideController : MonoBehaviour
     private bool TryPlayLocomotionAndMove(
         Vector3 targetPos,
         string locomotionState,
-        float animationSpeed,
         float moveSpeed,
         float minDistanceForAnimation
     )
@@ -1293,6 +1390,8 @@ public class DogGuideController : MonoBehaviour
             currentDog.transform.position,
             targetPos
         );
+
+        float animationSpeed = GetLocomotionAnimationSpeed(locomotionState, moveSpeed);
 
         bool currentlyUsingThisLocomotion = currentAnimationState == locomotionState;
 
@@ -1337,6 +1436,30 @@ public class DogGuideController : MonoBehaviour
         PlayAnimation(locomotionState, animationSpeed);
         MoveDogTo(targetPos, moveSpeed);
         return true;
+    }
+
+    // 让动画播放节奏跟着实际移动速度按比例变化，避免"移动很快但腿部动画节奏没跟上"造成的打滑感。
+    // referenceSpeed 是该步态在被 moveSpeed 常量本身驱动时(比例=1)所对应的基准移动速度。
+    private float GetLocomotionAnimationSpeed(string locomotionState, float moveSpeed)
+    {
+        float referenceSpeed = walkMoveSpeed;
+
+        if (locomotionState == trotState)
+            referenceSpeed = trotMoveSpeed;
+        else if (locomotionState == canterState)
+            referenceSpeed = canterMoveSpeed;
+        else if (locomotionState == sniffState)
+            referenceSpeed = sniffMoveSpeed;
+        else if (locomotionState == turnLoopState || locomotionState == turnFrontState)
+            referenceSpeed = turnMoveSpeed;
+
+        if (referenceSpeed <= 0f)
+            return 1f;
+
+        return Mathf.Clamp(
+            moveSpeed / referenceSpeed,
+            minLocomotionAnimationSpeed,
+            maxLocomotionAnimationSpeed);
     }
 
     private void MoveDogTo(Vector3 targetPos, float speed)
