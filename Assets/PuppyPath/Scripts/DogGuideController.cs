@@ -397,7 +397,7 @@ public class DogGuideController : MonoBehaviour
             float moveSpeed = distance > 0.75f ? trotMoveSpeed : walkMoveSpeed;
             float animationGate = distance > 0.75f ? minDistanceForTrotAnimation : minDistanceForWalkAnimation;
 
-            TryPlayLocomotionAndMove(targetPosition, moveState, 1f, moveSpeed, animationGate);
+            TryPlayLocomotionAndMove(targetPosition, moveState, moveSpeed, animationGate);
             yield return null;
         }
 
