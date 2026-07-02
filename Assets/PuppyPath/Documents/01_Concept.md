@@ -1,188 +1,174 @@
-# PuppyPath V2 Concept Document
+# PuppyPath V2 概念文档
 
-Last updated: 2026-07-01
+最后更新：2026-06-30
 
-## Deprecated Legacy Features
+## 一句话概念
 
-The friend list and find-a-friend flow from the V1 prototype are deprecated. V2 is map-only: users select attractions from the big map, not friends from a friends list.
+PuppyPath 是一只可爱的混合现实小狗伙伴。它熟悉真实活动场地，会带用户寻找藏在各个景点附近的宝贝；每收集一个宝贝，小狗身上就会多一件可爱的饰品。
 
-## Legacy Prototype UI Copy (location-only)
+## 体验目标
 
-The table below preserves the V1 prototype intro and map instruction strings, with friend-related wording removed. These strings are retained for reference only; V2 uses the copy defined in the sections below.
+用户应该感觉这只小狗真的提前在现场布置了一场寻宝游戏。它不是一个简单的导航箭头，而是一个有性格的角色：它会自我介绍、留在用户视野里、需要时在前面带路、用户抓物品时乖乖等待、发现宝贝后一起庆祝，并且随着用户不断收集饰品变得越来越特别。
 
-| UI Element | Legacy String (location-only) |
-| --- | --- |
-| Intro — phase 1, first text | Hi, I'm PuppyPath :) |
-| Intro — phase 1, second text | I'll have a little beagle take you wherever you want to go. |
-| Intro — phase 1, third text | Please select the location you want to visit on the map. |
-| Map selection — phase 2 default | Do you want to go to the location you marked?<br>Click "Show Path" to preview your path. |
-| Map selection — phase 2 template (`locationPhase2TextTemplate`) | Do you want to go to {0} in Europa-Park?<br>Click "Show Path" to preview your path. |
-| Path preview | Here is the first part of your path.<br><br>Ready to go? |
-| Navigation encouragement | Good job! You're on the right path. |
+## 核心循环
 
-## One-Line Concept
+1. 用户进入程序。
+2. 画面中先显示 `logoCanvas`。
+3. Logo 消失后，小狗出现在地面上。
+4. 小狗头顶出现 UI 对话框，进行自我介绍。
+5. 视界右上方出现地图按钮，不持续显示小地图，避免遮挡主视线。
+6. 默认状态下用户处于自由行走：随便逛逛，自然发现附近景点。
+7. 当用户点击右上方地图按钮并打开大地图后，可以点击狗爪 marker 选择目标景点，此时系统才进入导航模式。
+8. 当用户靠近某个景点时，对应虚拟物品根据距离逐渐显现：越近越清楚，越远越透明。
+9. 用户抓住虚拟物品，并把它拖到小狗身上。
+10. 用户抓取物品时，小狗坐在地上等待。
+11. 物品变成小狗身上的穿戴饰品。
+12. 画面出现 1-2 秒的 shaking / surprise 动画。
+13. 显示该景点对应的惊喜奖励。
+14. 系统回到自由行走，用户可以继续收集更多物品。
 
-PuppyPath is a cute mixed-reality puppy companion. It knows the real event venue and leads users to treasures hidden near each attraction; every treasure collected adds another cute accessory to the puppy.
+## 小狗开场自我介绍文案
 
-## Experience Goals
+建议英文版：
 
-Users should feel like this puppy has set up a treasure hunt at the venue in advance. It is not a simple navigation arrow but a character with personality: it introduces itself, stays in the user's field of view, leads the way when needed, waits patiently while the user grabs items, celebrates discoveries together, and becomes more distinctive as the user collects accessories.
+> Hi, I'm PuppyPath! I know every little corner around here. I hid some of my favorite treasures near my paw prints. Follow the paws, sniff around with me, and help me collect them. If you find something shiny, drag it onto me. I might have a surprise for you!
 
-## Core Loop
+建议中文版含义：
 
-1. The user enters the app.
-2. `logoCanvas` appears on screen first.
-3. After the logo disappears, the puppy appears on the ground.
-4. A UI dialog bubble appears above the puppy's head for a self-introduction.
-5. A map button appears in the upper-right of the field of view. The mini-map is not shown continuously, to avoid blocking the main view.
-6. By default the user is in free roam: wander freely and naturally discover nearby attractions.
-7. When the user taps the map button in the upper-right and opens the big map, they can tap a paw-print marker to select a target attraction. Only then does the system enter navigation mode.
-8. When the user approaches an attraction, the corresponding virtual item fades in by distance: clearer when closer, more transparent when farther away.
-9. The user grabs the virtual item and drags it onto the puppy.
-10. While the user is grabbing an item, the puppy sits and waits.
-11. The item becomes a wearable accessory on the puppy.
-12. A 1–2 second shaking / surprise animation plays on screen.
-13. The surprise reward for that attraction is shown.
-14. The system returns to free roam; the user can continue collecting more items.
+> 嗨，我是 PuppyPath！这里每个小角落我都超熟。我把最喜欢的小宝贝藏在狗爪印附近啦。跟着我的爪印一起找找看，如果你发现了闪闪发光的东西，就把它拖到我身上吧，也许会有惊喜哦！
 
-## Puppy Opening Self-Introduction Copy
+文案语气方向：
 
-Recommended English version:
+- 可爱、有活力、带一点点调皮。
+- 说明小狗熟悉这个活动场地。
+- 说明狗爪印代表可以探索的景点。
+- 说明宝贝藏在景点附近。
+- 说明用户可以把找到的物品拖到小狗身上。
 
-> Hi, I'm PuppyPath! Follow my paw prints to find hidden treasures. Drag anything shiny onto me — there might be a surprise!
+## UI 模式
 
-Tone direction:
+### 启动模式
 
-- Cute, energetic, with a touch of playfulness.
-- Conveys that the puppy knows this event venue.
-- Conveys that paw prints mark attractions worth exploring.
-- Conveys that treasures are hidden near attractions.
-- Conveys that the user can drag found items onto the puppy.
+- 只显示 logo canvas。
+- 主交互 UI 在 logo 播放结束前隐藏。
+- 现有 `UIBootSequence` 可以复用并扩展。
 
-## UI Modes
+### 开场介绍模式
 
-### Boot Mode
+- 小狗出现在地面上。
+- 小狗头顶显示对话气泡。
+- 地图按钮显示在视界右上方。
+- 小狗介绍结束后，系统进入自由行走模式。
 
-- Only the logo canvas is shown.
-- Main interaction UI is hidden until the logo sequence finishes.
-- The existing `UIBootSequence` can be reused and extended.
+### 自由行走模式
 
-### Intro Mode
+- 顶部 UI 文案可以是：`随便逛逛吧`
+- 更可爱的版本可以是：`我们随便逛逛，看看能不能闻到宝贝的味道！`
+- 右上方只保留地图按钮，默认不显示地图内容，尽量不遮挡主视线。
+- 小狗保持在用户前方大约 1-3 m 的位置。
+- 小狗必须在黄色可行走区域内。
+- 小狗不能穿墙，也不能穿过不可行走区域。
+- 如果用户正前方有障碍物，小狗可以去左前方或右前方。
+- 小狗应尽量避免跑到用户身后，让用户一直能看见它。
+- 用户靠近景点时，该景点的虚拟物品可以按距离自动改变透明度。
 
-- The puppy appears on the ground.
-- A speech bubble is shown above the puppy's head.
-- The map button appears in the upper-right of the field of view.
-- After the puppy's introduction ends, the system enters free roam mode.
+### 地图选择模式
 
-### Free Roam Mode
+- 用户点击或触碰右上方地图按钮。
+- 地图按钮打开居中的完整大地图。
+- 狗爪 marker 代表各个景点。
+- 用户点击某个狗爪 marker 后才进入导航；如果用户不点 marker，则仍然保持自由行走状态。
+- 关闭或取消大地图时返回自由行走模式。
 
-- Top UI copy can be: `Free roam`
-- A cuter variant can be: `Let's wander around and see if we can sniff out some treasures!`
-- Only the map button remains in the upper-right; map content is hidden by default to minimize obstruction of the main view.
-- The puppy stays roughly 1–3 m ahead of the user.
-- The puppy must remain inside the yellow walkable area.
-- The puppy must not pass through walls or non-walkable areas.
-- If there is an obstacle directly ahead of the user, the puppy can move to the left-front or right-front instead.
-- The puppy should avoid running behind the user so it stays visible.
-- When the user approaches an attraction, that attraction's virtual item can change opacity automatically based on distance.
+### 导航模式
 
-### Map Selection Mode
+- 地面出现一条从用户当前位置附近通往目标景点的 line。
+- 小狗在前面带路。
+- 顶部 UI 文案：`前往 {景点名} 中...`
+- 导航模式 UI 必须提供一个明确的退出 / 取消导航按钮，例如：`退出导航`。
+- 用户点击退出导航后，系统清除地面路线，取消当前目标，小狗回到自由行走跟随状态。
+- 小狗仍然必须在可行走区域内，并保持在用户前方可见位置。
+- 当用户进入景点范围后，顶部 UI 改为：`已到达 {景点名}`
+- 几秒后系统自动切换回自由行走模式；如果当前景点物品正在交互，则以物品交互流程优先。
 
-- The user taps or touches the map button in the upper-right.
-- The map button opens a centered full-size big map.
-- Paw-print markers represent each attraction.
-- Navigation begins only after the user taps a paw-print marker; if no marker is tapped, free roam continues.
-- Closing or canceling the big map returns to free roam mode.
+### 景点物品交互模式
 
-### Navigation Mode
+- 当用户靠近景点时触发，例如进入 5 m 范围内。
+- 该景点的虚拟物品根据与用户的距离连续控制透明度，而不是简单开关显示。
+- 建议第一版距离透明度规则：
+  - 用户距离物品 3 m 以内：100% 显示。
+  - 用户距离物品 6 m 左右：50% 显示。
+  - 用户距离物品 10 m 以上：0% 显示。
+  - 3-10 m 之间使用平滑插值，避免透明度跳变。
+- 物品附近显示 UI 提示：`用手把它拖到狗狗身上，也许会有惊喜哦！`
+- 小狗切换为坐下等待的姿势。
+- 用户使用手势抓住物品并拖到小狗身上；当前版本不使用手柄。
+- 成功放到小狗身上后：
+  - 物品挂到小狗对应的饰品位置。
+  - 当前 session 内，小狗会一直保留这件饰品。
+  - 播放 1-2 秒 shaking / surprise 动画。
+  - 显示奖励 UI 或奖励内容。
 
-- A line appears on the ground from near the user's current position to the target attraction.
-- The puppy leads the way ahead.
-- Top UI copy: `Going to {attraction name}...`
-- Navigation mode UI must provide a clear exit / cancel navigation button, for example: `Exit navigation`.
-- When the user taps exit navigation, the system clears the ground route, cancels the current target, and the puppy returns to free-roam follow behavior.
-- The puppy must still stay within the walkable area and remain visible ahead of the user.
-- When the user enters the attraction range, the top UI changes to: `Arrived at {attraction name}`
-- After a few seconds the system automatically switches back to free roam mode; if an attraction item interaction is in progress, the item interaction flow takes priority.
+## 景点草案
 
-### Attraction Item Interaction Mode
+当前新版地图中，黄色圆点表示各景点虚拟物品的实际出现位置。景点 label 和物品出现点不一定完全重合，后续实现应以黄色圆点作为 collectible spawn point。
 
-- Triggered when the user approaches an attraction, for example within 5 m.
-- The attraction's virtual item opacity is controlled continuously by distance to the user, not by a simple on/off toggle.
-- Recommended first-version distance-opacity rules:
-  - User within 3 m of the item: 100% visible.
-  - User around 6 m from the item: 50% visible.
-  - User more than 10 m from the item: 0% visible.
-  - Use smooth interpolation between 3–10 m to avoid opacity jumps.
-- UI hint near the item: `Drag it onto the puppy with your hand — there might be a surprise!`
-- The puppy switches to a sitting-and-waiting pose.
-- The user grabs the item with hand tracking and drags it onto the puppy; the current version does not use controllers.
-- After successfully placing it on the puppy:
-  - The item attaches to the puppy's corresponding accessory slot.
-  - Within the current session, the puppy keeps wearing that accessory.
-  - Play a 1–2 second shaking / surprise animation.
-  - Show the reward UI or reward content.
-
-## Attraction Draft
-
-On the current new map, yellow dots mark the actual spawn positions for virtual items at each attraction. Attraction labels and item spawn points may not coincide exactly; implementation should treat the yellow dots as collectible spawn points.
-
-| Attraction / Item Point | Yellow Item Spawn on Map | Virtual Item Draft | Puppy Accessory Draft | Reward Draft |
+| 景点 / 物品点 | 地图中的黄色物品出现点 | 虚拟物品草案 | 小狗饰品草案 | 奖励草案 |
 | --- | --- | --- | --- | --- |
-| Chess | Upper-left area, yellow dot above the Chess marker | Chess piece | Small crown or chessboard hat | TBD |
-| Couch | Upper-left area, yellow dot below the Couch marker | Throw pillow or small blanket | Scarf | TBD |
-| Photo Wall | Mid-left area, yellow dot near the Photo Wall marker | Camera or photo frame | Glasses | TBD |
-| Goodies | Lower-left inset area, yellow dot near the Goodies marker | Snack bag | Bandana | TBD |
-| Book Wall | Upper-right mid corridor, yellow dot near the Book Wall marker | Bookmark, sticker, or badge | Cool sunglasses | TBD |
-| Tap Water | Bottom center-right, yellow dot near the Tap Water marker | Water drop, cup, or small kettle | Small bow tie or collar charm | TBD |
-| Ice Cream Shop | Yellow dot between Tap Water and Drink Shop, to the right of the gray bar; intended as the ice cream shop | Ice cream scoop or cone | Cone hat or colorful scarf | TBD |
-| Drink Shop | Lower-right area, yellow dot near the Fridge / drink shop marker on the right | Cola can or drink cup | Hat or collar charm | Free cola / drink reward |
-| Piano | Mid-lower right area, yellow dot near the Piano marker | Musical note | Bow tie | TBD |
-| Plants | Yellow dot inside the Plants dashed area at the lower-right | Small plant or leaf | Flower wreath or back accessory | TBD |
+| Chess | 左上区域，Chess 标记附近的上方黄色点 | 棋子 | 小皇冠或棋盘帽 | 待定 |
+| Couch | 左上区域，Couch 标记附近的下方黄色点 | 抱枕或小毯子 | 围巾 | 待定 |
+| Photo Wall | 左中区域，Photo Wall 标记附近的黄色点 | 相机或相框 | 眼镜 | 待定 |
+| Goodies | 左下内凹区域，Goodies 标记附近的黄色点 | 零食袋 | 领巾 | 待定 |
+| Book Wall | 右上中部走廊，Book Wall 标记附近的黄色点 | 书签、贴纸或徽章 | 酷酷墨镜 | 待定 |
+| Tap Water | 底部中间偏右，Tap Water 标记附近的黄色点 | 水滴、杯子或小水壶 | 小领结或项圈挂饰 | 待定 |
+| Ice Cream Shop | Tap Water 与 Drink Shop 之间、灰色横条右侧附近的黄色点；准备作为冰淇淋店 | 冰淇淋球或甜筒 | 甜筒帽或彩色围巾 | 待定 |
+| Drink Shop | 右下区域，右侧 Fridge / 饮料店标记附近的黄色点 | 可乐罐或饮料杯 | 帽子或项圈挂饰 | 免费可乐 / 饮料奖励 |
+| Piano | 右侧中下区域，Piano 标记附近的黄色点 | 音符 | 领结 | 待定 |
+| Plants | 右下角 Plants 虚线区域内的黄色点 | 小植物或叶子 | 花环或背饰 | 待定 |
 
-Reward details remain TBD because the user indicated they will be defined later.
+奖励细节先保留为待定，因为用户提到后续再 define。
 
-## Theme-Park Style Naming Scheme
+## 主题乐园风格命名方案
 
-The names below are the current recommended naming scheme for unifying map markers, navigation UI, puppy dialogue, and reward copy. The goal is for attractions to feel like stations in a theme park rather than plain office/venue labels. If the user confirms final names later, this table and the venue data document must be updated together.
+以下名称作为当前推荐命名方案，用于统一地图 marker、导航 UI、小狗对话和奖励文案的风格。原则是让景点更像主题乐园里的小站点，而不是普通办公室/场地标签。后续如果用户确认最终名称，需要同步更新本表和场地数据文档。
 
-| Map Original Marker / Item Point | Recommended English Display Name | Chinese Reference Name | Notes |
+| 地图原标记 / 物品点 | 推荐英文显示名 | 中文说明名 | 备注 |
 | --- | --- | --- | --- |
-| Chess | Checkmate Corner | 棋遇小屋 | Suited to chess pieces, crowns, strategy-themed rewards |
-| Couch | Cozy Couch Cove | 软乎乎沙发湾 | Suited to rest, throw pillows, scarves |
-| Photo Wall | Snapshot Studio | 咔嚓照相馆 | Suited to cameras, frames, glasses |
-| Goodies | Treat Trove | 甜甜补给站 | Suited to snack bags, stickers, small gifts |
-| Book Wall | Storybook Wall | 故事书墙 | Suited to bookmarks, badges, paper-style items |
-| Tap Water | Splash Stop | 汪汪补水站 | Suited to water drops, cups, small kettles |
-| Ice Cream Shop | Scoop Station | 冰淇淋小站 | Suited to cones, ice cream scoops, dessert rewards |
-| Drink Shop | Fizzy Fridge | 气泡饮料铺 | Suited to cola, drink vouchers |
-| Piano | Melody Corner | 音符小舞台 | Suited to musical notes, bow ties, music rewards |
-| Plants | Garden Patch | 小狗花园 | Suited to leaves, flower wreaths, nature-themed rewards |
+| Chess | Checkmate Corner | 棋遇小屋 | 适合棋子、皇冠、策略感奖励 |
+| Couch | Cozy Couch Cove | 软乎乎沙发湾 | 适合休息、抱枕、围巾 |
+| Photo Wall | Snapshot Studio | 咔嚓照相馆 | 适合相机、相框、眼镜 |
+| Goodies | Treat Trove | 甜甜补给站 | 适合零食袋、贴纸、小礼物 |
+| Book Wall | Storybook Wall | 故事书墙 | 适合书签、徽章、纸片类物品 |
+| Tap Water | Splash Stop | 汪汪补水站 | 适合水滴、杯子、小水壶 |
+| Ice Cream Shop | Scoop Station | 冰淇淋小站 | 适合甜筒、冰淇淋球、甜品奖励 |
+| Drink Shop | Fizzy Fridge | 气泡饮料铺 | 适合可乐、饮料券 |
+| Piano | Melody Corner | 音符小舞台 | 适合音符、领结、音乐奖励 |
+| Plants | Garden Patch | 小狗花园 | 适合叶子、花环、自然主题奖励 |
 
-## Design Principles
+## 设计原则
 
-- Venue accuracy first: the virtual walkable area must match the real yellow activity zone.
-- Puppy visibility first: the puppy should always feel present, easy to read, and not hidden behind the user.
-- Gentle guidance: navigation should feel like being led by the puppy, not commanded by a strict GPS arrow.
-- Collectible growth: every item collected must produce a visible change on the puppy.
-- Short feedback loop: show item, grab, wear, surprise, reward — this sequence must be fast and clear.
-- Lightweight UI: show only essential text while walking; put detailed choices in the big map or reward UI.
+- 场地准确优先：虚拟可行走区域必须匹配真实黄色活动区域。
+- 小狗可见优先：小狗应该始终有存在感、容易读懂、不要藏到用户身后。
+- 温和引导：导航感觉应该像被小狗带着走，而不是被一个严格 GPS 箭头命令。
+- 收集成长感：每收集一个物品，小狗都要产生可见变化。
+- 反馈闭环短：显示物品、抓取、穿戴、惊喜、奖励，这一套反馈要快速清晰。
+- UI 保持轻量：行走时只显示必要文字，详细选择放在大地图或奖励 UI 中。
 
-## 2026-07-01 Puppy Behavior Update
+## 2026-07-01 小狗行为更新
 
-- The puppy must always try to stay ahead of the user's movement direction, not run behind the user.
-- In free roam / wander mode, the puppy no longer judges whether the user is off-route and no longer reacts negatively when the user goes the wrong way.
-- While the user is moving, the puppy must not sit or wait just because the user has not fully stopped; it should keep walking or running to stay ahead of the user.
-- The puppy should detect the HMD's horizontal movement speed and move at roughly the same speed or slightly faster than the user.
-- With no navigation target, the puppy uses the user's HMD movement direction as forward; if the user is temporarily still, use head orientation as fallback.
-- In navigation mode, the puppy leads ahead along the venue pathfinding route.
-- When obstacles or non-walkable areas are ahead, the puppy cannot go straight through; it should choose an alternative target point within the walkable area.
-- When approaching a treasure / collectible spawn point, the puppy should bark happily toward the treasure, not give negative feedback toward the user.
-- The puppy can still have positive random behaviors such as happiness, curiosity, and sniffing, but these must not override the main rule of staying ahead of and visible to the user.
+- 小狗必须始终尽量在用户移动方向前方，而不是跑到用户身后。
+- 自由行走 / 随便逛逛模式下，小狗不再判断用户是否偏航，也不再因为用户走错而生气。
+- 用户移动时，小狗不要因为用户没有完全停下而坐下或等待；它应该一直走或跑，保持在用户前方。
+- 小狗应检测 HMD 的水平移动速度，并尽量以接近或略快于用户的速度移动。
+- 没有导航目标时，小狗使用用户 HMD 的移动方向作为前方；如果用户暂时静止，则使用头显朝向作为 fallback。
+- 导航模式下，小狗沿场地 pathfinding 路线在用户前方带路。
+- 前方有障碍或不可行走区域时，小狗不能直接过去，应选择可行走区域内的替代目标点。
+- 快接近宝藏 / collectible spawn point 时，小狗应开心地朝宝藏方向大叫，而不是朝用户发出负面反馈。
+- 小狗仍然可以有开心、好奇、嗅闻等正向随机行为，但不能影响“保持在用户前方和可见”的主规则。
 
-## 2026-07-01 Storyboard Flow Update
+## 2026-07-01 Storyboard Flow 更新
 
-Per the storyboard, the current V2 app flow is:
+根据 storyboard，当前 V2 app flow 调整为：
 
 ```text
 Boot / Logo
@@ -198,25 +184,25 @@ Boot / Logo
 -> FreeRoam
 ```
 
-Hidden developer / on-site calibration entry:
+隐藏开发者 / 现场校准入口：
 
 ```text
-Tap Reset / Adjust Orientation -> Boot or on-site calibration
+Tap Reset / Adjust Orientation -> Boot 或现场校准
 ```
 
-Important clarification: the current version removes `MiniMap`. Only the map button appears in the upper-right; full venue selection appears only in `BigMap`.
+重要澄清：当前版本取消 `MiniMap`。右上方只显示地图按钮，完整场地选择只出现在 `BigMap`。
 
-## Open Design Questions
+## 待确认设计问题
 
-- Precise physical origin when aligning Unity to the real venue. Prefer a fixed physical calibration point + Meta Quest Spatial Anchor / venue calibration flow; QR codes can assist recognition or manual confirmation but should not be the sole positioning basis.
-- Venue map orientation in Unity — which direction corresponds to Unity `+Z`.
-- Final attraction positions after the real map is updated.
-- Final virtual item models and puppy accessory attachment slots.
-- Final reward content for each attraction.
-- Whether rewards are purely visual, vouchers, QR codes, or require on-site staff coordination.
-- Confirmed: users use hand tracking, not controllers. The legacy PuppyPath already used pointing pinch; V2 adds grab on top of that.
-- Confirmed: collection progress does not need to persist across app restarts for now; only the current session's collection state is kept.
+- Unity 对齐真实场地时的精确物理原点。建议优先使用固定实体校准点 + Meta Quest Spatial Anchor / 场地校准流程，二维码可作为辅助识别或人工确认，不建议作为唯一定位依据。
+- 场地地图在 Unity 中的朝向，也就是哪一边对应 Unity `+Z`。
+- 真实地图更新后的最终景点位置。
+- 最终虚拟物品模型和小狗饰品插槽。
+- 每个景点的最终奖励内容。
+- 奖励是纯视觉、兑换券、二维码，还是需要现场工作人员配合。
+- 已确认：用户使用手势追踪，不使用手柄。旧版 PuppyPath 已使用 pointing pinch，V2 需要在此基础上增加 grab。
+- 已确认：暂时不需要在 app 重启后保留收集进度，只保留当前 session 内的收集状态。
 
-## Required Documentation Sync Rules
+## 必须遵守的文档同步规则
 
-When any requirement changes, this document must be updated in the same step as code or scene changes. In particular, update this document when attractions, copy, rewards, interaction ranges, puppy behavior, or user flow change.
+当任何需求发生变化时，必须在修改代码或场景的同一步骤里同步更新本文档。尤其是景点、文案、奖励、交互范围、小狗行为、用户流程发生变化时，必须更新本文档。
