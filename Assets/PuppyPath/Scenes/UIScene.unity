@@ -2720,7 +2720,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c8875b922a9fce42a099b7a024b5020, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DogGuideController
-  dogPrefab: {fileID: 5764794651156842405, guid: 759e5088c1bc2614a827226aaaea4400, type: 3}
+  dogPrefab: {fileID: 5764794651156842405, guid: f9207f25ccd1c2a4f8f4a3879c9d8061, type: 3}
   barkClips:
   - {fileID: 8300000, guid: 39563817b098dce40a139db93df06a25, type: 3}
   - {fileID: 8300000, guid: d6d4409b620715e46adb545c8a37bd93, type: 3}
