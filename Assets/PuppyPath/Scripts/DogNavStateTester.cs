@@ -109,5 +109,11 @@ public class DogNavStateTester : MonoBehaviour
                 Vector3.forward
             );
         }
+
+        if (keyboard[Key.H].wasPressedThisFrame)
+        {
+            Debug.Log("Test: Force Happy animation preview");
+            dogGuideController.ForcePlayHappyPreview();
+        }
     }
 }
