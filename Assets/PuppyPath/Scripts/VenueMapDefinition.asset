@@ -15,8 +15,8 @@ MonoBehaviour:
   mapTexture: {fileID: 2800000, guid: 8f3309e3ea7188b46bee6eb614df458f, type: 3}
   mapPixelSize: {x: 2468, y: 2160}
   syncMapPixelSizeFromImportedTexture: 0
-  mapOriginPixel: {x: 1002.2509, y: 835.61066}
-  originWorldPosition: {x: 7.8193455, y: 0, z: -0.43109196}
+  mapOriginPixel: {x: 413.841, y: 700.93945}
+  originWorldPosition: {x: -8.704257, y: 0, z: 3.3507218}
   venueYawDegrees: 0
   scalePointAPixel: {x: 1003.90533, y: 695.5799}
   scalePointBPixel: {x: 1004.8342, y: 852.5268}
@@ -118,36 +118,6 @@ MonoBehaviour:
     chineseDisplayName: 
     collectibleSpawnPixel: {x: 2339.0002, y: 1935.4099}
     arrivalPixel: {x: 2339.0002, y: 1935.4099}
-    hasCustomArrivalPixel: 0
-    fullAlphaDistanceMeters: 3
-    halfAlphaDistanceMeters: 6
-    hiddenDistanceMeters: 10
-  - id: origin_test_1
-    sourceMapLabel: Origin Test 1
-    displayName: Biscuit Bounce Booth
-    chineseDisplayName: "\u997C\u5E72\u8E66\u8E66\u7AD9"
-    collectibleSpawnPixel: {x: 895.6513, y: 706.0702}
-    arrivalPixel: {x: 895.6513, y: 706.0702}
-    hasCustomArrivalPixel: 0
-    fullAlphaDistanceMeters: 3
-    halfAlphaDistanceMeters: 6
-    hiddenDistanceMeters: 10
-  - id: origin_test_2
-    sourceMapLabel: Origin Test 2
-    displayName: Wagging Wonder Stop
-    chineseDisplayName: "\u6447\u5C3E\u60CA\u559C\u7AD9"
-    collectibleSpawnPixel: {x: 940.5721, y: 800.00037}
-    arrivalPixel: {x: 940.5721, y: 800.00037}
-    hasCustomArrivalPixel: 0
-    fullAlphaDistanceMeters: 3
-    halfAlphaDistanceMeters: 6
-    hiddenDistanceMeters: 10
-  - id: origin_test_3
-    sourceMapLabel: Origin Test 3
-    displayName: Sniffle Spark Station
-    chineseDisplayName: "\u55C5\u55C5\u95EA\u5149\u7AD9"
-    collectibleSpawnPixel: {x: 1038.951, y: 677.1978}
-    arrivalPixel: {x: 1038.951, y: 677.1978}
     hasCustomArrivalPixel: 0
     fullAlphaDistanceMeters: 3
     halfAlphaDistanceMeters: 6
@@ -465,16 +435,12 @@ MonoBehaviour:
       - top_02b
       - photo_wall_lane
       - top_01
-      - origin_test_1_arrival
     - id: top_02
       mapPixel: {x: 957.01355, y: 656.22943}
       neighborNodeIds:
       - top_01b
       - top_02b
       - top_03
-      - origin_test_1_arrival
-      - origin_test_2_arrival
-      - origin_test_3_arrival
     - id: top_02b
       mapPixel: {x: 1136.1017, y: 643.4023}
       neighborNodeIds:
@@ -482,7 +448,6 @@ MonoBehaviour:
       - top_02
       - top_03
       - top_03b
-      - origin_test_3_arrival
     - id: top_03
       mapPixel: {x: 1259.4692, y: 657.90576}
       neighborNodeIds:
@@ -502,21 +467,3 @@ MonoBehaviour:
       - top_03
       - top_03b
       - right_upper
-    - id: origin_test_1_arrival
-      mapPixel: {x: 894.73926, y: 705.17175}
-      neighborNodeIds:
-      - top_02
-      - origin_test_2_arrival
-      - origin_test_3_arrival
-      - top_01b
-    - id: origin_test_2_arrival
-      mapPixel: {x: 942.5056, y: 793.07245}
-      neighborNodeIds:
-      - top_02
-      - origin_test_1_arrival
-    - id: origin_test_3_arrival
-      mapPixel: {x: 1045.5452, y: 688.4674}
-      neighborNodeIds:
-      - top_02
-      - top_02b
-      - origin_test_1_arrival

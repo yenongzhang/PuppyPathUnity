@@ -141,6 +141,7 @@ public class DogGuideController : MonoBehaviour
     [SerializeField] private bool constrainMovementToWalkableMap = true;
     [SerializeField] private int movementWalkabilitySamples = 12;
     [SerializeField] private float interactionStandOffRadius = 0.55f;
+    [SerializeField] private float treasureApproachWalkSpeed = 0.52f;
     [SerializeField] private float dogBodyRadius = 0.22f;
     [SerializeField] private float dogBodyHeight = 0.35f;
     [SerializeField] private LayerMask movementBlockerMask = ~0;
@@ -210,6 +211,8 @@ public class DogGuideController : MonoBehaviour
     public event System.Action<GameObject> DogSpawned;
 
     public GameObject CurrentDog => currentDog;
+    public bool IsInteractionHold => interactionHold;
+    public bool LastInteractionWalkReachedTarget { get; private set; }
 
     /// <summary>Public passthrough to the existing animation crossfade path, for V2 callers (e.g. RewardRevealController) that need to trigger a one-shot state like "HappyStart" without duplicating CrossFade logic.</summary>
     public void PlayOneShotState(string stateName)
@@ -388,6 +391,15 @@ public class DogGuideController : MonoBehaviour
             StopCurrentBehavior();
     }
 
+    public void PrepareForTreasureWalk()
+    {
+        interactionHold = true;
+        SetPositiveRandomBehaviorsSuppressed(true);
+        StopAllBehaviors();
+        currentState = NavigationRuntimeController.NavState.Neutral;
+        hasGuidanceTargetOverride = false;
+    }
+
     public void SetInteractionHold(bool hold, string holdAnimationState = null)
     {
         interactionHold = hold;
@@ -409,14 +421,12 @@ public class DogGuideController : MonoBehaviour
         string arrivalAnimationState = null,
         float maxDuration = 12f)
     {
+        LastInteractionWalkReachedTarget = false;
+
         if (currentDog == null)
             yield break;
 
-        interactionHold = true;
-        SetPositiveRandomBehaviorsSuppressed(true);
-
-        if (isPerformingBehavior && !currentBehaviorIsStateReaction)
-            StopCurrentBehavior();
+        PrepareForTreasureWalk();
 
         Vector3 lookTarget = targetPosition;
         lookTarget.y = currentDog.transform.position.y;
@@ -433,7 +443,7 @@ public class DogGuideController : MonoBehaviour
         int stuckFrames = 0;
         Vector3 lastPosition = currentDog.transform.position;
         const float stuckMoveThreshold = 0.01f;
-        const int stuckFrameLimit = 24;
+        const int stuckFrameLimit = 48;
 
         while (currentDog != null)
         {
@@ -441,6 +451,7 @@ public class DogGuideController : MonoBehaviour
             segmentTarget.y = currentDog.transform.position.y;
 
             float distance = GetFlatDistance(currentDog.transform.position, segmentTarget);
+            bool onFinalSegment = routeIndex >= interactionRoute.Count - 1;
 
             if (distance <= safeStopDistance)
             {
@@ -452,17 +463,24 @@ public class DogGuideController : MonoBehaviour
                     continue;
                 }
 
+                LastInteractionWalkReachedTarget = true;
                 break;
             }
 
-            if (elapsed >= maxDuration || (routeIndex >= interactionRoute.Count - 1 && distance <= closeEnoughDistance))
+            if (elapsed >= maxDuration)
                 break;
 
-            string moveState = distance > 0.75f ? trotState : walkState;
-            float moveSpeed = distance > 0.75f ? trotMoveSpeed : walkMoveSpeed;
-            float animationGate = distance > 0.75f ? minDistanceForTrotAnimation : minDistanceForWalkAnimation;
+            if (onFinalSegment && distance <= closeEnoughDistance)
+            {
+                LastInteractionWalkReachedTarget = true;
+                break;
+            }
 
-            TryPlayLocomotionAndMove(segmentTarget, moveState, moveSpeed, animationGate);
+            TryPlayLocomotionAndMove(
+                segmentTarget,
+                walkState,
+                treasureApproachWalkSpeed,
+                minDistanceForWalkAnimation);
 
             float moved = GetFlatDistance(lastPosition, currentDog.transform.position);
             if (moved < stuckMoveThreshold)
@@ -486,6 +504,12 @@ public class DogGuideController : MonoBehaviour
             lastPosition = currentDog.transform.position;
             elapsed += Time.deltaTime;
             yield return null;
+        }
+
+        if (!LastInteractionWalkReachedTarget && currentDog != null)
+        {
+            float remainingDistance = GetFlatDistance(currentDog.transform.position, approachTarget);
+            LastInteractionWalkReachedTarget = remainingDistance <= closeEnoughDistance;
         }
 
         if (currentDog != null)
@@ -827,6 +851,11 @@ public class DogGuideController : MonoBehaviour
     }
 
     private void StopCurrentBehavior()
+    {
+        StopAllBehaviors();
+    }
+
+    private void StopAllBehaviors()
     {
         if (behaviorRoutine != null)
         {

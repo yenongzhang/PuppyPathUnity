@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEngine.InputSystem;
+#endif
+
 [ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
@@ -22,11 +26,26 @@ public class VenueWalkableGridVisualizer : MonoBehaviour
     [SerializeField] private Color routeGridColor = new Color(0.66f, 0.32f, 1f, 0.72f);
     [SerializeField] private float routeHighlightRadiusMeters = 0.45f;
 
+    [Header("Runtime Visibility")]
+    [Tooltip("Hold this controller button to reveal the walkable grid in Play mode.")]
+    [SerializeField] private OVRInput.RawButton showGridButton = OVRInput.RawButton.Start;
+    [SerializeField] private float showGridHoldSeconds = 0.35f;
+    [Tooltip("Also accept the left-controller menu / alternate button used by some Quest builds.")]
+    [SerializeField] private bool alsoAcceptAlternateShowButton = true;
+    [SerializeField] private OVRInput.RawButton alternateShowGridButton = OVRInput.RawButton.Back;
+    [SerializeField] private OVRInput.Controller showGridControllerMask = OVRInput.Controller.All;
+#if UNITY_EDITOR
+    [SerializeField] private Key showGridEditorFallbackKey = Key.M;
+#endif
+
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
     private Material runtimeMaterial;
     private Material routeRuntimeMaterial;
     private readonly List<Vector2> routeMapPixels = new List<Vector2>();
+    private float showGridHoldTimer;
+    private bool gridVisible;
+    private bool lastAppliedGridVisible = true;
 
     public VenueMapDefinition MapDefinition
     {
@@ -40,12 +59,77 @@ public class VenueWalkableGridVisualizer : MonoBehaviour
 
     private void OnEnable()
     {
+        if (Application.isPlaying)
+        {
+            gridVisible = false;
+            lastAppliedGridVisible = false;
+            showGridHoldTimer = 0f;
+        }
+
         Rebuild();
     }
 
     private void OnValidate()
     {
         Rebuild();
+    }
+
+    private void LateUpdate()
+    {
+        if (!Application.isPlaying)
+            return;
+
+        UpdateGridVisibilityFromInput();
+
+        if (gridVisible == lastAppliedGridVisible)
+            return;
+
+        lastAppliedGridVisible = gridVisible;
+        ApplyMaterial();
+        if (meshRenderer != null)
+            meshRenderer.enabled = gridVisible;
+    }
+
+    private void UpdateGridVisibilityFromInput()
+    {
+        bool pressed = IsShowGridButtonHeld();
+        if (pressed)
+        {
+            showGridHoldTimer += Time.unscaledDeltaTime;
+            gridVisible = showGridHoldTimer >= showGridHoldSeconds;
+            return;
+        }
+
+        showGridHoldTimer = 0f;
+        gridVisible = false;
+    }
+
+    private bool IsShowGridButtonHeld()
+    {
+        if (OVRInput.Get(showGridButton, showGridControllerMask))
+            return true;
+
+        if (alsoAcceptAlternateShowButton && OVRInput.Get(alternateShowGridButton, showGridControllerMask))
+            return true;
+
+#if UNITY_EDITOR
+        if (Keyboard.current != null && Keyboard.current[showGridEditorFallbackKey].isPressed)
+            return true;
+#endif
+
+        return false;
+    }
+
+    private Color GetEffectiveGridColor(Color baseColor)
+    {
+        if (!Application.isPlaying)
+            return baseColor;
+
+        Color color = baseColor;
+        if (!gridVisible)
+            color.a = 0f;
+
+        return color;
     }
 
     [ContextMenu("Rebuild Walkable Grid")]
@@ -117,6 +201,9 @@ public class VenueWalkableGridVisualizer : MonoBehaviour
         mesh.RecalculateBounds();
 
         ApplyMaterial();
+
+        if (Application.isPlaying && meshRenderer != null)
+            meshRenderer.enabled = gridVisible;
     }
 
     public void ShowRoutePixels(IList<Vector2> mapPixels)
@@ -225,10 +312,11 @@ public class VenueWalkableGridVisualizer : MonoBehaviour
         if (materialToUse == null)
             return;
 
+        Color effectiveGridColor = GetEffectiveGridColor(gridColor);
         if (materialToUse.HasProperty("_Color"))
-            materialToUse.color = gridColor;
+            materialToUse.color = effectiveGridColor;
         if (materialToUse.HasProperty("_BaseColor"))
-            materialToUse.SetColor("_BaseColor", gridColor);
+            materialToUse.SetColor("_BaseColor", effectiveGridColor);
 
         ConfigureTransparentMaterial(materialToUse);
         Material routeMaterialToUse = routeOverrideMaterial;
@@ -237,10 +325,11 @@ public class VenueWalkableGridVisualizer : MonoBehaviour
 
         if (routeMaterialToUse != null)
         {
+            Color effectiveRouteColor = GetEffectiveGridColor(routeGridColor);
             if (routeMaterialToUse.HasProperty("_Color"))
-                routeMaterialToUse.color = routeGridColor;
+                routeMaterialToUse.color = effectiveRouteColor;
             if (routeMaterialToUse.HasProperty("_BaseColor"))
-                routeMaterialToUse.SetColor("_BaseColor", routeGridColor);
+                routeMaterialToUse.SetColor("_BaseColor", effectiveRouteColor);
             ConfigureTransparentMaterial(routeMaterialToUse);
         }
 

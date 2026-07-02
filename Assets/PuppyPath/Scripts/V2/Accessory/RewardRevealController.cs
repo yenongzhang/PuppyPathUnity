@@ -55,6 +55,11 @@ public class RewardRevealController : MonoBehaviour
         ShowRewardPanel(attractionId);
     }
 
+    public void SetRewardDefinitions(IReadOnlyList<RewardDefinition> definitions)
+    {
+        rewards = definitions == null ? new List<RewardDefinition>() : new List<RewardDefinition>(definitions);
+    }
+
     public bool ApplyRewardEffects(string attractionId)
     {
         RewardDefinition definition = FindReward(attractionId);

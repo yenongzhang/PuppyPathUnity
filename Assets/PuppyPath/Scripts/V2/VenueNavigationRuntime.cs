@@ -65,6 +65,7 @@ public class VenueNavigationRuntime : MonoBehaviour
     private Vector3 previousUserPosition;
     private Vector3 lastRepathUserPosition;
     private bool dogGuidingStarted;
+    private bool suppressGuidanceUpdates;
 
     private void Start()
     {
@@ -77,6 +78,9 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     private void Update()
     {
+        if (suppressGuidanceUpdates)
+            return;
+
         if (IsFreeRoaming && !IsNavigating)
         {
             UpdateFreeRoamDog();
@@ -185,6 +189,12 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     public void StopNavigation()
     {
+        StopNavigationOnly();
+        StopDogGuiding(false);
+    }
+
+    public void StopNavigationOnly()
+    {
         IsNavigating = false;
         CurrentDestinationAttractionId = null;
         CurrentDestinationDisplayName = null;
@@ -200,9 +210,19 @@ public class VenueNavigationRuntime : MonoBehaviour
         if (routeLineController != null)
             routeLineController.ClearRoute();
 
-        StopDogGuiding(false);
         ClearDogRuntimeWaypoints();
         SetState(NavigationRuntimeController.NavState.Neutral);
+    }
+
+    public void SetGuidanceUpdatesSuppressed(bool suppressed)
+    {
+        suppressGuidanceUpdates = suppressed;
+
+        if (suppressed)
+            return;
+
+        if (!IsNavigating && keepDogInFreeRoam)
+            StartFreeRoamGuiding();
     }
 
     public void StartFreeRoamGuiding()
@@ -376,7 +396,10 @@ public class VenueNavigationRuntime : MonoBehaviour
 
     private void ApplyFreeRoamDogTarget()
     {
-        if (dogGuideController == null || xrCamera == null)
+        if (suppressGuidanceUpdates || dogGuideController == null || xrCamera == null)
+            return;
+
+        if (dogGuideController.IsInteractionHold)
             return;
 
         Vector3 direction = CurrentRecommendedDirection;

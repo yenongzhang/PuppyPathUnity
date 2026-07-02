@@ -8,9 +8,13 @@ public class VenueCollectibleSpawner : MonoBehaviour
     [Serializable]
     public class Placement
     {
+        [Tooltip("VenueMapDefinition attraction id, e.g. chess, photo_wall.")]
         public string venueAttractionId;
         public RewardDefinition reward;
     }
+
+    public IReadOnlyList<Placement> ExplicitPlacements => explicitPlacements;
+    public VenueMapDefinition MapDefinition => mapDefinition;
 
     [Header("References")]
     [SerializeField] private VenueMapDefinition mapDefinition;
@@ -19,13 +23,16 @@ public class VenueCollectibleSpawner : MonoBehaviour
     [SerializeField] private Transform collectibleParent;
     [SerializeField] private RewardRevealController rewardRevealController;
     [SerializeField] private DogGuideController dogGuideController;
+    [SerializeField] private VenueNavigationRuntime venueNavigationRuntime;
     [SerializeField] private NavigationHUDController hudController;
     [SerializeField] private VenueMapUiController mapUiController;
 
     [Header("Rewards")]
     [SerializeField] private List<RewardDefinition> rewards = new List<RewardDefinition>();
     [SerializeField] private List<Placement> explicitPlacements = new List<Placement>();
-    [SerializeField] private bool cycleRewardsAcrossAttractions = true;
+    [Tooltip("When enabled, only attractions listed in Explicit Placements receive collectibles.")]
+    [SerializeField] private bool useExplicitPlacementsOnly = true;
+    [SerializeField] private bool cycleRewardsAcrossAttractions;
 
     [Header("Spawn")]
     [SerializeField] private bool rebuildOnStart = true;
@@ -49,7 +56,7 @@ public class VenueCollectibleSpawner : MonoBehaviour
     [SerializeField] private bool useFlatDiscoveryDistance = true;
     [SerializeField] private float dogStopDistance = 0.35f;
     [SerializeField] private float hudMessageSeconds = 3.0f;
-    [SerializeField] private float maxDogWalkSeconds = 10.0f;
+    [SerializeField] private float maxDogWalkSeconds = 25.0f;
     [SerializeField] private string dogTreasureArrivalState = "";
 
     private readonly List<SpawnedCollectible> spawnedCollectibles = new List<SpawnedCollectible>();
@@ -68,6 +75,9 @@ public class VenueCollectibleSpawner : MonoBehaviour
     {
         if (mapUiController == null)
             mapUiController = FindFirstObjectByType<VenueMapUiController>();
+
+        if (venueNavigationRuntime == null)
+            venueNavigationRuntime = FindFirstObjectByType<VenueNavigationRuntime>();
 
         if (rebuildOnStart)
             StartCoroutine(RebuildWhenVenueReady());
@@ -139,6 +149,13 @@ public class VenueCollectibleSpawner : MonoBehaviour
 
         spawned.discoveryStarted = true;
         BeginTreasureRevealSequence();
+
+        if (dogGuideController != null)
+            dogGuideController.PrepareForTreasureWalk();
+
+        if (venueNavigationRuntime != null)
+            venueNavigationRuntime.SetGuidanceUpdatesSuppressed(true);
+
         StartCoroutine(DiscoverCollectibleRoutine(spawned));
     }
 
@@ -213,6 +230,9 @@ public class VenueCollectibleSpawner : MonoBehaviour
     {
         if (explicitByVenue.TryGetValue(venueAttractionId, out RewardDefinition explicitReward))
             return explicitReward;
+
+        if (useExplicitPlacementsOnly)
+            return null;
 
         if (rewards == null || rewards.Count == 0)
             return null;
@@ -302,8 +322,7 @@ public class VenueCollectibleSpawner : MonoBehaviour
     {
         if (spawned == null || spawned.spawnPoint == null || spawned.grabHandler == null)
         {
-            if (hudController != null)
-                hudController.EndTreasureRevealSequence();
+            FinishTreasureRevealSequence();
             yield break;
         }
 
@@ -314,18 +333,30 @@ public class VenueCollectibleSpawner : MonoBehaviour
         if (hudController != null)
             hudController.ShowTreasureFoundMessage(placeName);
 
-        bool dogWalkFinished = dogGuideController == null || dogGuideController.CurrentDog == null;
-        if (!dogWalkFinished)
-            StartCoroutine(RunDogWalkThenFlag(spawned.spawnPoint.position, () => dogWalkFinished = true));
-
-        float dogWalkElapsed = 0f;
-        while (!dogWalkFinished && dogWalkElapsed < maxDogWalkSeconds)
+        if (dogGuideController != null && dogGuideController.CurrentDog != null)
         {
-            dogWalkElapsed += Time.deltaTime;
-            yield return null;
+            string arrivalState = string.IsNullOrWhiteSpace(dogTreasureArrivalState) ? null : dogTreasureArrivalState;
+            yield return dogGuideController.WalkToInteractionTarget(
+                spawned.spawnPoint.position,
+                dogStopDistance,
+                arrivalState,
+                maxDogWalkSeconds);
         }
 
-        spawned.grabHandler.TryCollectEffectsOnly();
+        bool reachedGift = dogGuideController == null
+            || dogGuideController.CurrentDog == null
+            || dogGuideController.LastInteractionWalkReachedTarget;
+
+        if (!reachedGift && dogGuideController != null && dogGuideController.CurrentDog != null)
+        {
+            float distanceToGift = GetFlatDistance(
+                dogGuideController.CurrentDog.transform.position,
+                spawned.spawnPoint.position);
+            reachedGift = distanceToGift <= dogStopDistance + 0.75f;
+        }
+
+        if (reachedGift)
+            spawned.grabHandler.TryCollectEffectsOnly();
 
         float hudElapsed = 0f;
         while (hudElapsed < hudMessageSeconds)
@@ -337,20 +368,19 @@ public class VenueCollectibleSpawner : MonoBehaviour
         if (rewardRevealController != null && !string.IsNullOrEmpty(spawned.grabHandler.AttractionId))
             rewardRevealController.ShowRewardPanel(spawned.grabHandler.AttractionId);
 
-        if (dogGuideController != null)
-            dogGuideController.SetInteractionHold(false);
+        FinishTreasureRevealSequence();
     }
 
-    private IEnumerator RunDogWalkThenFlag(Vector3 targetPosition, System.Action onFinished)
+    private void FinishTreasureRevealSequence()
     {
-        string arrivalState = string.IsNullOrWhiteSpace(dogTreasureArrivalState) ? null : dogTreasureArrivalState;
-        yield return dogGuideController.WalkToInteractionTarget(
-            targetPosition,
-            dogStopDistance,
-            arrivalState,
-            maxDogWalkSeconds);
+        if (dogGuideController != null)
+            dogGuideController.SetInteractionHold(false);
 
-        onFinished?.Invoke();
+        if (venueNavigationRuntime != null)
+            venueNavigationRuntime.SetGuidanceUpdatesSuppressed(false);
+
+        if (hudController != null)
+            hudController.EndTreasureRevealSequence();
     }
 
     private GameObject CreateVisual(RewardDefinition reward, Transform parent)
@@ -507,6 +537,70 @@ public class VenueCollectibleSpawner : MonoBehaviour
         a.y = 0f;
         b.y = 0f;
         return Vector3.Distance(a, b);
+    }
+
+    public void SetPlacement(string venueAttractionId, RewardDefinition reward)
+    {
+        if (string.IsNullOrWhiteSpace(venueAttractionId))
+            return;
+
+        for (int i = 0; i < explicitPlacements.Count; i++)
+        {
+            Placement placement = explicitPlacements[i];
+            if (placement == null || placement.venueAttractionId != venueAttractionId)
+                continue;
+
+            placement.reward = reward;
+            return;
+        }
+
+        explicitPlacements.Add(new Placement
+        {
+            venueAttractionId = venueAttractionId,
+            reward = reward
+        });
+    }
+
+    public List<RewardDefinition> GetDistinctConfiguredRewards()
+    {
+        List<RewardDefinition> distinct = new List<RewardDefinition>();
+        HashSet<RewardDefinition> seen = new HashSet<RewardDefinition>();
+
+        if (explicitPlacements != null)
+        {
+            foreach (Placement placement in explicitPlacements)
+            {
+                if (placement?.reward == null || !seen.Add(placement.reward))
+                    continue;
+
+                distinct.Add(placement.reward);
+            }
+        }
+
+        if (distinct.Count == 0 && rewards != null)
+        {
+            foreach (RewardDefinition reward in rewards)
+            {
+                if (reward == null || !seen.Add(reward))
+                    continue;
+
+                distinct.Add(reward);
+            }
+        }
+
+        return distinct;
+    }
+
+    public void SyncRewardRevealControllerRewards()
+    {
+        if (rewardRevealController == null)
+            return;
+
+        rewardRevealController.SetRewardDefinitions(GetDistinctConfiguredRewards());
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(rewardRevealController);
+#endif
     }
 
     private static void DestroySpawned(GameObject spawned)

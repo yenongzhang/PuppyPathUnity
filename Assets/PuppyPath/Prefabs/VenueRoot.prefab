@@ -457,6 +457,12 @@ MonoBehaviour:
   gridColor: {r: 1, g: 0.82, b: 0.08, a: 0.42}
   routeGridColor: {r: 0.66, g: 0.32, b: 1, a: 0.72}
   routeHighlightRadiusMeters: 0.45
+  showGridButton: 1
+  showGridHoldSeconds: 0.35
+  alsoAcceptAlternateShowButton: 1
+  alternateShowGridButton: 2
+  showGridControllerMask: -1
+  showGridEditorFallbackKey: 14
 --- !u!1 &6780506138644505158
 GameObject:
   m_ObjectHideFlags: 0

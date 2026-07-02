@@ -303,6 +303,18 @@ public class NavigationController : MonoBehaviour
         if (arrivalFreeRoamRoutine != null)
             StopCoroutine(arrivalFreeRoamRoutine);
 
+        if (treasureDiscoveryStarted)
+        {
+            if (venueNavigationRuntime != null)
+                venueNavigationRuntime.StopNavigationOnly();
+
+            if (previewController != null)
+                previewController.ClearAll();
+
+            HideDestinationBeacon();
+            return;
+        }
+
         if (arrivalFreeRoamDelay <= 0f)
             StopNavigationAndReturnToFreeRoam();
         else
